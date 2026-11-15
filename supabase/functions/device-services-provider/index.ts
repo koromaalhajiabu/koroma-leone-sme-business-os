@@ -10,14 +10,15 @@ Deno.serve(async(req)=>{
   const {data:{user},error:userErr}=await userClient.auth.getUser();
   if(userErr||!user) return reply({ok:false,error:"Sign in required."},401);
   const body=await req.json();
+  const {data:isDeveloper,error:developerError}=await userClient.rpc("is_platform_developer");
+  if(developerError||isDeveloper!==true) return reply({ok:false,error:"Only the registered White Lion platform developer can manage device-service providers."},403);
   if(body.action==="verify_servicecoded_secret") {
    const configured=Boolean(Deno.env.get("SERVICECODED_API_KEY")?.trim());
    return reply({ok:true,provider:"ServiceCoded",secret_configured:configured,secret_value_exposed:false});
   }
   const businessId=String(body.business_id||""), provider=String(body.provider||"");
   if(body.action!=="sync_catalogue"||!businessId) return reply({ok:false,error:"Invalid request."},400);
-  const {data:member,error:memberErr}=await userClient.from("business_members").select("role").eq("business_id",businessId).eq("user_id",user.id).maybeSingle();
-  if(memberErr||!member||!["owner"].includes(String(member.role).toLowerCase())) return reply({ok:false,error:"Owner, admin or manager access required."},403);
+  if(!businessId) return reply({ok:false,error:"Business ID is required."},400);
   let services:any[]=[], providerName="", currency="USD";
   if(provider==="devicedecoded"){
    providerName="DeviceDecoded"; currency="CREDITS"; const response=await fetch("https://devicedecoded.com/api/v1/checks/services",{headers:{Accept:"application/json"}});
