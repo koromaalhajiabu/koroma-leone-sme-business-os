@@ -1,6 +1,7 @@
 begin;
 alter table public.phone_unlocking_provider_services add column if not exists provider_key text not null default 'legacy_mobile_unlock';
 update public.phone_unlocking_provider_services set is_active=false where provider_key='legacy_mobile_unlock';
+alter table public.phone_unlocking_provider_services drop constraint if exists phone_unlocking_provider_services_business_id_provider_service_type_provider_service_id_key;
 drop index if exists public.phone_unlocking_provider_services_business_idx;
 create unique index if not exists phone_unlocking_provider_services_provider_unique on public.phone_unlocking_provider_services(business_id,provider_key,provider_service_type,provider_service_id);
 create index if not exists phone_unlocking_provider_services_business_idx on public.phone_unlocking_provider_services(business_id,provider_key,is_active,provider_group,service_name);
