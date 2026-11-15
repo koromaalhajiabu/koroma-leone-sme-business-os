@@ -18,8 +18,8 @@ async function start(){
   if(error)throw error;
   if(!data?.ok)throw new Error(data?.message||'This store is unavailable.');
   store=data.store;services=data.services||[];
-  $('storeName').textContent=store.display_name||'White Lion Device Services';
-  $('storeDescription').textContent=store.description||'Choose a device service and place your order without creating an account.';
+  $('storeName').textContent='WELCOME TO WHITE LION DEVICE SERVICES!';
+  $('storeDescription').textContent='Need professional phone IMEI checks and authorised phone unlocking and device services? We’ve got you covered!';
   $('storeContact').textContent=[store.contact_phone,store.contact_email].filter(Boolean).join(' · ');
   $('serviceId').innerHTML='<option value="">Choose a service</option>'+services.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.service_name)+' — '+esc(money(s.price,store.currency_code))+'</option>').join('');
   $('services').innerHTML=services.length?services.map(s=>'<article class="service"><h3>'+esc(s.service_name)+'</h3><p>'+esc(s.description||'Professional device service request.')+'</p><div class="price">'+esc(money(s.price,store.currency_code))+'</div><button type="button" data-choose="'+esc(s.id)+'">Order this service</button></article>').join(''):'<p class="muted">No services are currently published. Please check again later.</p>';
