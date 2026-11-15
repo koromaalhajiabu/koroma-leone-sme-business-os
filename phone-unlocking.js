@@ -53,7 +53,7 @@
           <span class="wlu-muted" id="wluWorkspace">No workspace selected</span>
         </div>
         <div id="wluStatus" class="wlu-status" role="status" aria-live="polite">Waiting for a business workspace…</div>
-        <div class="wlu-provider-tools"><button id="wluTestProvider" type="button" class="secondary">Provider connection status</button><span id="wluProviderResult" class="wlu-muted" role="status">Provider API not connected</span></div>
+        <div class="wlu-provider-tools"><strong>Multi-provider connection hub</strong><span id="wluProviderResult" class="wlu-muted" role="status">Legacy Mobile-Unlock API retired. Use the provider selector below.</span></div>
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
@@ -396,26 +396,12 @@
     if(Number(order.amount_paid)<Number(order.service_price)) return say('The customer must pay the full order amount before approval.',true);
     if(!['received','quoted','awaiting_payment'].includes(order.status)) return say('This order is not eligible for approval.',true);
     if((order.approval_status||'pending')!=='pending') return say('This order has already been reviewed.',true);
-    const mapped=false;
-    const promptText=mapped?'Approve this order and submit it to Mobile-Unlock now? The provider may deduct wallet credit.':'Approve this order for manual processing? It has no supported Mobile-Unlock IMEI service mapping, so no provider order will be sent.';
-    if(!window.confirm(promptText)) return;
+    if(!window.confirm('Approve this customer order for manual processing? No provider API order will be sent.')) return;
     button.disabled=true; button.textContent='Approving…';
     try {
       const {error:approvalError}=await client.rpc('approve_phone_unlocking_order',{p_business_id:business.id,p_order_id:order.id});
       if(approvalError) throw approvalError;
-      if(mapped) {
-        const {data,error}=await client.functions.invoke('mobile-unlock-provider',{body:{action:'submit_approved_order',business_id:business.id,order_id:order.id}});
-        if(error) {
-          let detail=error.message||'Provider submission could not be confirmed.';
-          const response=error.context;
-          if(response&&typeof response.clone==='function') { try { const payload=await response.clone().json(); if(payload?.error) detail=String(payload.error); } catch (_) {} }
-          throw new Error(detail);
-        }
-        if(!data?.ok) throw new Error(data?.error||'Provider submission could not be confirmed.');
-        await load(); say('Order '+order.reference+' approved and submitted to provider. Provider reference: '+data.provider_reference+'.');
-      } else {
-        await load(); say('Order '+order.reference+' approved for manual processing. No provider order was submitted.');
-      }
+      await load(); say('Order '+order.reference+' approved for manual processing. Automated provider submission is disabled until replacement provider order workflows are tested.');
     } catch(error) {
       await load(); say('Approval/submission result: '+(error.message||String(error))+'. Check the order register before trying again; do not submit a duplicate.',true);
     } finally { button.disabled=false; }
