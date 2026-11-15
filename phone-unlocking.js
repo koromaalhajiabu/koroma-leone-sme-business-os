@@ -167,6 +167,21 @@
             </form>
           </details>
           <h4>Unlocking order register</h4>
+          <div class="wlu-grid" style="margin:10px 0">
+            <input id="wluOrderSearch" type="search" placeholder="Search reference, customer, phone, device or service" aria-label="Search orders">
+            <select id="wluOrderStatusFilter" aria-label="Filter orders by status">
+              <option value="">All order statuses</option>
+              <option value="received">Received</option>
+              <option value="quoted">Quoted</option>
+              <option value="awaiting_payment">Awaiting payment</option>
+              <option value="processing">Processing</option>
+              <option value="completed">Completed</option>
+              <option value="failed">Failed</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="refunded">Refunded</option>
+            </select>
+            <button id="wluExportOrders" type="button" class="secondary">Export order register (CSV)</button>
+          </div>
           <div class="wlu-scroll" id="wluOrders">Loading orders…</div>
           <div class="wlu-muted" style="margin-top:9px">Provider submissions are available only for supported legacy provider IMEI services after full customer payment and your explicit approval. Orders without a provider service mapping remain manual. Payment and refund records are stored here; automatic general-ledger journal posting is not enabled yet.</div>
         </div>`;
@@ -195,6 +210,9 @@
       $('wluOrders').addEventListener('click', updateOrderStatus);
       $('wluOrders').addEventListener('click', approveOrder);
       $('wluOrders').addEventListener('click', rejectOrder);
+      $('wluOrderSearch').addEventListener('input', renderOrderRegister);
+      $('wluOrderStatusFilter').addEventListener('change', renderOrderRegister);
+      $('wluExportOrders').addEventListener('click', exportOrderRegisterCsv);
       $('wluServices').addEventListener('click', editService);
       $('wluServices').addEventListener('click', toggleServiceStatus);
     }
@@ -542,7 +560,18 @@
     $('wluKpis').innerHTML='<div class="wlu-kpi">Orders in register<b>'+total+'</b></div><div class="wlu-kpi">Active orders<b>'+open+'</b></div><div class="wlu-kpi">Net receipts<b>'+esc(money(revenue))+'</b></div><div class="wlu-kpi">Estimated margin (recorded SLE costs only)<b>'+esc(money(estimatedMargin))+'</b></div>';
     $('wluPaymentOrder').innerHTML='<option value="">Choose outstanding order</option>'+orders.filter(o=>Number(o.service_price)>Number(o.amount_paid)&&!['cancelled','refunded','failed'].includes(o.status)).map(o=>'<option value="'+esc(o.id)+'">'+esc(o.reference)+' · '+esc(o.customer_name)+' · '+esc(money(Number(o.service_price)-Number(o.amount_paid)))+'</option>').join('');
     $('wluRefundOrder').innerHTML='<option value="">Choose paid order</option>'+orders.filter(o=>Number(o.amount_paid)>Number(o.amount_refunded||0)&&o.status!=='cancelled').map(o=>'<option value="'+esc(o.id)+'">'+esc(o.reference)+' · '+esc(o.customer_name)+' · refundable '+esc(money(Number(o.amount_paid)-Number(o.amount_refunded||0)))+'</option>').join('');
-    $('wluOrders').innerHTML=orders.length?'<table><thead><tr><th>Order / customer</th><th>Device &amp; IMEI</th><th>Network / service</th><th>Provider</th><th>Price / paid / balance</th><th>Approval / provider</th><th>Status</th><th>Update</th></tr></thead><tbody>'+orders.map(o=>{
+    renderOrderRegister();
+  }
+  function renderOrderRegister() {
+    const query=String($('wluOrderSearch')?.value||'').trim().toLowerCase();
+    const status=String($('wluOrderStatusFilter')?.value||'');
+    const visibleOrders=orders.filter(o=>{
+      if(status&&o.status!==status) return false;
+      if(!query) return true;
+      return [o.reference,o.customer_name,o.customer_phone,o.device_brand,o.device_model,o.network_name,o.service_name]
+        .some(value=>String(value||'').toLowerCase().includes(query));
+    });
+    $('wluOrders').innerHTML=visibleOrders.length?'<table><thead><tr><th>Order / customer</th><th>Device &amp; IMEI</th><th>Network / service</th><th>Provider</th><th>Price / paid / balance</th><th>Approval / provider</th><th>Status</th><th>Update</th></tr></thead><tbody>'+orders.map(o=>{
       const balance=Math.max(0,Number(o.service_price)-Number(o.amount_paid));
       const netPaid=Number(o.amount_paid)-Number(o.amount_refunded||0);
       const options=(o.status==='refunded'?'<option value="refunded" selected disabled>Refunded</option>':'')+STATUSES.map(s=>'<option value="'+s+'" '+(s===o.status?'selected':'')+'>'+STATUS_LABELS[s]+'</option>').join('');
@@ -551,6 +580,24 @@
       const providerText=o.provider_submission_status==='submitted'?'Submitted · '+(o.provider_reference||'reference pending'):o.provider_submission_status==='submitting'?'Submission in progress':o.provider_submission_status==='unknown'?'Submission uncertain — reconcile before retry':o.provider_submission_status==='failed'?'Provider rejected/failed':o.provider_service_id?'Provider service mapped':'Manual service';
       return '<tr><td><strong>'+esc(o.reference)+'</strong><br>'+esc(o.customer_name)+'<br><small>'+esc(o.customer_phone||'')+'</small></td><td>'+esc(o.device_brand)+' '+esc(o.device_model)+'<br><small>IMEI: '+esc(o.imei)+'</small></td><td>'+esc(o.network_name)+'<br>'+esc(o.service_name)+'</td><td>'+esc(o.provider_name||'Mobile-Unlock')+'<br><small>'+esc(o.provider_reference||'No provider ref')+'</small></td><td>'+esc(money(o.service_price))+'<br>Net paid: '+esc(money(netPaid))+'<br>Due: '+esc(money(balance))+'<br>Refunded: '+esc(money(o.amount_refunded))+'<br><small>Provider cost: '+esc(money(o.provider_cost))+'</small></td><td><strong>'+esc(approvalText)+'</strong><br><small>'+esc(providerText)+'</small>'+(o.provider_submission_message?'<br><small>'+esc(o.provider_submission_message)+'</small>':'')+'</td><td>'+esc(STATUS_LABELS[o.status]||o.status)+'</td><td>'+((o.approval_status||'pending')==='pending'&&role==='owner'?'<button type="button" data-wlu-reject data-id="'+esc(o.id)+'" class="secondary">Reject</button>':'')+(canApprove?'<button type="button" data-wlu-approve data-id="'+esc(o.id)+'">Approve'+(o.provider_service_id&&String(o.provider_service_type).toUpperCase()==='IMEI'?' &amp; submit':'')+'</button>':(o.approval_status==='pending'&&Number(o.amount_paid)<Number(o.service_price)?'<small>Full payment required before approval</small>':''))+'<select aria-label="Status for '+esc(o.reference)+'" data-status-select="'+esc(o.id)+'">'+options+'</select><button type="button" class="secondary" data-wlu-status="'+esc(o.status)+'" data-id="'+esc(o.id)+'" '+(o.status==='refunded'?'disabled':'')+'>Update</button></td></tr>'
     }).join('')+'</tbody></table>':'<p class="wlu-muted">No unlocking orders yet. Create the first order above.</p>';
+  function exportOrderRegisterCsv() {
+    if(!isDeveloper) return say('Developer access is required to export customer orders.',true);
+    if(!orders.length) return say('There are no orders to export yet.',true);
+    const columns=[
+      ['reference','Order reference'],['created_at','Created at'],['customer_name','Customer'],
+      ['customer_phone','Customer phone'],['device_brand','Device brand'],['device_model','Device model'],
+      ['imei','IMEI'],['network_name','Original network'],['service_name','Service'],
+      ['service_price','Customer price'],['amount_paid','Amount paid'],['amount_refunded','Amount refunded'],
+      ['status','Status'],['approval_status','Approval status']
+    ];
+    const quote=value=>'"'+String(value??'').replace(/"/g,'""')+'"';
+    const csv=[columns.map(c=>quote(c[1])).join(','),...orders.map(o=>columns.map(c=>quote(o[c[0]])).join(','))].join('\r\n');
+    const blob=new Blob(['\\ufeff',csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='white-lion-device-orders-'+new Date().toISOString().slice(0,10)+'.csv';
+    document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+    say('Order register exported. Keep the downloaded customer information secure.');
+  }
     $('wluOrders').querySelectorAll('[data-status-select]').forEach(select=>select.addEventListener('change',()=>{
       const btn=$('wluOrders').querySelector('[data-id="'+select.dataset.statusSelect+'"]');
       if(btn) btn.dataset.wluStatus=select.value;
