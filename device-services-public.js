@@ -30,9 +30,9 @@ async function start(){
   ];
   const classify=s=>{
    const name=String(s.service_name||'').toLowerCase(),desc=String(s.description||'').toLowerCase(),group=String(s.provider_group||'').toLowerCase(),v=name+' '+desc+' '+group;
-   if(/\\b(ipad|tablet|tab s[0-9]|galaxy tab)\\b/.test(v)) return 'tablets';
-   if(/\\b(pc|computer|desktop|laptop|macbook|imac|windows)\\b/.test(v)) return 'computers';
-   if(/\\b(iphone|smartphone|mobile phone|android phone|samsung galaxy s|galaxy note|sim.?lock|network unlock|carrier unlock)\\b/.test(v)) return 'phones';
+   if(/\b(ipad|tablet|tab s[0-9]|galaxy tab)\b/.test(v)) return 'tablets';
+   if(/\b(pc|computer|desktop|laptop|macbook|imac|windows)\b/.test(v)) return 'computers';
+   if(/\b(iphone|smartphone|mobile phone|android phone|samsung galaxy s|galaxy note|sim.?lock|network unlock|carrier unlock)\b/.test(v)) return 'phones';
    return 'other';
   };
   const cards=list=>list.map(s=>'<article class="service"><h3>'+esc(s.service_name)+'</h3><p>'+esc(s.description||'Professional device service request.')+'</p><div class="price">'+esc(money(s.price,store.currency_code))+'</div><button type="button" data-choose="'+esc(s.id)+'">Order this service</button></article>').join('');
