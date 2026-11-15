@@ -78,8 +78,8 @@ declare v_store public.phone_unlocking_storefronts%rowtype; v_currency text; v_s
 begin
   select s.* into v_store from public.phone_unlocking_storefronts s
   where s.slug=lower(trim(coalesce(p_slug,''))) and s.is_published and s.accepts_orders;
-  if found then select b.currency_code into v_currency from public.businesses b where b.id=v_store.business_id; end if;
   if not found then return jsonb_build_object('ok',false,'message','This service store is unavailable or is not accepting orders.'); end if;
+  select b.currency_code into v_currency from public.businesses b where b.id=v_store.business_id;
   if not exists(select 1 from public.business_industry_modules m where m.business_id=v_store.business_id and m.module_key='phone_unlocking' and m.is_enabled) then
     return jsonb_build_object('ok',false,'message','This service store is temporarily unavailable.');
   end if;
@@ -108,6 +108,7 @@ declare
   v_branch uuid;
   v_order_id uuid:=gen_random_uuid();
   v_reference text;
+  v_currency text;
 begin
   if length(trim(coalesce(p_customer_name,'')))<2 then raise exception 'Enter your full name'; end if;
   if length(trim(coalesce(p_customer_phone,'')))<5 then raise exception 'Enter a valid phone number'; end if;
@@ -118,6 +119,7 @@ begin
   select * into v_store from public.phone_unlocking_storefronts
    where slug=lower(trim(coalesce(p_slug,''))) and is_published and accepts_orders for update;
   if not found then raise exception 'This service store is not accepting orders'; end if;
+  select b.currency_code into v_currency from public.businesses b where b.id=v_store.business_id;
   if not exists(select 1 from public.business_industry_modules m where m.business_id=v_store.business_id and m.module_key='phone_unlocking' and m.is_enabled) then
     raise exception 'This service store is temporarily unavailable';
   end if;
@@ -141,7 +143,7 @@ begin
     'received',null,null,null
   );
   return jsonb_build_object('ok',true,'reference',v_reference,'service_name',v_service.service_name,
-    'service_price',v_service.default_price,'currency_code','SLE',
+    'service_price',v_service.default_price,'currency_code',coalesce(v_currency,'SLE'),
     'message','Your request has been received. We will contact you to confirm payment and processing.');
 end;
 $fn$;
