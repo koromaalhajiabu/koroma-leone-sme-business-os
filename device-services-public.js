@@ -44,6 +44,22 @@ async function start(){
   if(!services.length)$('orderForm').hidden=true;
  }catch(e){$('services').innerHTML='';show('orderResult',e.message||String(e),'error');$('orderForm').hidden=true;$('trackForm').hidden=true}
 }
+$('identifyImei').addEventListener('click',async()=>{
+ const imeiInput=$('orderForm').querySelector('[name="imei"]'),imei=String(imeiInput.value||'').replace(/\\s+/g,'');
+ const btn=$('identifyImei'),out=$('imeiLookupResult');
+ if(!/^\\d{15}$/.test(imei)){out.className='result error';out.textContent='Enter a 15-digit IMEI first.';return}
+ btn.disabled=true;btn.textContent='Identifying device…';
+ try{
+  const {data,error}=await sb.functions.invoke('device-services-provider',{body:{action:'identify_device',imei}});
+  if(error)throw error;
+  if(!data?.ok)throw new Error(data?.error||'The IMEI lookup did not return a device model.');
+  $('orderForm').querySelector('[name="device_brand"]').value=data.brand;
+  $('orderForm').querySelector('[name="device_model"]').value=data.model;
+  out.className='result success';
+  out.textContent='Device identified: '+data.brand+' '+data.model+'. Provider: '+data.provider+'.'+(data.credits_used!=null?' Lookup cost: '+data.credits_used+' provider credits.':'')+' Now tap “Find model-specific unlock price” to retrieve the matching service price.';
+ }catch(err){out.className='result error';out.textContent=err.message||String(err)}
+ finally{btn.disabled=false;btn.textContent='Identify phone from IMEI'}
+});
 $('findUnlockPrice').addEventListener('click',async()=>{
  const form=$('orderForm'),fd=new FormData(form),btn=$('findUnlockPrice'),out=$('unlockQuoteResult');
  const brand=String(fd.get('device_brand')||'').trim(),model=String(fd.get('device_model')||'').trim();
