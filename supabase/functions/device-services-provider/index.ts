@@ -16,9 +16,11 @@ Deno.serve(async(req)=>{
    const configured=Boolean(Deno.env.get("SERVICECODED_API_KEY")?.trim());
    return reply({ok:true,provider:"ServiceCoded",secret_configured:configured,secret_value_exposed:false});
   }
-  const businessId=String(body.business_id||""), provider=String(body.provider||"");
-  if(body.action!=="sync_catalogue"||!businessId) return reply({ok:false,error:"Invalid request."},400);
-  if(!businessId) return reply({ok:false,error:"Business ID is required."},400);
+  const provider=String(body.provider||"");
+  if(body.action!=="sync_catalogue") return reply({ok:false,error:"Invalid request."},400);
+  const {data:platformContext,error:contextError}=await userClient.rpc("get_platform_device_services_context");
+  if(contextError||!platformContext?.business_id) return reply({ok:false,error:"Independent Device Services platform context is unavailable."},409);
+  const businessId=String(platformContext.business_id);
   let services:any[]=[], providerName="", currency="USD";
   if(provider==="devicedecoded"){
    providerName="DeviceDecoded"; currency="CREDITS"; const response=await fetch("https://devicedecoded.com/api/v1/checks/services",{headers:{Accept:"application/json"}});
@@ -35,7 +37,8 @@ Deno.serve(async(req)=>{
   const rows=services.map(x=>({business_id:businessId,provider_key:provider,provider_service_id:x.id,provider_service_type:x.type||"IMEI",provider_group:x.group,service_name:x.name,provider_credit:Number.isFinite(x.price)?x.price:null,provider_currency:x.currency||currency,delivery_time:x.delivery,description:x.description,is_active:true,last_synced_at:stamp}));
   const {error:upsertErr}=await admin.from("phone_unlocking_provider_services").upsert(rows,{onConflict:"business_id,provider_key,provider_service_type,provider_service_id"});
   if(upsertErr) throw upsertErr;
-  await admin.from("phone_unlocking_provider_connections").upsert({business_id:businessId,provider_key:provider,connection_status:"connected",last_synced_at:stamp,last_error:null,updated_at:stamp},{onConflict:"business_id,provider_key"});
+  const {error:connectionErr}=await admin.from("phone_unlocking_provider_connections").upsert({business_id:businessId,provider_key:provider,connection_status:"connected",last_synced_at:stamp,last_error:null,updated_at:stamp},{onConflict:"business_id,provider_key"});
+  if(connectionErr) throw connectionErr;
   return reply({ok:true,provider_name:providerName,provider_currency:currency,synced_count:rows.length});
  }catch(e){return reply({ok:false,error:String((e as Error)?.message||e).slice(0,300)},500);}
 });
