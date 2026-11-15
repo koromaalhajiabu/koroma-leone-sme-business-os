@@ -93,6 +93,9 @@ begin
     raise exception 'A legacy storefront exists. Migrate its public settings explicitly before continuing.';
   end if;
 
+  -- Keep the platform tenant out of every ordinary SME workspace selector.
+  delete from public.business_members where business_id=v_business;
+
   -- The specialist feature is no longer an optional SME workspace module.
   drop trigger if exists phone_unlocking_module_seed on public.businesses;
   delete from public.business_industry_modules
