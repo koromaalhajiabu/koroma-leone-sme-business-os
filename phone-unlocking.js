@@ -679,7 +679,7 @@
   }
   async function load() {
     if(!client||!business?.id) return;
-    try { await Promise.all([loadServices(),loadOrders(),loadProviderCatalogue(),loadStorefrontSettings(),loadPaymentSettings(),loadOperationsInbox()]); }
+    try { await Promise.all([loadServices(),loadOrders(),loadProviderCatalogue(),loadStorefrontSettings(),loadPaymentSettings()]); await loadOperationsInbox(); }
     catch(error){say('Could not load phone unlocking records: '+error.message,true);}
   }
   async function refreshWorkspace() {
