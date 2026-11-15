@@ -10,7 +10,7 @@
     processing:'Processing', completed:'Completed', failed:'Failed',
     cancelled:'Cancelled', refunded:'Refunded'
   };
-  let client = null, business = null, branch = null, role = null, enabled = false;
+  let client = null, business = null, branch = null, role = null, enabled = false, isDeveloper = false;
   let services = [], orders = [];
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -28,7 +28,7 @@
     if(currency==='CREDITS'&&businessCurrency==='SLE') return creditsToSle(service?.provider_cost);
     return 0;
   };
-  const canManage = () => ALLOWED_ROLES.includes(role);
+  const canManage = () => isDeveloper;
   function panel() {
     const host = $('wlCloudWork');
     if (!host) return null;
@@ -70,7 +70,7 @@
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
-          <details open id="wluPublicStoreSettings"><summary><strong>Public customer ordering page</strong></summary><p class="wlu-muted">Publish a guest checkout page. Customers can browse your active services, submit orders without accounts and track their own order using the order reference and phone number. Only your business owner account can change these settings.</p><form id="wluStorefrontForm" class="wlu-grid"><input name="display_name" required maxlength="100" placeholder="Public store name"><input name="slug" required minlength="3" maxlength="60" pattern="[a-z0-9][a-z0-9-]{2,59}" placeholder="Public link slug (lowercase letters, numbers, hyphens)"><input name="contact_phone" maxlength="40" placeholder="Customer contact phone"><input name="contact_email" type="email" maxlength="160" placeholder="Customer contact email"><textarea class="wlu-full" name="description" maxlength="500" rows="2" placeholder="Short public description (optional)"></textarea><label class="wlu-full"><input type="checkbox" name="is_published" style="width:auto;min-height:0"> Publish customer ordering page</label><label class="wlu-full"><input type="checkbox" name="accepts_orders" style="width:auto;min-height:0"> Accept new customer orders</label><button type="submit">Save public store settings</button></form><div id="wluStorefrontLink" class="wlu-status">Save settings to create your customer ordering link.</div></details>
+          <details open id="wluPublicStoreSettings"><summary><strong>Public customer ordering page</strong></summary><p class="wlu-muted">Publish a guest checkout page. Customers can browse your active services, submit orders without accounts and track their own order using the order reference and phone number. Only the registered White Lion platform developer can change these settings.</p><form id="wluStorefrontForm" class="wlu-grid"><input name="display_name" required maxlength="100" placeholder="Public store name"><input name="slug" required minlength="3" maxlength="60" pattern="[a-z0-9][a-z0-9-]{2,59}" placeholder="Public link slug (lowercase letters, numbers, hyphens)"><input name="contact_phone" maxlength="40" placeholder="Customer contact phone"><input name="contact_email" type="email" maxlength="160" placeholder="Customer contact email"><textarea class="wlu-full" name="description" maxlength="500" rows="2" placeholder="Short public description (optional)"></textarea><label class="wlu-full"><input type="checkbox" name="is_published" style="width:auto;min-height:0"> Publish customer ordering page</label><label class="wlu-full"><input type="checkbox" name="accepts_orders" style="width:auto;min-height:0"> Accept new customer orders</label><button type="submit">Save public store settings</button></form><div id="wluStorefrontLink" class="wlu-status">Save settings to create your customer ordering link.</div></details>
           <details open class="wlu-catalogue">
             <summary><strong>Service catalogue &amp; pricing</strong></summary>
             <p class="wlu-muted">Add and manage the services your business offers and their standard customer prices. Saved services appear in the order form.</p>
@@ -562,7 +562,7 @@
   }
   async function saveStorefrontSettings(event) {
     event.preventDefault();
-    if(role!=='owner') return say('Only the business owner can manage the public customer store.',true);
+    if(!isDeveloper) return say('Only the registered platform developer can manage the public customer store.',true);
     const form=event.currentTarget,fd=new FormData(form),button=form.querySelector('button[type="submit"]');
     button.disabled=true;button.textContent='Saving…';
     try{
@@ -591,7 +591,10 @@
     branch=detail.branch||window.whiteLionCloud?.getSelectedBranch?.()||null;
     role=business?.role||null;
     if(!client||!business?.id){$('wluWorkspace').textContent='No business selected';$('wluApp').hidden=true;$('wluEnableArea').hidden=true;say('Sign in and select a business workspace to use this module.');return;}
-    $('wluWorkspace').textContent=business.name+' · '+(role||'member');
+    const developerCheck=await client.rpc('is_platform_developer');
+    isDeveloper=!developerCheck.error&&developerCheck.data===true;
+    $('wluWorkspace').textContent=business.name+' · '+(isDeveloper?'platform developer':(role||'member'));
+    if(!isDeveloper){$('wluApp').hidden=true;$('wluEnableArea').hidden=true;say('This device-services control panel is restricted to the registered White Lion platform developer.',true);return;}
     let modules=detail.modules;
     if(!Array.isArray(modules)){
       const result=await client.from('business_industry_modules').select('module_key,is_enabled').eq('business_id',business.id);
