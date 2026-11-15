@@ -5,11 +5,51 @@ Deno.serve(async(req)=>{
  if(req.method==="OPTIONS") return new Response("ok",{headers:cors});
  if(req.method!=="POST") return reply({ok:false,error:"POST required."},405);
  try{
-  const auth=req.headers.get("Authorization")||"", url=Deno.env.get("SUPABASE_URL")!, anon=Deno.env.get("SUPABASE_ANON_KEY")!, service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const url=Deno.env.get("SUPABASE_URL")!, anon=Deno.env.get("SUPABASE_ANON_KEY")!, service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const body=await req.json();
+  const admin=createClient(url,service);
+  if(body.action==="identify_device"){
+   const imei=String(body.imei||"").replace(/\\s+/g,"");
+   if(!/^\\d{15}$/.test(imei)) return reply({ok:false,error:"Enter a valid 15-digit IMEI."},400);
+   let sum=0;
+   for(let i=0;i<imei.length-1;i++){let n=Number(imei[i]);if(i%2===1){n*=2;if(n>9)n-=9;}sum+=n;}
+   const check=(10-(sum%10))%10;
+   if(check!==Number(imei[14])) return reply({ok:false,error:"This IMEI failed its check-digit validation. Please check the number and try again."},422);
+   const ip=req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||req.headers.get("cf-connecting-ip")||"unknown";
+   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(ip+"|white-lion-imei-lookup"));
+   const ipHash=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
+   const {data:allowed,error:rateError}=await admin.rpc("claim_public_imei_lookup",{p_ip_hash:ipHash});
+   if(rateError) return reply({ok:false,error:"IMEI lookup is temporarily unavailable. Please try again later."},503);
+   if(allowed!==true) return reply({ok:false,error:"Please wait 30 seconds before requesting another IMEI lookup."},429);
+   const key=Deno.env.get("DEVICEDECODED_API_KEY")?.trim();
+   if(!key) return reply({ok:false,error:"Automatic IMEI identification is not activated yet. The DeviceDecoded API key must be configured in Supabase Edge Function secrets."},503);
+   const catalogueResponse=await fetch("https://devicedecoded.com/api/v1/checks/services",{headers:{Accept:"application/json"}});
+   const catalogue=await catalogueResponse.json();
+   if(!catalogueResponse.ok) return reply({ok:false,error:"The IMEI provider catalogue is temporarily unavailable."},502);
+   const entries=Array.isArray(catalogue.services)?catalogue.services:[];
+   const identifyService=entries.find((s:any)=>/\\b(imei check|model info|device info|tac lookup|make.?and.?model)\\b/i.test(String(s.name||"")+" "+String(s.category||"")));
+   if(!identifyService) return reply({ok:false,error:"The connected provider does not currently expose a dedicated IMEI model-identification service."},503);
+   const lookupResponse=await fetch("https://devicedecoded.com/api/v1/checks",{
+    method:"POST",headers:{"X-API-Key":key,"Content-Type":"application/json","Accept":"application/json"},
+    body:JSON.stringify({imei,service:Number(identifyService.service)})
+   });
+   const lookup=await lookupResponse.json();
+   if(!lookupResponse.ok) return reply({ok:false,error:lookupResponse.status===402?"The IMEI lookup provider has insufficient credits. Please contact White Lion.":lookupResponse.status===401?"The IMEI lookup provider key was rejected. Please contact White Lion.":"The provider could not identify this IMEI. Please enter the model manually."},lookupResponse.status===402?402:502);
+   const source={...(lookup.result||{}),...(lookup.summary||{})};
+   const findValue=(patterns:string[])=>{
+    const pairs=Object.entries(source);
+    for(const pattern of patterns){const hit=pairs.find(([k,v])=>new RegExp(pattern,"i").test(k)&&typeof v==="string"&&v.trim());if(hit)return String(hit[1]).trim();}
+    return "";
+   };
+   const brand=findValue(["manufacturer","brand","make"]);
+   const model=findValue(["marketing.?name","device.?model","\\bmodel\\b","product.?name"]);
+   if(!brand||!model) return reply({ok:false,error:"The provider returned an IMEI result without a clear brand and model. Please enter the device details manually.",provider_service:identifyService.name,credits_used:lookup.credits_used??null},422);
+   return reply({ok:true,brand,model,imei,provider:"DeviceDecoded",provider_service:identifyService.name,credits_used:lookup.credits_used??null,credit_balance:lookup.credit_balance??null});
+  }
+  const auth=req.headers.get("Authorization")||"";
   const userClient=createClient(url,anon,{global:{headers:{Authorization:auth}}});
   const {data:{user},error:userErr}=await userClient.auth.getUser();
   if(userErr||!user) return reply({ok:false,error:"Sign in required."},401);
-  const body=await req.json();
   const {data:isDeveloper,error:developerError}=await userClient.rpc("is_platform_developer");
   if(developerError||isDeveloper!==true) return reply({ok:false,error:"Only the registered White Lion platform developer can manage device-service providers."},403);
   if(body.action==="verify_servicecoded_secret") {
