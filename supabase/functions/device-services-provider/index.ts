@@ -17,7 +17,7 @@ Deno.serve(async(req)=>{
   const businessId=String(body.business_id||""), provider=String(body.provider||"");
   if(body.action!=="sync_catalogue"||!businessId) return reply({ok:false,error:"Invalid request."},400);
   const {data:member,error:memberErr}=await userClient.from("business_members").select("role").eq("business_id",businessId).eq("user_id",user.id).maybeSingle();
-  if(memberErr||!member||!["owner","admin","manager"].includes(String(member.role).toLowerCase())) return reply({ok:false,error:"Owner, admin or manager access required."},403);
+  if(memberErr||!member||!["owner"].includes(String(member.role).toLowerCase())) return reply({ok:false,error:"Owner, admin or manager access required."},403);
   let services:any[]=[], providerName="", currency="USD";
   if(provider==="devicedecoded"){
    providerName="DeviceDecoded"; currency="CREDITS"; const response=await fetch("https://devicedecoded.com/api/v1/checks/services",{headers:{Accept:"application/json"}});
