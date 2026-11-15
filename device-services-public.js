@@ -45,9 +45,9 @@ async function start(){
  }catch(e){$('services').innerHTML='';show('orderResult',e.message||String(e),'error');$('orderForm').hidden=true;$('trackForm').hidden=true}
 }
 $('identifyImei').addEventListener('click',async()=>{
- const imeiInput=$('orderForm').querySelector('[name="imei"]'),imei=String(imeiInput.value||'').replace(/\\s+/g,'');
+ const imeiInput=$('orderForm').querySelector('[name="imei"]'),imei=String(imeiInput.value||'').replace(/\s+/g,'');
  const btn=$('identifyImei'),out=$('imeiLookupResult');
- if(!/^\\d{15}$/.test(imei)){out.className='result error';out.textContent='Enter a 15-digit IMEI first.';return}
+ if(!/^\d{15}$/.test(imei)){out.className='result error';out.textContent='Enter a 15-digit IMEI first.';return}
  btn.disabled=true;btn.textContent='Identifying device…';
  try{
   const {data,error}=await sb.functions.invoke('device-services-provider',{body:{action:'identify_device',imei}});
