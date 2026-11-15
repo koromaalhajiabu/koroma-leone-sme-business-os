@@ -70,6 +70,8 @@
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
+          <details open id="wluOpsInbox"><summary><strong>Live operations inbox &amp; payment verification</strong></summary><p class="wlu-muted">Review customer-submitted claims against your actual account. A submitted reference alone is not proof of payment.</p><h4>Pending payment claims</h4><div id="wluPaymentClaims" class="wlu-scroll">Loading…</div><h4>Recent operational activity</h4><div id="wluOperationalEvents" class="wlu-scroll">Loading…</div><button type="button" id="wluRefreshOperations" class="secondary">Refresh operations inbox</button></details>
+          <details id="wluPaymentSettings"><summary><strong>Customer payment instructions</strong></summary><p class="wlu-muted">Enter only verified business account details. Leave a method blank until its account is active.</p><form id="wluPaymentSettingsForm" class="wlu-grid"><input name="bank_name" maxlength="100" placeholder="Bank name"><input name="bank_account_name" maxlength="120" placeholder="Bank account holder name"><input name="bank_account_number" maxlength="80" placeholder="Bank account number"><input name="mobile_money_network" maxlength="80" placeholder="Mobile money network"><input name="mobile_money_account_name" maxlength="120" placeholder="Mobile money account holder name"><input name="mobile_money_number" maxlength="80" placeholder="Mobile money number"><textarea class="wlu-full" name="payment_instructions" maxlength="1000" rows="3" placeholder="Extra payment instructions (optional)"></textarea><button type="submit">Save customer payment instructions</button></form><div id="wluPaymentSettingsStatus" class="wlu-status">No payment instructions loaded.</div></details>
           <details open id="wluPublicStoreSettings"><summary><strong>Public customer ordering page</strong></summary><p class="wlu-muted">Publish a guest checkout page. Customers can browse your active services, submit orders without accounts and track their own order using the order reference and phone number. Only the registered White Lion platform developer can change these settings.</p><form id="wluStorefrontForm" class="wlu-grid"><input name="display_name" required maxlength="100" placeholder="Public store name"><input name="slug" required minlength="3" maxlength="60" pattern="[a-z0-9][a-z0-9-]{2,59}" placeholder="Public link slug (lowercase letters, numbers, hyphens)"><input name="contact_phone" maxlength="40" placeholder="Customer contact phone"><input name="contact_email" type="email" maxlength="160" placeholder="Customer contact email"><textarea class="wlu-full" name="description" maxlength="500" rows="2" placeholder="Short public description (optional)"></textarea><label class="wlu-full"><input type="checkbox" name="is_published" style="width:auto;min-height:0"> Publish customer ordering page</label><label class="wlu-full"><input type="checkbox" name="accepts_orders" style="width:auto;min-height:0"> Accept new customer orders</label><button type="submit">Save public store settings</button></form><div id="wluStorefrontLink" class="wlu-status">Save settings to create your customer ordering link.</div></details>
           <details open class="wlu-catalogue">
             <summary><strong>Service catalogue &amp; pricing</strong></summary>
@@ -190,6 +192,10 @@
       $('wluSyncCatalogue').addEventListener('click', syncProviderCatalogue);
       $('wluVerifyServiceCoded').addEventListener('click', verifyServicecodedSecret);
       $('wluStorefrontForm').addEventListener('submit', saveStorefrontSettings);
+      $('wluPaymentSettingsForm').addEventListener('submit', savePaymentSettings);
+      $('wluPaymentClaims').addEventListener('click', reviewPaymentClaim);
+      $('wluOperationalEvents').addEventListener('click', acknowledgeOperationalEvent);
+      $('wluRefreshOperations').addEventListener('click', loadOperationsInbox);
       $('wluLiveServices').addEventListener('click', importProviderService);
       $('wluUsdSleRate').addEventListener('change', saveUsdSleRate);
       $('wluUsdSleRate').addEventListener('input', updateUsdSlePreview);
@@ -641,9 +647,39 @@
     }catch(error){say('Could not save public store settings: '+(error.message||String(error)),true);}
     finally{button.disabled=false;button.textContent='Save public store settings';}
   }
+  async function loadPaymentSettings() {
+    const {data,error}=await client.from('device_service_payment_settings').select('bank_name,bank_account_name,bank_account_number,mobile_money_network,mobile_money_account_name,mobile_money_number,payment_instructions').eq('business_id',business.id).maybeSingle();
+    if(error) throw error; const form=$('wluPaymentSettingsForm'), row=data||{};
+    for(const key of ['bank_name','bank_account_name','bank_account_number','mobile_money_network','mobile_money_account_name','mobile_money_number','payment_instructions']) form.elements[key].value=row[key]||'';
+    $('wluPaymentSettingsStatus').textContent=data?'Saved payment instructions loaded.':'No payment details saved. Add only verified business account details.';
+  }
+  async function savePaymentSettings(event) {
+    event.preventDefault(); if(!isDeveloper) return say('Developer access is required.',true);
+    const form=event.currentTarget,data=Object.fromEntries(new FormData(form).entries()),payload={business_id:business.id,updated_at:new Date().toISOString()};
+    for(const key of ['bank_name','bank_account_name','bank_account_number','mobile_money_network','mobile_money_account_name','mobile_money_number','payment_instructions']) payload[key]=String(data[key]||'').trim()||null;
+    const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent='Saving…';
+    try { const {error}=await client.from('device_service_payment_settings').upsert(payload,{onConflict:'business_id'}); if(error) throw error; $('wluPaymentSettingsStatus').textContent='Payment instructions saved securely for this business.'; say('Payment instructions saved. Confirm the account is active before asking customers to pay.'); }
+    catch(error){say('Could not save payment instructions: '+(error.message||String(error)),true);} finally{button.disabled=false;button.textContent='Save customer payment instructions';}
+  }
+  async function loadOperationsInbox() {
+    if(!client||!business?.id||!isDeveloper) return;
+    const [cr,er]=await Promise.all([client.from('device_service_payment_claims').select('id,order_id,payment_method,payer_name,payer_phone,payment_reference,amount_claimed,status,submitted_at').eq('business_id',business.id).order('submitted_at',{ascending:false}).limit(50),client.from('device_service_operational_events').select('id,event_type,payload,created_at,acknowledged_at').eq('business_id',business.id).order('created_at',{ascending:false}).limit(40)]);
+    if(cr.error) throw cr.error; if(er.error) throw er.error; const pending=(cr.data||[]).filter(c=>c.status==='pending');
+    $('wluPaymentClaims').innerHTML=pending.length?'<table><thead><tr><th>Order</th><th>Claim</th><th>Amount</th><th>Review</th></tr></thead><tbody>'+pending.map(c=>{const o=orders.find(x=>x.id===c.order_id);return '<tr><td><strong>'+esc(o?.reference||c.order_id)+'</strong><br>'+esc(o?.customer_name||'Customer')+'</td><td>'+esc(c.payment_method)+'<br>'+esc(c.payer_name||'')+' '+esc(c.payer_phone||'')+'<br>Ref: '+esc(c.payment_reference)+'<br>'+esc(new Date(c.submitted_at).toLocaleString())+'</td><td>'+esc(money(c.amount_claimed))+'</td><td><button type="button" data-claim-review="verified" data-claim-id="'+esc(c.id)+'">Verify funds received</button><button type="button" class="secondary" data-claim-review="rejected" data-claim-id="'+esc(c.id)+'">Reject</button></td></tr>';}).join('')+'</tbody></table>':'<p class="wlu-muted">No pending payment claims.</p>';
+    $('wluOperationalEvents').innerHTML=(er.data||[]).length?'<table><thead><tr><th>Activity</th><th>Details</th><th>Time</th><th></th></tr></thead><tbody>'+(er.data||[]).map(e=>{const p=e.payload||{};return '<tr><td>'+esc(String(e.event_type).replace(/_/g,' '))+'</td><td>'+esc(p.reference||'')+' '+esc(p.customer_name||'')+(p.amount_claimed?' · '+esc(money(p.amount_claimed)):'')+'</td><td>'+esc(new Date(e.created_at).toLocaleString())+'</td><td>'+(e.acknowledged_at?'Read':'<button type="button" class="secondary" data-event-ack="'+esc(e.id)+'">Mark read</button>')+'</td></tr>';}).join('')+'</tbody></table>':'<p class="wlu-muted">No operational events recorded yet.</p>';
+  }
+  async function reviewPaymentClaim(event) {
+    const b=event.target.closest('[data-claim-review]');if(!b)return; const decision=b.dataset.claimReview;
+    const note=window.prompt(decision==='verified'?'Optional review note. Verify the funds in your actual account first:':'Reason for rejecting this claim:','');if(note===null)return;
+    if(decision==='verified'&&!window.confirm('Have you independently confirmed the funds are received and available in your account?'))return;
+    b.disabled=true;try{const {error}=await client.rpc('review_public_device_payment_claim',{p_claim_id:b.dataset.claimId,p_decision:decision,p_review_note:note||null});if(error)throw error;await Promise.all([loadOrders(),loadOperationsInbox()]);say(decision==='verified'?'Payment verified and recorded against the order.':'Payment claim rejected; no payment was recorded.');}catch(error){say('Could not review claim: '+(error.message||String(error)),true);}finally{b.disabled=false;}
+  }
+  async function acknowledgeOperationalEvent(event) {
+    const b=event.target.closest('[data-event-ack]');if(!b)return;const {error}=await client.from('device_service_operational_events').update({acknowledged_at:new Date().toISOString()}).eq('id',b.dataset.eventAck).eq('business_id',business.id);if(error)return say('Could not mark event read: '+error.message,true);await loadOperationsInbox();
+  }
   async function load() {
     if(!client||!business?.id) return;
-    try { await Promise.all([loadServices(),loadOrders(),loadProviderCatalogue(),loadStorefrontSettings()]); }
+    try { await Promise.all([loadServices(),loadOrders(),loadProviderCatalogue(),loadStorefrontSettings(),loadPaymentSettings(),loadOperationsInbox()]); }
     catch(error){say('Could not load phone unlocking records: '+error.message,true);}
   }
   async function refreshWorkspace() {
