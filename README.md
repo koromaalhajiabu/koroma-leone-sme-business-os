@@ -21,6 +21,10 @@ A multi-industry SME operations platform by White Lion Tech Solutions. The front
 - English, French, Arabic (RTL), Spanish, Hindi and Simplified Chinese language options.
 - Responsive PWA shell, install support, service-worker caching and light/dark appearance.
 
+## Independent Device Services platform
+
+Phone unlocking and device-service ordering are operated as a separate, developer-controlled White Lion platform business. They are not offered as an SME business type or workspace module. The setup migration is `supabase/migrations/046_independent_device_services_platform.sql`; see [PHONE_UNLOCKING_SETUP.md](PHONE_UNLOCKING_SETUP.md) for deployment and provider configuration. Customer orders are submitted through the public Device Services storefront, while catalogue, pricing, payments and fulfilment are controlled from the Developer Dashboard.
+
 ## Technology and deployment
 
 - Frontend: HTML, CSS and JavaScript.
