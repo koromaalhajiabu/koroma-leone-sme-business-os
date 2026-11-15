@@ -309,3 +309,61 @@ body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  .topbar{position:relative}
  #view .modal{max-height:88dvh}
 }
+
+
+/* FINAL VIEWPORT CONTAINMENT — prevent workspace/login/device-services panels
+   from inheriting desktop minimum widths on Android and narrow split screens. */
+html,body,.app,.main,main.main,.content,#view,
+#wlCloudBox,.wl-auth-shell,.wl-auth-layout,.wl-auth-story,.wl-auth-card,
+#wlCloudWork,#wlPhoneUnlocking{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  max-width:100%!important;
+}
+html,body{overflow-x:clip!important}
+.app{grid-template-columns:minmax(0,248px) minmax(0,1fr)!important}
+main.main{width:100%!important;max-width:100%!important;overflow-x:clip!important}
+#wlCloudBox{width:100%!important;margin-left:0!important;margin-right:0!important}
+.wl-auth-layout{width:100%!important;grid-template-columns:minmax(0,1.08fr) minmax(0,.82fr)!important}
+.wl-auth-story,.wl-auth-card{width:100%!important}
+#wlCloudWork{width:100%!important;overflow-x:clip!important}
+#wlPhoneUnlocking{width:100%!important;overflow-wrap:anywhere!important}
+#wlPhoneUnlocking *{box-sizing:border-box!important;min-width:0}
+#wlPhoneUnlocking .wlu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#wlPhoneUnlocking .wlu-full{grid-column:1/-1!important}
+#wlPhoneUnlocking .wlu-scroll{width:100%!important;max-width:100%!important;overflow-x:auto!important}
+#wlPhoneUnlocking table{width:max-content!important;min-width:760px!important;max-width:none!important}
+#wlPhoneUnlocking input,#wlPhoneUnlocking select,#wlPhoneUnlocking textarea,
+#wlPhoneUnlocking button{max-width:100%!important;overflow-wrap:anywhere}
+#wlPhoneUnlocking .wlu-provider-tools,
+#wlPhoneUnlocking .wlu-service-row,
+#wlPhoneUnlocking>div:first-of-type{max-width:100%;flex-wrap:wrap}
+@media(max-width:900px){
+ .app{display:block!important;width:100%!important;min-width:0!important}
+ main.main{margin:0!important;padding:0!important;width:100%!important;min-width:0!important}
+ .wl-auth-layout{grid-template-columns:minmax(0,1fr)!important;max-width:720px!important;gap:16px!important;margin:18px auto!important}
+ .wl-auth-story{min-height:0!important}
+ .wl-auth-shell{margin:10px!important;padding:clamp(12px,3vw,22px)!important;border-radius:18px!important}
+ .content{width:100%!important;max-width:100%!important;margin:0!important;padding-left:clamp(10px,3vw,22px)!important;padding-right:clamp(10px,3vw,22px)!important}
+}
+@media(max-width:600px){
+ .wl-auth-shell{margin:8px!important;padding:12px!important;border-radius:15px!important}
+ .wl-auth-layout{margin:12px auto!important;gap:12px!important}
+ .wl-auth-story{padding:18px!important}
+ .wl-auth-story h1{font-size:clamp(25px,8vw,36px)!important;letter-spacing:-.8px!important}
+ .wl-auth-card{padding:16px!important}
+ #wlPhoneUnlocking{margin-top:12px!important;padding:11px!important;border-radius:12px!important;font-size:13px!important}
+ #wlPhoneUnlocking .wlu-grid{grid-template-columns:minmax(0,1fr)!important}
+ #wlPhoneUnlocking .wlu-full{grid-column:auto!important}
+ #wlPhoneUnlocking .wlu-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #wlPhoneUnlocking .wlu-scroll{max-width:calc(100vw - 54px)!important}
+ #wlPhoneUnlocking table{min-width:720px!important}
+ #wlPhoneUnlocking .wlu-provider-tools{display:flex!important;flex-direction:column!important;align-items:stretch!important}
+ #wlPhoneUnlocking .wlu-provider-tools button{width:100%!important}
+}
+@media(max-width:360px){
+ .wl-auth-shell{margin:5px!important;padding:9px!important}
+ .wl-auth-story,.wl-auth-card{padding:13px!important}
+ #wlPhoneUnlocking .wlu-kpis{grid-template-columns:minmax(0,1fr)!important}
+ #wlPhoneUnlocking .wlu-scroll{max-width:calc(100vw - 40px)!important}
+}
