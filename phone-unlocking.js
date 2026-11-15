@@ -18,7 +18,7 @@
   const providerCostLabel = (currency,value) => value==null?'Not supplied':String(currency||'').toUpperCase()==='CREDITS'?Number(value).toLocaleString(undefined,{maximumFractionDigits:4})+' credits':String(currency||'Provider cost')+' '+Number(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:4});
   const DEFAULT_USD_SLE_RATE = 22.98;
   const rateStorageKey = () => 'wl_device_credit_usd_sle_rate_'+String(business?.id||'default');
-  const getUsdSleRate = () => { try { const value=Number(localStorage.getItem(rateStorageKey())); return Number.isFinite(value)&&value>0?value:DEFAULT_USD_SLE_RATE; } catch (_) { return DEFAULT_USD_SLE_RATE; } };
+  const getUsdSleRate = () => { const live=Number($('wluUsdSleRate')?.value); if(Number.isFinite(live)&&live>0&&live<=1000) return live; try { const value=Number(localStorage.getItem(rateStorageKey())); return Number.isFinite(value)&&value>0?value:DEFAULT_USD_SLE_RATE; } catch (_) { return DEFAULT_USD_SLE_RATE; } };
   const creditsToSle = credits => Number(credits||0)*0.01*getUsdSleRate();
   const estimatedSleLabel = (currency,value) => String(currency||'').toUpperCase()==='CREDITS'&&value!=null?'Estimated SLE '+creditsToSle(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'SLE estimate unavailable';
   const canManage = () => ALLOWED_ROLES.includes(role);
