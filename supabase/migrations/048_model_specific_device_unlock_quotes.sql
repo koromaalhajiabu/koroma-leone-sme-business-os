@@ -58,6 +58,7 @@ begin
       and s.default_price>0
       and lower(concat_ws(' ',s.service_name,s.description,s.provider_group)) like '%'||v_model||'%'
       and lower(concat_ws(' ',s.service_name,s.description,s.provider_group)) ~ '(unlock|network|carrier|sim.?lock)'
+      and lower(concat_ws(' ',s.service_name,s.description,s.provider_group)) !~ '(bypass|activation.?lock|icloud.*lock|frp|mdm|google.?lock)'
   ) q
   cross join public.businesses b
   where b.id=v_business;
