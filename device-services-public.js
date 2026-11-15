@@ -18,6 +18,18 @@ async function start(){
   if(error)throw error;
   if(!data?.ok)throw new Error(data?.message||'This store is unavailable.');
   store=data.store;services=data.services||[];
+  try {
+   const paymentResult=await sb.rpc('get_public_device_payment_instructions',{p_slug:slug});
+   if(paymentResult.error) throw paymentResult.error;
+   const p=paymentResult.data||{};
+   const rows=[];
+   if(p.configured&&p.bank_account_number) rows.push('<strong>Bank transfer</strong><br>'+esc(p.bank_name||'Bank')+'<br>Account name: '+esc(p.bank_account_name||'')+'<br>Account number: '+esc(p.bank_account_number));
+   if(p.configured&&p.mobile_money_number) rows.push('<strong>'+esc(p.mobile_money_network||'Mobile money')+'</strong><br>Account name: '+esc(p.mobile_money_account_name||'')+'<br>Number: '+esc(p.mobile_money_number));
+   if(p.configured&&p.payment_instructions) rows.push(esc(p.payment_instructions));
+   $('customerPaymentInstructions').innerHTML=rows.length?'<strong>White Lion payment instructions</strong><br>'+rows.join('<hr style="border:0;border-top:1px solid #d9e5dc;margin:8px 0">')+'<p class="muted">Pay only to the details shown here. Keep your transaction reference. Payment is confirmed only after funds are checked in our account.</p>':'<strong>Payment instructions are not available yet.</strong><br>Please contact White Lion and wait for confirmed payment details before sending money.';
+  } catch(paymentError) {
+   $('customerPaymentInstructions').textContent='Payment instructions could not be loaded. Contact White Lion and wait for verified details before paying.';
+  }
   $('storeName').textContent='WELCOME TO WHITE LION DEVICE SERVICES!';
   $('storeDescription').textContent='Need professional phone IMEI checks and authorised phone unlocking and device services? We’ve got you covered!';
   $('storeContact').textContent=[store.contact_phone,store.contact_email].filter(Boolean).join(' · ');
