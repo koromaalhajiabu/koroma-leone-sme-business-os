@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#075b35">
+<meta name="description" content="Order legitimate phone unlocking and device check services from White Lion.">
+<title>White Lion Device Services</title>
+<style>
+:root{--green:#087a43;--deep:#075b35;--bg:#f4f8f5;--line:#dfeae2;--muted:#6c7c72;--ink:#173326}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+header{background:linear-gradient(135deg,#064b2d,#0d7544);color:#fff;padding:25px 17px 42px}
+.wrap{max-width:980px;margin:auto}.brand{font-size:12px;font-weight:900;letter-spacing:2px}.brand small{display:block;font-size:9px;color:#d9eee0;letter-spacing:1.4px}
+.hero{padding:28px 0 0}.hero h1{font-size:clamp(29px,6vw,46px);line-height:1.08;margin:0 0 12px}.hero p{max-width:650px;color:#e1f0e6;margin:0}
+main{max-width:980px;margin:-18px auto 45px;padding:0 14px;position:relative}.panel{background:#fff;border:1px solid var(--line);border-radius:17px;padding:18px;margin-bottom:16px;box-shadow:0 10px 30px #075b3510}
+h2{font-size:18px;margin:0 0 7px}.muted{font-size:12px;color:var(--muted)}.services{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:15px}
+.service{border:1px solid #e3ece5;border-radius:13px;padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}.service h3{font-size:14px;margin:0}.service p{font-size:12px;color:var(--muted);margin:0}.price{font-size:20px;font-weight:850;color:var(--green);margin-top:auto}
+button{font:inherit;font-weight:750;cursor:pointer;border:0;border-radius:10px;padding:11px 14px;background:var(--green);color:white;min-height:44px}button:disabled{opacity:.5}
+input,select,textarea{width:100%;border:1px solid #d9e5dc;border-radius:9px;padding:11px;background:#fff;color:var(--ink);font:inherit;min-height:45px}
+.field{display:grid;gap:5px;margin:10px 0}.field label{font-size:11px;font-weight:800;color:#53665a}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.full{grid-column:1/-1}
+.notice{padding:12px;border-radius:10px;background:#f1f8f3;color:#46624f;font-size:11px;margin:12px 0}
+.result{margin-top:12px;padding:12px;border-radius:10px;background:#f3f8f4;font-size:13px;overflow-wrap:anywhere}.error{background:#fff1f1;color:#9b2e36}.success{background:#edf8f0;color:#17643c}
+.track-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+footer{text-align:center;color:#819087;font-size:10px;padding:8px 12px 28px}
+@media(max-width:620px){header{padding:20px 15px 36px}.hero{padding-top:23px}.panel{padding:15px;border-radius:14px}.grid,.track-grid{grid-template-columns:1fr}.full{grid-column:auto}.services{grid-template-columns:1fr}.hero h1{font-size:34px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="brand">WHITE LION <small>DEVICE SERVICES</small></div><div class="hero"><h1 id="storeName">Phone unlocking &amp; device services</h1><p id="storeDescription">Browse available services and submit an order securely. No customer account is required.</p><p id="storeContact" class="muted" style="color:#e1f0e6"></p></div></div></header>
+<main>
+<section class="panel"><h2>Available services</h2><div class="muted">Prices are displayed before you submit. We will contact you to confirm payment and processing.</div><div id="services" class="services"><p class="muted">Loading available services…</p></div></section>
+<section class="panel" id="orderPanel"><h2>Place an order</h2><p class="muted">You can order as a guest. No account or password is required.</p>
+<form id="orderForm">
+<div class="field"><label>Service *</label><select id="serviceId" name="service_id" required><option value="">Choose a service</option></select></div>
+<div class="grid">
+<div class="field"><label>Full name *</label><input name="customer_name" required minlength="2" maxlength="120" autocomplete="name"></div>
+<div class="field"><label>Phone number *</label><input name="customer_phone" required minlength="5" maxlength="40" autocomplete="tel"></div>
+<div class="field"><label>Email (optional)</label><input name="customer_email" type="email" maxlength="160" autocomplete="email"></div>
+<div class="field"><label>Phone brand *</label><input name="device_brand" required maxlength="80" placeholder="e.g. Samsung"></div>
+<div class="field"><label>Phone model *</label><input name="device_model" required maxlength="100" placeholder="e.g. Galaxy S23"></div>
+<div class="field"><label>IMEI *</label><input name="imei" required inputmode="numeric" pattern="[0-9]{14,16}" maxlength="16" placeholder="14–16 digits"></div>
+<div class="field"><label>Original network / carrier *</label><input name="network_name" required maxlength="100" placeholder="e.g. Orange, Africell"></div>
+<div class="field"><label>Country (optional)</label><input name="country" maxlength="80"></div>
+<div class="field full"><label>Additional details (optional)</label><textarea name="customer_notes" maxlength="1000" rows="3" placeholder="Describe the issue. Do not include passwords or account credentials."></textarea></div>
+</div>
+<div class="notice">Privacy: Your contact details and IMEI are sent to White Lion only to handle this order. Do not submit device passwords, Apple ID passwords or Google account credentials. This form does not make a payment or automatically submit anything to a provider.</div>
+<button id="submitOrder" type="submit" style="width:100%">Submit order request</button>
+</form><div id="orderResult" role="status" aria-live="polite"></div>
+</section>
+<section class="panel"><h2>Track an order</h2><p class="muted">Enter the order reference and the phone number you used when placing it.</p>
+<form id="trackForm"><div class="track-grid"><div class="field"><label>Order reference *</label><input name="reference" required placeholder="WLD-YYMMDD-XXXXXXXX"></div><div class="field"><label>Your phone number *</label><input name="phone" required minlength="5"></div><button id="trackButton" type="submit">Check status</button></div></form><div id="trackResult" role="status" aria-live="polite"></div>
+</section>
+</main>
+<footer>White Lion Device Services · Designed by White Lion Tech Solutions</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./device-services-public.js?v=1"></script>
+</body></html>
