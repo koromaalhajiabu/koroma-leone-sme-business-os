@@ -21,6 +21,13 @@
   const getUsdSleRate = () => { const live=Number($('wluUsdSleRate')?.value); if(Number.isFinite(live)&&live>0&&live<=1000) return live; try { const value=Number(localStorage.getItem(rateStorageKey())); return Number.isFinite(value)&&value>0?value:DEFAULT_USD_SLE_RATE; } catch (_) { return DEFAULT_USD_SLE_RATE; } };
   const creditsToSle = credits => Number(credits||0)*0.01*getUsdSleRate();
   const estimatedSleLabel = (currency,value) => String(currency||'').toUpperCase()==='CREDITS'&&value!=null?'Estimated SLE '+creditsToSle(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'SLE estimate unavailable';
+  const providerCostInBusinessCurrency = service => {
+    const currency=String(service?.provider_currency||'').toUpperCase();
+    const businessCurrency=String(business?.currency_code||'SLE').toUpperCase();
+    if(currency===businessCurrency) return Number(service?.provider_cost||0);
+    if(currency==='CREDITS'&&businessCurrency==='SLE') return creditsToSle(service?.provider_cost);
+    return 0;
+  };
   const canManage = () => ALLOWED_ROLES.includes(role);
   function panel() {
     const host = $('wlCloudWork');
@@ -177,7 +184,7 @@
       $('wluRefundForm').addEventListener('submit', recordRefund);
       $('wluServiceSelect').addEventListener('change', () => {
         const service = services.find(item => item.id === $('wluServiceSelect').value);
-        if (service) { $('wluOrderForm').elements.service_price.value = Number(service.default_price).toFixed(2); $('wluOrderForm').elements.provider_cost.value = service.provider_currency && String(service.provider_currency).toUpperCase() !== String(business?.currency_code || 'SLE').toUpperCase() ? '0' : Number(service.provider_cost || 0).toFixed(2); }
+        if (service) { $('wluOrderForm').elements.service_price.value = Number(service.default_price).toFixed(2); $('wluOrderForm').elements.provider_cost.value = providerCostInBusinessCurrency(service).toFixed(2); }
       });
       $('wluPaymentOrder').addEventListener('change', () => {
         const order = orders.find(item => item.id === $('wluPaymentOrder').value);
@@ -355,7 +362,7 @@
       order.elements.network_name.value=data.check_network||'';
       $('wluServiceSelect').value=service.id;
       order.elements.service_price.value=Number(service.default_price).toFixed(2);
-      if(service.provider_cost!=null&&String(service.provider_currency||'').toUpperCase()===String(business?.currency_code||'SLE').toUpperCase()) order.elements.provider_cost.value=Number(service.provider_cost).toFixed(2); else order.elements.provider_cost.value='0';
+      order.elements.provider_cost.value=providerCostInBusinessCurrency(service).toFixed(2);
       say('Matching service selected in the order form. Complete the customer details and confirm eligibility before accepting payment.');
       $('wluOrderForm').scrollIntoView({behavior:'smooth',block:'start'});
     }));
