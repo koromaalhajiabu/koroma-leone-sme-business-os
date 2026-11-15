@@ -249,7 +249,8 @@
       <input id="wlDevAuditSearch" type="search" placeholder="Search actions, accounts, workspaces…" aria-label="Search platform audit log" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #52627b;border-radius:8px;background:#101b31;color:#fff;margin:8px 0">
       <div id="wlDevAudit" class="dev-meta">Recent platform activity will appear here.</div>
       <div class="dev-meta" style="margin-top:10px">The audit log records actions made after this feature is installed. Existing historical audit entries are not backfilled.</div>
-      <div class="dev-meta" style="margin-top:10px">Developer access is verified by Supabase database permissions. This console does not expose passwords or secret API keys.</div>`;
+      <div class="dev-meta" style="margin-top:10px">Developer access is verified by Supabase database permissions. This console does not expose passwords or secret API keys.</div>
+      <section style="margin-top:18px;padding:14px;border:1px solid #2d9b62;border-radius:13px;background:#10251d"><h3 style="margin:0 0 5px;color:#9fe3ae">WHITE LION DEVICE SERVICES</h3><div class="dev-meta" style="margin-bottom:10px">Independent platform business · developer-only operations · separate from all SME workspaces</div><div id="wlDeviceServicesSlot"></div></section>`;
     box.insertAdjacentElement('afterend', dev);
     $('wlDevRefresh').onclick = loadDeveloperDashboard;
     $('wlDevFreeze').onclick = toggleMaintenance;
