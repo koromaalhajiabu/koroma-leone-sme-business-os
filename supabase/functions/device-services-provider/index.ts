@@ -7,7 +7,7 @@ Deno.serve(async(req)=>{
  try{
   const url=Deno.env.get("SUPABASE_URL")!, anon=Deno.env.get("SUPABASE_ANON_KEY")!, service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const body=await req.json();
-  const admin=createClient(url,service);
+  const serviceClient=createClient(url,service);
   if(body.action==="identify_device"){
    const imei=String(body.imei||"").replace(/\\s+/g,"");
    if(!/^\\d{15}$/.test(imei)) return reply({ok:false,error:"Enter a valid 15-digit IMEI."},400);
@@ -18,7 +18,7 @@ Deno.serve(async(req)=>{
    const ip=req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()||req.headers.get("cf-connecting-ip")||"unknown";
    const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(ip+"|white-lion-imei-lookup"));
    const ipHash=Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,"0")).join("");
-   const {data:allowed,error:rateError}=await admin.rpc("claim_public_imei_lookup",{p_ip_hash:ipHash});
+   const {data:allowed,error:rateError}=await serviceClient.rpc("claim_public_imei_lookup",{p_ip_hash:ipHash});
    if(rateError) return reply({ok:false,error:"IMEI lookup is temporarily unavailable. Please try again later."},503);
    if(allowed!==true) return reply({ok:false,error:"Please wait 30 seconds before requesting another IMEI lookup."},429);
    const key=Deno.env.get("DEVICEDECODED_API_KEY")?.trim();
