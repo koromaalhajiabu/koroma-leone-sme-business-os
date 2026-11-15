@@ -15,6 +15,7 @@
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const money = value => (business?.currency_code || 'SLE') + ' ' + Number(value || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const providerCostLabel = (currency,value) => value==null?'Not supplied':String(currency||'').toUpperCase()==='CREDITS'?Number(value).toLocaleString(undefined,{maximumFractionDigits:4})+' credits':String(currency||'Provider cost')+' '+Number(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:4});
   const canManage = () => ALLOWED_ROLES.includes(role);
   function panel() {
     const host = $('wlCloudWork');
@@ -69,7 +70,7 @@
             <div id="wluServices"></div>
             <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e8eee9">
               <h4>Live multi-provider catalogue</h4>
-              <p class="wlu-muted">Sync the provider's current IMEI and server services. Provider credit is separate from your customer selling price. Adding a service here does not place an order.</p>
+              <p class="wlu-muted">Sync the provider's current IMEI and server services. Provider costs are stored in the provider's own unit (DeviceDecoded uses raw credits; USD conversion is unconfirmed). Customer selling prices are set separately. Adding a service does not place an order.</p>
               <label>Provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label><button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
               <span id="wluCatalogueStatus" class="wlu-muted" role="status">No live catalogue sync yet.</span>
               <div id="wluLiveServices"></div>
@@ -119,7 +120,7 @@
                 <select name="service_id" id="wluServiceSelect" required><option value="">Choose service / price</option></select>
                 <input name="provider_name" maxlength="120" placeholder="Unlocking provider (optional)">
                 <input name="provider_reference" maxlength="160" placeholder="Provider order reference (optional)">
-                <input name="provider_cost" type="number" min="0" step="0.01" value="0" placeholder="Provider cost">
+                <input name="provider_cost" type="number" min="0" step="0.01" value="0" placeholder="Provider cost in business currency (SLE)">
                 <input name="service_price" type="number" min="0" step="0.01" required placeholder="Customer price">
                 <textarea class="wlu-full" name="notes" maxlength="1000" rows="2" placeholder="Order notes (do not enter passwords or account credentials)"></textarea>
               </div>
@@ -163,7 +164,7 @@
       $('wluRefundForm').addEventListener('submit', recordRefund);
       $('wluServiceSelect').addEventListener('change', () => {
         const service = services.find(item => item.id === $('wluServiceSelect').value);
-        if (service) $('wluOrderForm').elements.service_price.value = Number(service.default_price).toFixed(2);
+        if (service) { $('wluOrderForm').elements.service_price.value = Number(service.default_price).toFixed(2); $('wluOrderForm').elements.provider_cost.value = service.provider_currency && String(service.provider_currency).toUpperCase() !== String(business?.currency_code || 'SLE').toUpperCase() ? '0' : Number(service.provider_cost || 0).toFixed(2); }
       });
       $('wluPaymentOrder').addEventListener('change', () => {
         const order = orders.find(item => item.id === $('wluPaymentOrder').value);
@@ -230,7 +231,7 @@
     if(error) throw error;
     const rows=data||[];
     $('wluLiveServices').innerHTML=rows.length?'<div class="wlu-scroll"><table><thead><tr><th>Group / service</th><th>Type</th><th>Provider credit</th><th>Delivery</th><th>Action</th></tr></thead><tbody>'+rows.map(item=>{
-      const credit=item.provider_credit==null?'Not supplied':esc(item.provider_currency||'')+' '+Number(item.provider_credit).toFixed(4);
+      const credit=esc(providerCostLabel(item.provider_currency,item.provider_credit));
       return '<tr><td><strong>'+esc(item.service_name)+'</strong><br><small>'+esc(item.provider_group||'')+'</small><br><small>'+esc(item.description||'')+'</small></td><td>'+esc(item.provider_service_type)+'</td><td>'+credit+'</td><td>'+esc(item.delivery_time||'Not specified')+'</td><td><button type="button" class="secondary" data-wlu-import-provider-service="'+esc(item.id)+'">Add to customer catalogue</button></td></tr>';
     }).join('')+'</tbody></table></div>':'<p class="wlu-muted">No provider services saved yet. Choose a provider and sync its catalogue.</p>';
     window.__wluProviderCatalogue=rows;
@@ -318,14 +319,14 @@
     }
     const cards=matches.map(item=>{
       const local=services.find(s=>s.provider_service_id&&String(s.provider_service_id)===String(item.provider_service_id)&&String(s.provider_service_type||'').toUpperCase()==='IMEI');
-      const providerCost=item.provider_credit==null?'Not supplied':esc(item.provider_currency||'')+' '+Number(item.provider_credit).toFixed(4);
+      const providerCost=esc(providerCostLabel(item.provider_currency,item.provider_credit));
       const selling=local?money(local.default_price):'Not yet priced in your customer catalogue';
       const delivery=item.delivery_time||'Not specified by provider';
       return '<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.provider_group||'IMEI service')+' · '+esc(item.description||'')+'</small><br><small class="wlu-muted">Provider cost: '+providerCost+' · Delivery: '+esc(delivery)+'</small><br><small class="wlu-muted">Your customer price: '+esc(selling)+'</small></span><span>'+(local?'<button type="button" data-wlu-use-check-service="'+esc(local.id)+'">Use this service</button>':'<span class="wlu-muted">Add to customer catalogue first</span>')+'</span></div>';
     }).join('');
     const imei=data.check_imei.trim();
     const validImei=!imei||/^[0-9]{14,16}$/.test(imei);
-    result.innerHTML='<strong>Matching provider catalogue service(s) found</strong><br>Problem: '+esc(title)+'<br>Device: '+esc(data.check_brand)+' '+esc(data.check_model)+'<br>Original network: '+esc(data.check_network||'Not supplied')+'<br>IMEI format: '+(imei?(validImei?'Looks like a 14–16 digit IMEI; this checker has not verified its status.':'Invalid IMEI format'):'Not supplied')+'<br><br><strong>Catalogue matches</strong>'+cards+'<p class="wlu-muted">Important: a catalogue match only means the provider lists a relevant service. It does not confirm that this specific IMEI is eligible, clean, compatible or guaranteed to unlock. Confirm the exact device, carrier, country and provider terms before accepting payment. Provider credit is not your customer price.</p>';
+    result.innerHTML='<strong>Matching provider catalogue service(s) found</strong><br>Problem: '+esc(title)+'<br>Device: '+esc(data.check_brand)+' '+esc(data.check_model)+'<br>Original network: '+esc(data.check_network||'Not supplied')+'<br>IMEI format: '+(imei?(validImei?'Looks like a 14–16 digit IMEI; this checker has not verified its status.':'Invalid IMEI format'):'Not supplied')+'<br><br><strong>Catalogue matches</strong>'+cards+'<p class="wlu-muted">Important: a catalogue match only means the provider lists a relevant service. It does not confirm that this specific IMEI is eligible, clean, compatible or guaranteed to unlock. Confirm the exact device, carrier, country and provider terms before accepting payment. Provider credit is not your customer price or a confirmed SLE cost.</p>';
     result.style.background='#f3f8f4';result.style.color='#315641';
     result.querySelectorAll('[data-wlu-use-check-service]').forEach(button=>button.addEventListener('click',()=>{
       const service=services.find(item=>item.id===button.dataset.wluUseCheckService);
@@ -337,7 +338,7 @@
       order.elements.network_name.value=data.check_network||'';
       $('wluServiceSelect').value=service.id;
       order.elements.service_price.value=Number(service.default_price).toFixed(2);
-      if(service.provider_cost!=null) order.elements.provider_cost.value=Number(service.provider_cost).toFixed(2);
+      if(service.provider_cost!=null&&String(service.provider_currency||'').toUpperCase()===String(business?.currency_code||'SLE').toUpperCase()) order.elements.provider_cost.value=Number(service.provider_cost).toFixed(2); else order.elements.provider_cost.value='0';
       say('Matching service selected in the order form. Complete the customer details and confirm eligibility before accepting payment.');
       $('wluOrderForm').scrollIntoView({behavior:'smooth',block:'start'});
     }));
@@ -466,7 +467,7 @@
     if(error) throw error;
     services=data||[];
     $('wluServiceSelect').innerHTML='<option value="">Choose service / price</option>'+services.map(item=>'<option value="'+esc(item.id)+'">'+esc(item.service_name)+' — '+esc(money(item.default_price))+'</option>').join('');
-    $('wluServices').innerHTML=services.map(item=>'<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.description||'')+'</small>'+(item.provider_service_id?'<br><small class="wlu-muted">Mobile-Unlock '+esc(item.provider_service_type)+' ID: '+esc(item.provider_service_id)+' · Provider cost: '+(item.provider_cost==null?'not supplied':esc(item.provider_currency||'')+' '+Number(item.provider_cost).toFixed(4))+'</small>':'')+'</span><span><strong>'+esc(money(item.default_price))+'</strong> <button type="button" class="secondary" data-wlu-service-edit="'+esc(item.id)+'">Change price</button></span></div>').join('')||'<p class="wlu-muted">No services yet. Add the services you offer and their default prices.</p>';
+    $('wluServices').innerHTML=services.map(item=>'<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.description||'')+'</small>'+(item.provider_service_id?'<br><small class="wlu-muted">Mobile-Unlock '+esc(item.provider_service_type)+' ID: '+esc(item.provider_service_id)+' · Provider cost: '+esc(providerCostLabel(item.provider_currency,item.provider_cost))+'</small>':'')+'</span><span><strong>'+esc(money(item.default_price))+'</strong> <button type="button" class="secondary" data-wlu-service-edit="'+esc(item.id)+'">Change price</button></span></div>').join('')||'<p class="wlu-muted">No services yet. Add the services you offer and their default prices.</p>';
   }
   async function loadOrders() {
     const {data,error}=await client.from('phone_unlocking_orders').select('id,reference,customer_name,customer_phone,device_brand,device_model,imei,network_name,service_name,provider_name,provider_reference,provider_service_id,provider_service_type,provider_cost,service_price,amount_paid,amount_refunded,status,approval_status,approved_at,provider_submission_status,provider_submission_message,created_at').eq('business_id',business.id).order('created_at',{ascending:false}).limit(60);
