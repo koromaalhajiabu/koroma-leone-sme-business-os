@@ -100,6 +100,24 @@ $('orderForm').addEventListener('submit',async e=>{
  }catch(err){show('orderResult',err.message||String(err),'error')}
  finally{btn.disabled=false;btn.textContent='Submit order request'}
 });
+$('paymentClaimForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const track=new FormData($('trackForm')),claim=new FormData(e.currentTarget),btn=$('paymentClaimButton'),out=$('paymentClaimResult');
+ const reference=String(track.get('reference')||'').trim(),phone=String(track.get('phone')||'').trim();
+ if(!reference||!phone){out.className='result error';out.textContent='Enter your order reference and phone number in the Track an order section first.';return}
+ btn.disabled=true;btn.textContent='Submitting…';
+ try{
+  const {data,error}=await sb.rpc('submit_public_device_payment_claim',{
+   p_slug:slug,p_reference:reference,p_customer_phone:phone,p_payment_method:claim.get('payment_method'),
+   p_payment_reference:claim.get('payment_reference'),p_amount:Number(claim.get('amount')),p_payer_name:claim.get('payer_name')||null
+  });
+  if(error)throw error;
+  if(!data?.ok)throw new Error(data?.message||'Payment details could not be submitted.');
+  e.currentTarget.reset();
+  out.className='result success';out.textContent=data.message||'Payment details submitted. Await confirmation from White Lion.';
+ }catch(err){out.className='result error';out.textContent=err.message||String(err)}
+ finally{btn.disabled=false;btn.textContent='Submit payment details'}
+});
 $('trackForm').addEventListener('submit',async e=>{
  e.preventDefault();const fd=new FormData(e.currentTarget),btn=$('trackButton');
  btn.disabled=true;btn.textContent='Checking…';
