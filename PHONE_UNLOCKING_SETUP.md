@@ -1,64 +1,28 @@
-# Phone Unlocking — final activation checklist
+# White Lion Device Services & Repair Centre — provider setup
 
-The application module is already included in `index.html` through `phone-unlocking.js`, and the service worker caches that module. The database migrations are `033_phone_unlocking_services.sql`, `034_mobile_unlock_provider_catalogue.sql`, and `035_phone_unlocking_owner_approval.sql`.
+The legacy Mobile-Unlock integration has been retired from the application source. Existing customer services, orders, payments, refunds and historical catalogue rows are preserved. Historical Mobile-Unlock catalogue rows are marked inactive by migration 036.
 
-## 1. Install the database objects once
+## 1. Database migration
+Run `supabase/migrations/036_multi_provider_device_services.sql` once in the Supabase SQL Editor.
 
-1. Open the Supabase project used by this application.
-2. Open **SQL Editor**.
-3. Open `supabase/INSTALL_PHONE_UNLOCKING.sql` in this repository, copy its complete contents, paste into a new SQL query, and run it.
-4. Confirm the query completes without an error. Do not run the installer repeatedly unless you have reviewed the migration changes.
-
-The installer is business-scoped and applies row-level security. The module is seeded disabled for each business; the owner/admin can enable it in the business workspace.
-
-## 2. Deploy the provider Edge Function
-
-The source is `supabase/functions/mobile-unlock-provider/index.ts`.
-
-Deploy it as a Supabase Edge Function named exactly:
-
-`mobile-unlock-provider`
-
-Use the Supabase Dashboard's **Edge Functions** area to create/deploy the function from the repository source, or deploy it with the Supabase CLI from the repository root:
-
+## 2. Deploy the replacement catalogue gateway
+Deploy `supabase/functions/device-services-provider/index.ts` as `device-services-provider`:
 ```sh
-supabase functions deploy mobile-unlock-provider --project-ref YOUR_PROJECT_REF
+supabase functions deploy device-services-provider --project-ref YOUR_PROJECT_REF
 ```
+Add `IMEI_ORG_API_KEY` in Supabase Edge Function secrets using the key from your own IMEI.org account. Never put API keys in GitHub Pages or browser code.
 
-## 3. Add the provider secret securely
+## 3. Provider support status
+- **DeviceDecoded:** live public service catalogue adapter is implemented. The published endpoint does not require a key. Paid device checks and orders are not enabled in this release.
+- **IMEI.org:** live service catalogue adapter is implemented. Add `IMEI_ORG_API_KEY` before syncing.
+- **IMEI.info:** requires funded API access and confirmed account credentials/API contract; integration is not enabled yet.
+- **GSMA Device Check:** requires commercial onboarding and private API documentation; integration is not enabled yet.
 
-In Supabase Dashboard → **Edge Functions → Secrets**, add:
+## 4. App usage
+Open the Device Services & Repair Centre, choose DeviceDecoded or IMEI.org, and select **Sync selected provider catalogue**. Syncing a catalogue does not submit an order or spend provider credit. Set your own customer selling price separately from provider cost.
 
-- Name: `MOBILE_UNLOCK_API_KEY`
-- Value: the API key issued to your own authorised Mobile-Unlock account
+## 5. Important safety controls
+Provider order submission is disabled for all replacement providers until their order endpoints, balance checks, duplicate protection, result polling and error reconciliation are implemented and tested. Customer orders can still be recorded, paid, approved and processed manually. Hardware faults require technician inspection. Apple Activation Lock and Google FRP must use legitimate owner recovery; no bypass workflow is offered.
 
-Never put this key in `index.html`, `phone-unlocking.js`, GitHub Pages, a public repository, or a customer-facing device. The function reads the secret server-side. Supabase supplies the project URL and anon key to the Edge Function runtime.
-
-## 4. Activate and verify
-
-1. Sign in to the White Lion app and select the correct business.
-2. Open the Phone Unlocking & Device Services workspace and enable the module.
-3. Add your own customer-facing services and selling prices.
-4. Select **Test Mobile-Unlock API connection**. This test must show a verified connection and does not submit an order or spend provider credit.
-5. Select **Sync live provider catalogue**. Confirm the service count and provider currency before importing any provider service.
-6. Create a low-risk test order using a device you own or are explicitly authorised to service.
-7. Record the payment. Provider submission remains blocked until the order is fully paid and explicitly approved by the business owner.
-
-## 5. Use the Phone Compatibility & Repair Checker
-
-1. Test the provider connection and synchronise the live catalogue first.
-2. Open **Phone Compatibility & Repair Checker**.
-3. Enter the brand, exact model and reported problem. IMEI and original carrier are optional for the catalogue pre-check.
-4. For network-lock, blacklist and IMEI-status categories, the checker searches the latest locally synced IMEI service catalogue and shows matching provider services, provider cost and your customer price when that service has been added to your customer catalogue.
-5. Select **Use this service** to prefill the unlocking order form. Complete customer details and verify eligibility before accepting payment.
-
-The checker does not send an IMEI to the provider, does not perform a live blacklist/eligibility lookup, and does not place an order. A catalogue match is not proof that a specific phone can be unlocked. Apple Activation Lock and Google FRP/account locks are directed to official account recovery rather than bypass services. Screen, battery, charging, liquid, power and other hardware faults require a technician's physical inspection and are not diagnosed by the provider catalogue.
-
-## Important operational safeguards
-
-- Only authorised owner/admin/manager business members can access the sensitive order register and IMEI.
-- Only the business owner can approve and submit provider orders.
-- The provider key is never sent to the browser.
-- An uncertain provider response must be reconciled in the provider dashboard before any retry. Do not submit again just because the first request timed out.
-- The module records customer payments and refunds, but the current interface explicitly states that automatic general-ledger journal posting is not yet enabled. Do not treat the module's order totals as posted accounting entries.
-- Provider availability, service eligibility, turnaround time, and charges are determined by the provider account and its current catalogue; the software cannot guarantee that a particular IMEI can be unlocked.
+## 6. Remove the old deployed integration
+In Supabase Dashboard → Edge Functions, delete the deployed `mobile-unlock-provider` function. In Edge Function Secrets, delete `MOBILE_UNLOCK_API_KEY`. The source file has been removed from this repository. Do not delete the existing phone service/order/payment/refund tables.
