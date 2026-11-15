@@ -44,6 +44,16 @@ Never put this key in `index.html`, `phone-unlocking.js`, GitHub Pages, a public
 6. Create a low-risk test order using a device you own or are explicitly authorised to service.
 7. Record the payment. Provider submission remains blocked until the order is fully paid and explicitly approved by the business owner.
 
+## 5. Use the Phone Compatibility & Repair Checker
+
+1. Test the provider connection and synchronise the live catalogue first.
+2. Open **Phone Compatibility & Repair Checker**.
+3. Enter the brand, exact model and reported problem. IMEI and original carrier are optional for the catalogue pre-check.
+4. For network-lock, blacklist and IMEI-status categories, the checker searches the latest locally synced IMEI service catalogue and shows matching provider services, provider cost and your customer price when that service has been added to your customer catalogue.
+5. Select **Use this service** to prefill the unlocking order form. Complete customer details and verify eligibility before accepting payment.
+
+The checker does not send an IMEI to the provider, does not perform a live blacklist/eligibility lookup, and does not place an order. A catalogue match is not proof that a specific phone can be unlocked. Apple Activation Lock and Google FRP/account locks are directed to official account recovery rather than bypass services. Screen, battery, charging, liquid, power and other hardware faults require a technician's physical inspection and are not diagnosed by the provider catalogue.
+
 ## Important operational safeguards
 
 - Only authorised owner/admin/manager business members can access the sensitive order register and IMEI.
