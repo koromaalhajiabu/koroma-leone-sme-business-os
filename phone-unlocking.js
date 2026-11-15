@@ -53,7 +53,7 @@
           <span class="wlu-muted" id="wluWorkspace">No workspace selected</span>
         </div>
         <div id="wluStatus" class="wlu-status" role="status" aria-live="polite">Waiting for a business workspace…</div>
-        <div class="wlu-provider-tools"><button id="wluTestProvider" type="button" class="secondary">Test Mobile-Unlock API connection</button><span id="wluProviderResult" class="wlu-muted" role="status">Provider API not connected</span></div>
+        <div class="wlu-provider-tools"><button id="wluTestProvider" type="button" class="secondary">Provider connection status</button><span id="wluProviderResult" class="wlu-muted" role="status">Provider API not connected</span></div>
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
@@ -68,9 +68,9 @@
             </form>
             <div id="wluServices"></div>
             <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e8eee9">
-              <h4>Live Mobile-Unlock provider catalogue</h4>
+              <h4>Live multi-provider catalogue</h4>
               <p class="wlu-muted">Sync the provider's current IMEI and server services. Provider credit is separate from your customer selling price. Adding a service here does not place an order.</p>
-              <button id="wluSyncCatalogue" type="button" class="secondary">Sync live provider catalogue</button>
+              <label>Provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label><button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
               <span id="wluCatalogueStatus" class="wlu-muted" role="status">No live catalogue sync yet.</span>
               <div id="wluLiveServices"></div>
             </div>
@@ -148,11 +148,10 @@
           </details>
           <h4>Unlocking order register</h4>
           <div class="wlu-scroll" id="wluOrders">Loading orders…</div>
-          <div class="wlu-muted" style="margin-top:9px">Provider submissions are available only for supported Mobile-Unlock IMEI services after full customer payment and your explicit approval. Orders without a provider service mapping remain manual. Payment and refund records are stored here; automatic general-ledger journal posting is not enabled yet.</div>
+          <div class="wlu-muted" style="margin-top:9px">Provider submissions are available only for supported legacy provider IMEI services after full customer payment and your explicit approval. Orders without a provider service mapping remain manual. Payment and refund records are stored here; automatic general-ledger journal posting is not enabled yet.</div>
         </div>`;
       host.appendChild(root);
       $('wluEnable').addEventListener('click', enableModule);
-      $('wluTestProvider').addEventListener('click', testProviderConnection);
       $('wluSyncCatalogue').addEventListener('click', syncProviderCatalogue);
       $('wluLiveServices').addEventListener('click', importProviderService);
       $('wluCheckerForm').addEventListener('submit', checkDeviceCompatibility);
@@ -179,66 +178,30 @@
   function say(message, error=false) {
     const el=$('wluStatus'); if(el){el.textContent=message;el.style.background=error?'#fff1f0':'#f3f8f4';el.style.color=error?'#9b2c24':'#315641';}
   }
-  async function testProviderConnection() {
-    const button=$('wluTestProvider'), output=$('wluProviderResult');
-    if(!client||!business?.id) return say('Select a business workspace first.',true);
-    if(!canManage()) return say('Only an owner, administrator or manager can test the provider connection.',true);
-    button.disabled=true; button.textContent='Testing provider connection…'; output.textContent='Checking provider account and live service catalogue…';
-    try {
-      const {data,error}=await client.functions.invoke('mobile-unlock-provider',{body:{action:'test_connection',business_id:business.id}});
-      if(error) {
-        let detail=error.message||'Supabase function request failed.';
-        const response=error.context;
-        if(response && typeof response.clone==='function') {
-          try {
-            const payload=await response.clone().json();
-            if(payload?.error) detail=String(payload.error);
-            else if(payload?.message) detail=String(payload.message);
-          } catch (_) {}
-        }
-        throw new Error(detail);
-      }
-      if(!data?.ok) throw new Error(data?.error||'Provider connection could not be verified.');
-      const balance=data.balance==null?'Balance unavailable':String(data.balance)+(data.currency?' '+data.currency:'');
-      output.textContent='Connected · Provider balance: '+balance+' · '+Number(data.service_count||0)+' live services found.';
-      say('Mobile-Unlock API connection verified. No order was submitted and no provider credit was spent.');
-    } catch(error) {
-      output.textContent='Connection not verified.';
-      say('Provider connection test failed: '+(error.message||String(error)),true);
-    } finally {
-      button.disabled=false; button.textContent='Test Mobile-Unlock API connection';
-    }
-  }
   async function syncProviderCatalogue() {
     const button=$('wluSyncCatalogue'), status=$('wluCatalogueStatus');
     if(!client||!business?.id) return say('Select a business workspace first.',true);
-    if(!canManage()) return say('Only an owner, administrator or manager can sync the provider catalogue.',true);
-    button.disabled=true; button.textContent='Syncing provider catalogue…'; status.textContent='Fetching current IMEI and server services…';
-    try {
-      const {data,error}=await client.functions.invoke('mobile-unlock-provider',{body:{action:'sync_catalogue',business_id:business.id}});
-      if(error) {
-        let detail=error.message||'Supabase function request failed.';
-        const response=error.context;
-        if(response&&typeof response.clone==='function') {
-          try { const payload=await response.clone().json(); if(payload?.error) detail=String(payload.error); } catch (_) {}
-        }
-        throw new Error(detail);
-      }
-      if(!data?.ok) throw new Error(data?.error||'Catalogue sync failed.');
-      await loadProviderCatalogue();
-      status.textContent=Number(data.synced_count||0)+' services synced · '+Number(data.imei_count||0)+' IMEI · '+Number(data.server_count||0)+' server/remote · Provider currency: '+(data.provider_currency||'not supplied')+'.';
-      say('Live Mobile-Unlock catalogue synchronised. No order was submitted and no provider credit was spent.');
-    } catch(error) {
-      status.textContent='Catalogue sync failed: '+(error.message||String(error));
-      say('Provider catalogue sync failed: '+(error.message||String(error)),true);
-    } finally {
-      button.disabled=false; button.textContent='Sync live provider catalogue';
+    if(!canManage()) return say('Only an owner, administrator or manager can sync provider catalogues.',true);
+    const provider=$('wluProviderChoice')?.value||'devicedecoded';
+    if(provider==='imei_info'||provider==='gsma') {
+      status.textContent=provider==='imei_info'?'IMEI.info requires funded API access and confirmed API credentials.':'GSMA Device Check requires commercial onboarding and private API documentation.';
+      return say(status.textContent,true);
     }
+    button.disabled=true; button.textContent='Syncing…'; status.textContent='Connecting securely to '+provider+'…';
+    try {
+      const {data,error}=await client.functions.invoke('device-services-provider',{body:{action:'sync_catalogue',business_id:business.id,provider}});
+      if(error) throw new Error(error.message||'Provider request failed.');
+      if(!data?.ok) throw new Error(data?.error||'Provider catalogue sync failed.');
+      await loadProviderCatalogue();
+      status.textContent=Number(data.synced_count||0)+' services synced from '+data.provider_name+'.';
+      say('Catalogue sync completed. No customer order was placed and no provider credit was spent.');
+    } catch(error) { status.textContent='Sync not completed: '+(error.message||String(error)); say('Provider catalogue sync failed: '+(error.message||String(error)),true); }
+    finally { button.disabled=false; button.textContent='Sync selected provider catalogue'; }
   }
   async function loadProviderCatalogue() {
     if(!client||!business?.id||!$('wluLiveServices')) return;
     const {data,error}=await client.from('phone_unlocking_provider_services')
-      .select('id,provider_service_id,provider_service_type,provider_group,service_name,provider_credit,provider_currency,delivery_time,description,quantity,requires_custom,is_active,last_synced_at')
+      .select('id,provider_key,provider_service_id,provider_service_type,provider_group,service_name,provider_credit,provider_currency,delivery_time,description,quantity,requires_custom,is_active,last_synced_at')
       .eq('business_id',business.id).eq('is_active',true)
       .order('provider_group').order('service_name').limit(500);
     if(error) throw error;
@@ -246,7 +209,7 @@
     $('wluLiveServices').innerHTML=rows.length?'<div class="wlu-scroll"><table><thead><tr><th>Group / service</th><th>Type</th><th>Provider credit</th><th>Delivery</th><th>Action</th></tr></thead><tbody>'+rows.map(item=>{
       const credit=item.provider_credit==null?'Not supplied':esc(item.provider_currency||'')+' '+Number(item.provider_credit).toFixed(4);
       return '<tr><td><strong>'+esc(item.service_name)+'</strong><br><small>'+esc(item.provider_group||'')+'</small><br><small>'+esc(item.description||'')+'</small></td><td>'+esc(item.provider_service_type)+'</td><td>'+credit+'</td><td>'+esc(item.delivery_time||'Not specified')+'</td><td><button type="button" class="secondary" data-wlu-import-provider-service="'+esc(item.id)+'">Add to customer catalogue</button></td></tr>';
-    }).join('')+'</tbody></table></div>':'<p class="wlu-muted">No live services saved yet. Select Sync live provider catalogue to fetch them.</p>';
+    }).join('')+'</tbody></table></div>':'<p class="wlu-muted">No provider services saved yet. Choose a provider and sync its catalogue.</p>';
     window.__wluProviderCatalogue=rows;
     if($('wluCheckerResult') && rows.length) $('wluCheckerResult').textContent='Provider catalogue loaded ('+rows.length+' active services). Enter a device and problem to check for a catalogue match.';
   }
@@ -308,7 +271,7 @@
     }
     const synced=Array.isArray(window.__wluProviderCatalogue)?window.__wluProviderCatalogue:[];
     if(!synced.length) {
-      result.innerHTML='<strong>Provider catalogue not available yet</strong><br>First select <em>Test Mobile-Unlock API connection</em>, then <em>Sync live provider catalogue</em>. This check uses the latest catalogue synced for the selected business.';
+      result.innerHTML='<strong>Provider catalogue not available yet</strong><br>First select <em>Test legacy API connection</em>, then <em>Sync live provider catalogue</em>. This check uses the latest catalogue synced for the selected business.';
       result.style.background='#fff8e8';result.style.color='#79520b';
       return;
     }
@@ -433,7 +396,7 @@
     if(Number(order.amount_paid)<Number(order.service_price)) return say('The customer must pay the full order amount before approval.',true);
     if(!['received','quoted','awaiting_payment'].includes(order.status)) return say('This order is not eligible for approval.',true);
     if((order.approval_status||'pending')!=='pending') return say('This order has already been reviewed.',true);
-    const mapped=!!order.provider_service_id&&String(order.provider_service_type||'').toUpperCase()==='IMEI';
+    const mapped=false;
     const promptText=mapped?'Approve this order and submit it to Mobile-Unlock now? The provider may deduct wallet credit.':'Approve this order for manual processing? It has no supported Mobile-Unlock IMEI service mapping, so no provider order will be sent.';
     if(!window.confirm(promptText)) return;
     button.disabled=true; button.textContent='Approving…';
@@ -449,9 +412,9 @@
           throw new Error(detail);
         }
         if(!data?.ok) throw new Error(data?.error||'Provider submission could not be confirmed.');
-        await load(); say('Order '+order.reference+' approved and submitted to Mobile-Unlock. Provider reference: '+data.provider_reference+'.');
+        await load(); say('Order '+order.reference+' approved and submitted to provider. Provider reference: '+data.provider_reference+'.');
       } else {
-        await load(); say('Order '+order.reference+' approved for manual processing. No Mobile-Unlock order was submitted.');
+        await load(); say('Order '+order.reference+' approved for manual processing. No provider order was submitted.');
       }
     } catch(error) {
       await load(); say('Approval/submission result: '+(error.message||String(error))+'. Check the order register before trying again; do not submit a duplicate.',true);
