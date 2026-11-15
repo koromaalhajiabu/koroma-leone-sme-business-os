@@ -30,7 +30,7 @@
   };
   const canManage = () => isDeveloper;
   function panel() {
-    const host = $('wlCloudWork');
+    const host = $('wlDeviceServicesSlot');
     if (!host) return null;
     let root = $('wlPhoneUnlocking');
     if (!root) {
@@ -584,33 +584,31 @@
     try { await Promise.all([loadServices(),loadOrders(),loadProviderCatalogue(),loadStorefrontSettings()]); }
     catch(error){say('Could not load phone unlocking records: '+error.message,true);}
   }
-  async function refreshWorkspace(detail={}) {
+  async function refreshWorkspace() {
     const root=panel(); if(!root) return;
     client=window.whiteLionCloud?.getClient?.()||null;
-    business=detail.business||window.whiteLionCloud?.getActiveBusiness?.()||null;
-    branch=detail.branch||window.whiteLionCloud?.getSelectedBranch?.()||null;
-    role=business?.role||null;
-    if(!client||!business?.id){$('wluWorkspace').textContent='No business selected';$('wluApp').hidden=true;$('wluEnableArea').hidden=true;say('Sign in and select a business workspace to use this module.');return;}
+    if(!client){$('wluWorkspace').textContent='Sign in with the platform developer account';$('wluApp').hidden=true;$('wluEnableArea').hidden=true;return;}
     const developerCheck=await client.rpc('is_platform_developer');
     isDeveloper=!developerCheck.error&&developerCheck.data===true;
-    $('wluWorkspace').textContent=business.name+' · '+(isDeveloper?'platform developer':(role||'member'));
-    if(!isDeveloper){$('wluApp').hidden=true;$('wluEnableArea').hidden=true;say('This device-services control panel is restricted to the registered White Lion platform developer.',true);return;}
-    let modules=detail.modules;
-    if(!Array.isArray(modules)){
-      const result=await client.from('business_industry_modules').select('module_key,is_enabled').eq('business_id',business.id);
-      if(result.error) return say('Could not check module access: '+result.error.message,true);
-      modules=result.data||[];
+    if(!isDeveloper){business=null;branch=null;role=null;enabled=false;$('wluWorkspace').textContent='Developer access required';$('wluApp').hidden=true;$('wluEnableArea').hidden=true;say('This independent Device Services platform is restricted to the registered White Lion developer.',true);return;}
+    const contextResult=await client.rpc('get_platform_device_services_context');
+    if(contextResult.error||!contextResult.data?.business_id||!contextResult.data?.branch_id){
+      business=null;branch=null;enabled=false;$('wluWorkspace').textContent='Platform tenant unavailable';$('wluApp').hidden=true;$('wluEnableArea').hidden=true;
+      say('Could not load the independent Device Services platform: '+(contextResult.error?.message||'Platform context is incomplete.'),true);return;
     }
-    enabled=modules.some(m=>m.module_key===MODULE_KEY&&m.is_enabled);
-    $('wluEnableArea').hidden=enabled;
-    $('wluApp').hidden=!enabled;
-    if(!enabled){say(['owner','admin'].includes(role)?'Enable this specialist module when you are ready to use it.':'Ask the business owner or administrator to enable Phone Unlocking.');return;}
-    if(!canManage()){say('Your business role does not have permission to view sensitive device identifiers or manage unlocking orders.',true);$('wluApp').hidden=true;return;}
+    const context=contextResult.data;
+    business={id:context.business_id,name:context.business_name||'White Lion Device Services Platform',currency_code:context.currency_code||'SLE',role:'owner'};
+    branch={id:context.branch_id,name:'Device Services Operations'};
+    role='owner';enabled=true;
+    $('wluWorkspace').textContent=business.name+' · independent platform business';
+    $('wluEnableArea').hidden=true;
+    $('wluApp').hidden=false;
+    if(!canManage()){$('wluApp').hidden=true;say('Developer permission is required to manage Device Services.',true);return;}
     await load();
   }
   window.addEventListener('whiteLionCloudReady',()=>refreshWorkspace().catch(e=>say(e.message,true)));
-  window.addEventListener('whiteLionWorkspaceChanged',e=>refreshWorkspace(e.detail||{}).catch(err=>say(err.message,true)));
-  window.addEventListener('whiteLionBranchChanged',e=>{branch=e.detail?.branch||null;});
+  // Re-check developer context after sign-in. The selected SME workspace is ignored.
+  window.addEventListener('whiteLionWorkspaceChanged',()=>refreshWorkspace().catch(err=>say(err.message,true)));
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{panel();refreshWorkspace().catch(()=>{});});
   else {panel();refreshWorkspace().catch(()=>{});}
 })();
