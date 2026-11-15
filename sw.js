@@ -12,7 +12,7 @@ const APP_SHELL=[
   './storefront.html',
   './storefront-public.js?v=1',
   './device-services.html',
-  './device-services-public.js?v=6',
+  './device-services-public.js?v=8',
   './manifest.webmanifest?v=46',
   './shared.js?v=2',
   './i18n.js?v=11',
