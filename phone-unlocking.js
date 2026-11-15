@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const MODULE_KEY = 'phone_unlocking';
-  const ALLOWED_ROLES = ['owner','admin','manager'];
+  const ALLOWED_ROLES = ['owner'];
   const STATUSES = ['received','quoted','awaiting_payment','processing','completed','failed','cancelled'];
   const APPROVAL_LABELS = {pending:'Awaiting owner approval',approved:'Owner approved',rejected:'Rejected'};
   const STATUS_LABELS = {
@@ -70,6 +70,7 @@
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
+          <details open id="wluPublicStoreSettings"><summary><strong>Public customer ordering page</strong></summary><p class="wlu-muted">Publish a guest checkout page. Customers can browse your active services, submit orders without accounts and track their own order using the order reference and phone number. Only your business owner account can change these settings.</p><form id="wluStorefrontForm" class="wlu-grid"><input name="display_name" required maxlength="100" placeholder="Public store name"><input name="slug" required minlength="3" maxlength="60" pattern="[a-z0-9][a-z0-9-]{2,59}" placeholder="Public link slug (lowercase letters, numbers, hyphens)"><input name="contact_phone" maxlength="40" placeholder="Customer contact phone"><input name="contact_email" type="email" maxlength="160" placeholder="Customer contact email"><textarea class="wlu-full" name="description" maxlength="500" rows="2" placeholder="Short public description (optional)"></textarea><label class="wlu-full"><input type="checkbox" name="is_published" style="width:auto;min-height:0"> Publish customer ordering page</label><label class="wlu-full"><input type="checkbox" name="accepts_orders" style="width:auto;min-height:0"> Accept new customer orders</label><button type="submit">Save public store settings</button></form><div id="wluStorefrontLink" class="wlu-status">Save settings to create your customer ordering link.</div></details>
           <details open class="wlu-catalogue">
             <summary><strong>Service catalogue &amp; pricing</strong></summary>
             <p class="wlu-muted">Add and manage the services your business offers and their standard customer prices. Saved services appear in the order form.</p>
@@ -173,6 +174,7 @@
       $('wluEnable').addEventListener('click', enableModule);
       $('wluSyncCatalogue').addEventListener('click', syncProviderCatalogue);
       $('wluVerifyServiceCoded').addEventListener('click', verifyServicecodedSecret);
+      $('wluStorefrontForm').addEventListener('submit', saveStorefrontSettings);
       $('wluLiveServices').addEventListener('click', importProviderService);
       $('wluUsdSleRate').addEventListener('change', saveUsdSleRate);
       $('wluUsdSleRate').addEventListener('input', updateUsdSlePreview);
@@ -539,9 +541,47 @@
       if(btn) btn.dataset.wluStatus=select.value;
     }));
   }
+  async function loadStorefrontSettings() {
+    if(!client||!business?.id||!$('wluStorefrontForm')) return;
+    const result=await client.from('phone_unlocking_storefronts').select('slug,display_name,description,contact_phone,contact_email,is_published,accepts_orders').eq('business_id',business.id).maybeSingle();
+    if(result.error) throw result.error;
+    const form=$('wluStorefrontForm'), data=result.data||{};
+    const fallbackSlug=String(business?.name||'white-lion').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,42)+'-device-services';
+    form.elements.display_name.value=data.display_name||((business?.name||'White Lion')+' Device Services');
+    form.elements.slug.value=data.slug||fallbackSlug;
+    form.elements.description.value=data.description||'Order legitimate phone unlocking and device check services. No customer account required.';
+    form.elements.contact_phone.value=data.contact_phone||'';
+    form.elements.contact_email.value=data.contact_email||'';
+    form.elements.is_published.checked=!!data.is_published;
+    form.elements.accepts_orders.checked=!!data.accepts_orders;
+    const link=$('wluStorefrontLink');
+    if(data.slug){
+      const url=new URL('./device-services.html?store='+encodeURIComponent(data.slug),location.href).href;
+      link.innerHTML='Customer ordering link: <a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a><br><small class="wlu-muted">'+(data.is_published?(data.accepts_orders?'Published and accepting orders.':'Published but orders are paused.'):'Not published; customers cannot access this page.')+'</small>';
+    }else link.textContent='Save settings to create your customer ordering link.';
+  }
+  async function saveStorefrontSettings(event) {
+    event.preventDefault();
+    if(role!=='owner') return say('Only the business owner can manage the public customer store.',true);
+    const form=event.currentTarget,fd=new FormData(form),button=form.querySelector('button[type="submit"]');
+    button.disabled=true;button.textContent='Saving…';
+    try{
+      const {data,error}=await client.rpc('save_phone_unlocking_storefront',{
+        p_business_id:business.id,p_slug:fd.get('slug'),p_display_name:fd.get('display_name'),
+        p_description:fd.get('description')||null,p_contact_phone:fd.get('contact_phone')||null,
+        p_contact_email:fd.get('contact_email')||null,p_is_published:form.elements.is_published.checked,
+        p_accepts_orders:form.elements.accepts_orders.checked
+      });
+      if(error) throw error;
+      if(!data?.ok) throw new Error('Store settings were not saved.');
+      await loadStorefrontSettings();
+      say('Public customer ordering settings saved. Share the link shown above with customers.');
+    }catch(error){say('Could not save public store settings: '+(error.message||String(error)),true);}
+    finally{button.disabled=false;button.textContent='Save public store settings';}
+  }
   async function load() {
     if(!client||!business?.id) return;
-    try { await Promise.all([loadServices(),loadOrders(),loadProviderCatalogue()]); }
+    try { await Promise.all([loadServices(),loadOrders(),loadProviderCatalogue(),loadStorefrontSettings()]); }
     catch(error){say('Could not load phone unlocking records: '+error.message,true);}
   }
   async function refreshWorkspace(detail={}) {
