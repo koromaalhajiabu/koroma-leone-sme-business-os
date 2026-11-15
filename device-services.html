@@ -38,7 +38,7 @@ footer{text-align:center;color:#819087;font-size:10px;padding:8px 12px 28px}
 <div class="field"><label>Email (optional)</label><input name="customer_email" type="email" maxlength="160" autocomplete="email"></div>
 <div class="field"><label>Phone brand *</label><input name="device_brand" required maxlength="80" placeholder="e.g. Samsung"></div>
 <div class="field"><label>Phone model *</label><input name="device_model" required maxlength="100" placeholder="e.g. Galaxy S23"></div>
-<div class="field"><label>IMEI *</label><input name="imei" required inputmode="numeric" pattern="[0-9]{14,16}" maxlength="16" placeholder="14–16 digits"></div>
+<div class="field"><label>IMEI *</label><input name="imei" required inputmode="numeric" pattern="[0-9]{15}" maxlength="15" placeholder="Enter 15-digit IMEI"><button id="identifyImei" type="button" style="margin-top:6px">Identify phone from IMEI</button><div id="imeiLookupResult" role="status" aria-live="polite"></div><small class="muted">The lookup may use provider credits. The model can also be entered manually if lookup is unavailable.</small></div>
 <div class="field"><label>Original network / carrier *</label><input name="network_name" required maxlength="100" placeholder="e.g. Orange, Africell"></div>
 <div class="field"><label>Country (optional)</label><input name="country" maxlength="80"></div>
 <div class="field full"><label>Additional details (optional)</label><textarea name="customer_notes" maxlength="1000" rows="3" placeholder="Describe the issue. Do not include passwords or account credentials."></textarea></div>
