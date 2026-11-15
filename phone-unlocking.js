@@ -53,7 +53,7 @@
           <span class="wlu-muted" id="wluWorkspace">No workspace selected</span>
         </div>
         <div id="wluStatus" class="wlu-status" role="status" aria-live="polite">Waiting for a business workspace…</div>
-        <div class="wlu-provider-tools"><strong>Multi-provider connection hub</strong><span id="wluProviderResult" class="wlu-muted" role="status">Legacy Mobile-Unlock API retired. Use the provider selector below.</span></div>
+        <div class="wlu-provider-tools"><strong>Multi-provider connection hub</strong><span id="wluProviderResult" class="wlu-muted" role="status">Legacy Mobile-Unlock API retired. Use the provider selector below.</span><button id="wluVerifyServiceCoded" type="button" class="secondary">Test ServiceCoded secret</button></div>
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
@@ -153,6 +153,7 @@
       host.appendChild(root);
       $('wluEnable').addEventListener('click', enableModule);
       $('wluSyncCatalogue').addEventListener('click', syncProviderCatalogue);
+      $('wluVerifyServiceCoded').addEventListener('click', verifyServicecodedSecret);
       $('wluLiveServices').addEventListener('click', importProviderService);
       $('wluCheckerForm').addEventListener('submit', checkDeviceCompatibility);
       $('wluCheckerClear').addEventListener('click', clearCompatibilityCheck);
@@ -177,6 +178,28 @@
   }
   function say(message, error=false) {
     const el=$('wluStatus'); if(el){el.textContent=message;el.style.background=error?'#fff1f0':'#f3f8f4';el.style.color=error?'#9b2c24':'#315641';}
+  }
+  async function verifyServicecodedSecret() {
+    const button=$('wluVerifyServiceCoded'), status=$('wluProviderResult');
+    if(!client) return say('Sign in first to test the provider secret.',true);
+    if(!canManage()) return say('Only an owner, administrator or manager can test provider settings.',true);
+    button.disabled=true; button.textContent='Checking…';
+    status.textContent='Checking whether the deployed Supabase function can read the saved secret…';
+    try {
+      const {data,error}=await client.functions.invoke('device-services-provider',{body:{action:'verify_servicecoded_secret'}});
+      if(error) throw new Error(error.message||'Secret verification request failed.');
+      if(!data?.ok) throw new Error(data?.error||'Secret verification failed.');
+      if(data.secret_configured===true) {
+        status.textContent='ServiceCoded secret is visible to the deployed Supabase function. This does not verify the API endpoint or key validity.';
+        say('Secret check passed. No ServiceCoded API request was made and no provider credit was spent.');
+      } else {
+        status.textContent='SERVICECODED_API_KEY is not visible to the deployed function. Check the exact secret name in Supabase Edge Function Secrets, then redeploy.';
+        say('Secret check failed: the deployed function cannot see SERVICECODED_API_KEY.',true);
+      }
+    } catch(error) {
+      status.textContent='Secret check not completed: '+(error.message||String(error));
+      say('Could not verify the ServiceCoded secret: '+(error.message||String(error)),true);
+    } finally { button.disabled=false; button.textContent='Test ServiceCoded secret'; }
   }
   async function syncProviderCatalogue() {
     const button=$('wluSyncCatalogue'), status=$('wluCatalogueStatus');
