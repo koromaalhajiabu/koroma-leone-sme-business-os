@@ -75,6 +75,35 @@
               <div id="wluLiveServices"></div>
             </div>
           </details>
+          <details open class="wlu-checker">
+            <summary><strong>Phone Compatibility &amp; Repair Checker</strong></summary>
+            <p class="wlu-muted">Check whether your latest synced provider catalogue contains a service for the reported problem. This is a service-availability pre-check, not a device-specific IMEI eligibility result or a physical hardware diagnosis.</p>
+            <form id="wluCheckerForm" class="wlu-grid">
+              <input name="check_brand" required maxlength="80" placeholder="Phone brand (e.g. Apple, Samsung)">
+              <input name="check_model" required maxlength="100" placeholder="Exact phone model">
+              <select name="check_issue" required>
+                <option value="">Choose the reported problem</option>
+                <option value="network_lock">Network / SIM carrier lock</option>
+                <option value="blacklist">IMEI blacklist / lost or stolen status check</option>
+                <option value="imei_status">General IMEI status / device information</option>
+                <option value="activation_lock">Apple Activation Lock</option>
+                <option value="google_lock">Google account / FRP lock</option>
+                <option value="screen">Broken screen / display</option>
+                <option value="battery">Battery / charging problem</option>
+                <option value="charging_port">Charging port problem</option>
+                <option value="water_damage">Water / liquid damage</option>
+                <option value="not_powering">Phone not powering on</option>
+                <option value="software">Software / boot / update problem</option>
+                <option value="other_hardware">Other hardware fault</option>
+              </select>
+              <input name="check_imei" inputmode="numeric" pattern="[0-9]{14,16}" maxlength="16" placeholder="IMEI (optional for catalogue check)">
+              <input name="check_network" maxlength="100" placeholder="Original network / carrier (if known)">
+              <textarea class="wlu-full" name="check_details" maxlength="500" rows="2" placeholder="Describe symptoms or additional details (optional)"></textarea>
+              <button type="submit">Check service availability</button>
+              <button type="button" id="wluCheckerClear" class="secondary">Clear checker</button>
+            </form>
+            <div id="wluCheckerResult" class="wlu-status" role="status" aria-live="polite">Enter the phone details and reported problem to begin.</div>
+          </details>
           <details open>
             <summary><strong>Create unlocking order</strong></summary>
             <p class="wlu-muted">Record only devices you are authorised to service. IMEI is restricted to business owners, administrators and managers.</p>
@@ -126,6 +155,8 @@
       $('wluTestProvider').addEventListener('click', testProviderConnection);
       $('wluSyncCatalogue').addEventListener('click', syncProviderCatalogue);
       $('wluLiveServices').addEventListener('click', importProviderService);
+      $('wluCheckerForm').addEventListener('submit', checkDeviceCompatibility);
+      $('wluCheckerClear').addEventListener('click', clearCompatibilityCheck);
       $('wluOrderForm').addEventListener('submit', createOrder);
       $('wluServiceForm').addEventListener('submit', createService);
       $('wluPaymentForm').addEventListener('submit', recordPayment);
@@ -217,6 +248,7 @@
       return '<tr><td><strong>'+esc(item.service_name)+'</strong><br><small>'+esc(item.provider_group||'')+'</small><br><small>'+esc(item.description||'')+'</small></td><td>'+esc(item.provider_service_type)+'</td><td>'+credit+'</td><td>'+esc(item.delivery_time||'Not specified')+'</td><td><button type="button" class="secondary" data-wlu-import-provider-service="'+esc(item.id)+'">Add to customer catalogue</button></td></tr>';
     }).join('')+'</tbody></table></div>':'<p class="wlu-muted">No live services saved yet. Select Sync live provider catalogue to fetch them.</p>';
     window.__wluProviderCatalogue=rows;
+    if($('wluCheckerResult') && rows.length) $('wluCheckerResult').textContent='Provider catalogue loaded ('+rows.length+' active services). Enter a device and problem to check for a catalogue match.';
   }
   async function importProviderService(event) {
     const button=event.target.closest('[data-wlu-import-provider-service]'); if(!button) return;
@@ -241,6 +273,88 @@
     }
     await loadServices();
     say('Provider service added to your customer catalogue at '+money(price)+'. No provider order was placed.');
+  }
+  function clearCompatibilityCheck() {
+    $('wluCheckerForm').reset();
+    $('wluCheckerResult').textContent='Enter the phone details and reported problem to begin.';
+    $('wluCheckerResult').style.background='#f3f8f4';
+    $('wluCheckerResult').style.color='#315641';
+  }
+  function checkDeviceCompatibility(event) {
+    event.preventDefault();
+    const form=event.currentTarget;
+    const data=Object.fromEntries(new FormData(form).entries());
+    const issue=data.check_issue;
+    const result=$('wluCheckerResult');
+    const hardware={
+      screen:'A broken screen is a physical repair. An online unlocking catalogue cannot confirm the panel, touch layer or frame condition.',
+      battery:'Battery faults require battery-health checks and physical inspection of the battery and charging circuit.',
+      charging_port:'Charging-port faults require inspection and electrical testing of the port, flex cable and charging circuit.',
+      water_damage:'Liquid damage needs prompt physical inspection and board-level assessment. Do not charge or power on a wet device.',
+      not_powering:'A phone that will not power on needs physical diagnosis of the battery, charging path, display and mainboard.',
+      software:'Software faults need model-specific diagnosis, official firmware/recovery checks and confirmation that the device is not account-locked.',
+      other_hardware:'This fault needs an in-person technician inspection before a reliable repair quote can be given.'
+    };
+    if(hardware[issue]) {
+      result.innerHTML='<strong>Technician inspection required</strong><br>'+esc(hardware[issue])+'<br><br><strong>Assessment:</strong> No provider catalogue order should be created from this result. Record the symptoms and arrange a bench diagnosis and written repair quote.';
+      result.style.background='#fff8e8';result.style.color='#79520b';
+      return;
+    }
+    if(issue==='activation_lock'||issue==='google_lock') {
+      const label=issue==='activation_lock'?'Apple Activation Lock':'Google FRP / account lock';
+      result.innerHTML='<strong>Official account recovery required</strong><br>'+esc(label)+' is an anti-theft protection. This checker will not recommend bypass services. Ask the device owner to use the manufacturer’s official account-recovery process or provide valid proof of ownership to an authorised service centre.';
+      result.style.background='#fff8e8';result.style.color='#79520b';
+      return;
+    }
+    const synced=Array.isArray(window.__wluProviderCatalogue)?window.__wluProviderCatalogue:[];
+    if(!synced.length) {
+      result.innerHTML='<strong>Provider catalogue not available yet</strong><br>First select <em>Test Mobile-Unlock API connection</em>, then <em>Sync live provider catalogue</em>. This check uses the latest catalogue synced for the selected business.';
+      result.style.background='#fff8e8';result.style.color='#79520b';
+      return;
+    }
+    const rules={
+      network_lock:{type:'IMEI',terms:['unlock','network','carrier','sim lock','simlock','operator']},
+      blacklist:{type:'IMEI',terms:['blacklist','black list','lost','stolen','gsma','clean check','blacklisted']},
+      imei_status:{type:'IMEI',terms:['imei check','imei status','device info','blacklist','black list','gsma','clean check']}
+    };
+    const rule=rules[issue];
+    const matches=synced.filter(item=>{
+      const type=String(item.provider_service_type||'').toUpperCase();
+      if(type!=='IMEI') return false;
+      const text=[item.service_name,item.provider_group,item.description].join(' ').toLowerCase();
+      return rule.terms.some(term=>text.includes(term));
+    }).slice(0,12);
+    const title=issue==='network_lock'?'Network / SIM unlock':issue==='blacklist'?'IMEI blacklist status': 'IMEI status / device information';
+    if(!matches.length) {
+      result.innerHTML='<strong>No matching service found in the latest synced catalogue</strong><br>Problem: '+esc(title)+'<br>Device: '+esc(data.check_brand)+' '+esc(data.check_model)+'<br><br>This does not prove the phone cannot be serviced. Ask the provider for a manual eligibility check or check another authorised provider. Do not promise the customer a successful result.';
+      result.style.background='#fff8e8';result.style.color='#79520b';
+      return;
+    }
+    const cards=matches.map(item=>{
+      const local=services.find(s=>s.provider_service_id&&String(s.provider_service_id)===String(item.provider_service_id)&&String(s.provider_service_type||'').toUpperCase()==='IMEI');
+      const providerCost=item.provider_credit==null?'Not supplied':esc(item.provider_currency||'')+' '+Number(item.provider_credit).toFixed(4);
+      const selling=local?money(local.default_price):'Not yet priced in your customer catalogue';
+      const delivery=item.delivery_time||'Not specified by provider';
+      return '<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.provider_group||'IMEI service')+' · '+esc(item.description||'')+'</small><br><small class="wlu-muted">Provider cost: '+providerCost+' · Delivery: '+esc(delivery)+'</small><br><small class="wlu-muted">Your customer price: '+esc(selling)+'</small></span><span>'+(local?'<button type="button" data-wlu-use-check-service="'+esc(local.id)+'">Use this service</button>':'<span class="wlu-muted">Add to customer catalogue first</span>')+'</span></div>';
+    }).join('');
+    const imei=data.check_imei.trim();
+    const validImei=!imei||/^[0-9]{14,16}$/.test(imei);
+    result.innerHTML='<strong>Matching provider catalogue service(s) found</strong><br>Problem: '+esc(title)+'<br>Device: '+esc(data.check_brand)+' '+esc(data.check_model)+'<br>Original network: '+esc(data.check_network||'Not supplied')+'<br>IMEI format: '+(imei?(validImei?'Looks like a 14–16 digit IMEI; this checker has not verified its status.':'Invalid IMEI format'):'Not supplied')+'<br><br><strong>Catalogue matches</strong>'+cards+'<p class="wlu-muted">Important: a catalogue match only means the provider lists a relevant service. It does not confirm that this specific IMEI is eligible, clean, compatible or guaranteed to unlock. Confirm the exact device, carrier, country and provider terms before accepting payment. Provider credit is not your customer price.</p>';
+    result.style.background='#f3f8f4';result.style.color='#315641';
+    result.querySelectorAll('[data-wlu-use-check-service]').forEach(button=>button.addEventListener('click',()=>{
+      const service=services.find(item=>item.id===button.dataset.wluUseCheckService);
+      if(!service) return;
+      const order=$('wluOrderForm');
+      order.elements.device_brand.value=data.check_brand;
+      order.elements.device_model.value=data.check_model;
+      order.elements.imei.value=validImei?imei:'';
+      order.elements.network_name.value=data.check_network||'';
+      $('wluServiceSelect').value=service.id;
+      order.elements.service_price.value=Number(service.default_price).toFixed(2);
+      if(service.provider_cost!=null) order.elements.provider_cost.value=Number(service.provider_cost).toFixed(2);
+      say('Matching service selected in the order form. Complete the customer details and confirm eligibility before accepting payment.');
+      $('wluOrderForm').scrollIntoView({behavior:'smooth',block:'start'});
+    }));
   }
   async function enableModule() {
     if (!client || !business?.id || !['owner','admin'].includes(role)) return say('Only the business owner or administrator can enable this module.',true);
