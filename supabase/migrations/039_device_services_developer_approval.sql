@@ -35,7 +35,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the business owner can approve phone unlocking orders';
+    raise exception 'Only the registered platform developer can approve phone unlocking orders';
   end if;
   select * into v_order from public.phone_unlocking_orders
    where id=p_order_id and business_id=p_business_id for update;
@@ -71,7 +71,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the business owner can reject phone unlocking orders';
+    raise exception 'Only the registered platform developer can reject phone unlocking orders';
   end if;
   select * into v_order from public.phone_unlocking_orders
    where id=p_order_id and business_id=p_business_id for update;
@@ -105,7 +105,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the business owner can submit approved provider orders';
+    raise exception 'Only the registered platform developer can submit approved provider orders';
   end if;
   select * into v_order from public.phone_unlocking_orders
    where id=p_order_id and business_id=p_business_id for update;
@@ -150,7 +150,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the business owner can finalise provider submission';
+    raise exception 'Only the registered platform developer can finalise provider submission';
   end if;
   if p_outcome not in ('submitted','failed','unknown') then raise exception 'Invalid provider submission outcome'; end if;
   select * into v_order from public.phone_unlocking_orders
