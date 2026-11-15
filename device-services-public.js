@@ -60,7 +60,7 @@ $('findUnlockPrice').addEventListener('click',async()=>{
    out.className='result error';out.textContent=data?.message||'No exact model-specific unlock price is available. Contact White Lion for a quote.';return;
   }
   const matches=data.matches;
-  $('serviceId').innerHTML='<option value="">Choose the matching unlock service</option>'+matches.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.service_name)+' — '+esc(money(s.price,s.currency_code||store.currency_code))+'</option>').join('');
+  const matchedIds=new Set(matches.map(s=>String(s.id)));const ordered=[...services].sort((a,b)=>(matchedIds.has(String(b.id))?1:0)-(matchedIds.has(String(a.id))?1:0)||String(a.service_name).localeCompare(String(b.service_name)));$('serviceId').innerHTML='<option value="">Choose a service</option>'+ordered.map(s=>'<option value="'+esc(s.id)+'">'+(matchedIds.has(String(s.id))?'MATCH: ':'')+esc(s.service_name)+' — '+esc(money(s.price,store.currency_code))+'</option>').join('');
   if(matches.length===1)$('serviceId').value=matches[0].id;
   out.className='result success';
   out.textContent=data.message+' '+matches.map(s=>s.service_name+' — '+money(s.price,s.currency_code||store.currency_code)).join(' | ')+(matches.length>1?' Select the correct option in the Service field above.':' The matching service has been selected.');
