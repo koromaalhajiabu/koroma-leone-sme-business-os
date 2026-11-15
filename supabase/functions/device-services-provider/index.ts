@@ -9,8 +9,8 @@ Deno.serve(async(req)=>{
   const body=await req.json();
   const serviceClient=createClient(url,service);
   if(body.action==="identify_device"){
-   const imei=String(body.imei||"").replace(/\\s+/g,"");
-   if(!/^\\d{15}$/.test(imei)) return reply({ok:false,error:"Enter a valid 15-digit IMEI."},400);
+   const imei=String(body.imei||"").replace(/\s+/g,"");
+   if(!/^\d{15}$/.test(imei)) return reply({ok:false,error:"Enter a valid 15-digit IMEI."},400);
    let sum=0;
    for(let i=0;i<imei.length-1;i++){let n=Number(imei[i]);if(i%2===1){n*=2;if(n>9)n-=9;}sum+=n;}
    const check=(10-(sum%10))%10;
@@ -27,7 +27,7 @@ Deno.serve(async(req)=>{
    const catalogue=await catalogueResponse.json();
    if(!catalogueResponse.ok) return reply({ok:false,error:"The IMEI provider catalogue is temporarily unavailable."},502);
    const entries=Array.isArray(catalogue.services)?catalogue.services:[];
-   const identifyService=entries.find((s:any)=>/\\b(imei check|model info|device info|tac lookup|make.?and.?model)\\b/i.test(String(s.name||"")+" "+String(s.category||"")));
+   const identifyService=entries.find((s:any)=>/\b(imei check|model info|device info|tac lookup|make.?and.?model)\b/i.test(String(s.name||"")+" "+String(s.category||"")));
    if(!identifyService) return reply({ok:false,error:"The connected provider does not currently expose a dedicated IMEI model-identification service."},503);
    const lookupResponse=await fetch("https://devicedecoded.com/api/v1/checks",{
     method:"POST",headers:{"X-API-Key":key,"Content-Type":"application/json","Accept":"application/json"},
