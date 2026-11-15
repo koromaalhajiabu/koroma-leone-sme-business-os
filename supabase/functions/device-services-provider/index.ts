@@ -20,9 +20,9 @@ Deno.serve(async(req)=>{
   if(memberErr||!member||!["owner","admin","manager"].includes(String(member.role).toLowerCase())) return reply({ok:false,error:"Owner, admin or manager access required."},403);
   let services:any[]=[], providerName="", currency="USD";
   if(provider==="devicedecoded"){
-   providerName="DeviceDecoded"; const response=await fetch("https://devicedecoded.com/api/v1/checks/services",{headers:{Accept:"application/json"}});
+   providerName="DeviceDecoded"; currency="CREDITS"; const response=await fetch("https://devicedecoded.com/api/v1/checks/services",{headers:{Accept:"application/json"}});
    const payload=await response.json(); if(!response.ok) throw new Error("DeviceDecoded catalogue returned HTTP "+response.status);
-   services=(Array.isArray(payload.services)?payload.services:[]).map((x:any)=>({id:String(x.service),name:String(x.name||"Unnamed service"),group:String(x.category||"Device checks"),price:Number(x.credits||0)/100,currency:"USD",type:"IMEI",description:"Credits: "+String(x.credits??"not supplied"),delivery:x.instant?"Instant":"Provider turnaround varies"}));
+   services=(Array.isArray(payload.services)?payload.services:[]).map((x:any)=>{const rawCredits=x.credits==null?null:Number(x.credits);return {id:String(x.service),name:String(x.name||"Unnamed service"),group:String(x.category||"Device checks"),price:rawCredits!==null&&Number.isFinite(rawCredits)?rawCredits:null,currency:"CREDITS",type:"IMEI",description:"DeviceDecoded provider cost: "+(rawCredits!==null&&Number.isFinite(rawCredits)?rawCredits+" credits":"not supplied")+"; USD conversion not confirmed",delivery:x.instant?"Instant":"Provider turnaround varies"};});
   }else if(provider==="imei_org"){
    providerName="IMEI.org"; const key=Deno.env.get("IMEI_ORG_API_KEY"); if(!key) return reply({ok:false,error:"IMEI_ORG_API_KEY is not configured in Supabase Edge Function secrets."},409);
    const response=await fetch("https://api-client.imei.org/api/services?apikey="+encodeURIComponent(key),{headers:{Accept:"application/json"}});
