@@ -28,7 +28,6 @@ footer{text-align:center;color:#819087;font-size:10px;padding:8px 12px 28px}
 <body>
 <header><div class="wrap"><div class="brand">WHITE LION <small>DEVICE SERVICES</small></div><div class="hero"><h1 id="storeName">WELCOME TO WHITE LION DEVICE SERVICES!</h1><p id="storeDescription">Need professional phone IMEI checks and authorised phone unlocking and device services? We\u2019ve got you covered!</p><p class="muted" style="color:#e1f0e6;margin-top:12px">IMEI and device information checks · Network and carrier checks · Supported Samsung services · Device status checks · Convenient online service requests</p><p id="storeContact" class="muted" style="color:#e1f0e6"></p></div></div></header>
 <main>
-<section class="panel" id="priceList"><h2>Customer price list</h2><div class="muted">Browse published services and their prices in Sierra Leonean leones (SLE). Only services currently available in our catalogue are listed. Contact us if you need a service that is not shown.</div><div id="services"><p class="muted">Loading the latest price list…</p></div></section>
 <section class="panel" id="orderPanel"><h2>Place an order</h2><p class="muted">You can order as a guest. No account or password is required.</p>
 <form id="orderForm">
 <div class="field"><label>Service *</label><select id="serviceId" name="service_id" required><option value="">Choose a service</option></select></div>
@@ -51,6 +50,7 @@ footer{text-align:center;color:#819087;font-size:10px;padding:8px 12px 28px}
 <section class="panel"><h2>Track an order</h2><p class="muted">Enter the order reference and the phone number you used when placing it.</p>
 <form id="trackForm"><div class="track-grid"><div class="field"><label>Order reference *</label><input name="reference" required placeholder="WLD-YYMMDD-XXXXXXXX"></div><div class="field"><label>Your phone number *</label><input name="phone" required minlength="5"></div><button id="trackButton" type="submit">Check status</button></div></form><div id="trackResult" role="status" aria-live="polite"></div>
 </section>
+<section class="panel" id="priceList"><h2>Customer price list</h2><div class="muted">Browse published services and their prices in Sierra Leonean leones (SLE). Only services currently available in our catalogue are listed. Contact us if you need a service that is not shown.</div><div id="services"><p class="muted">Loading the latest price list…</p></div></section>
 </main>
 <footer>White Lion Device Services · Designed by White Lion Tech Solutions</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
