@@ -43,8 +43,8 @@ as $fn$
 declare v_row public.phone_unlocking_storefronts%rowtype;
 begin
   if auth.uid() is null then raise exception 'Sign in required'; end if;
-  if not public.has_business_role(p_business_id,array['owner']::public.business_role[]) then
-    raise exception 'Only the business owner can publish and manage the public device-services store';
+  if not public.is_platform_developer() then
+    raise exception 'Only the registered White Lion platform developer can publish and manage this device-services store';
   end if;
   if coalesce(p_slug,'') !~ '^[a-z0-9][a-z0-9-]{2,59}$' then
     raise exception 'Store link must use 3–60 lowercase letters, numbers or hyphens';
