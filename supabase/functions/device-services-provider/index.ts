@@ -9,7 +9,12 @@ Deno.serve(async(req)=>{
   const userClient=createClient(url,anon,{global:{headers:{Authorization:auth}}});
   const {data:{user},error:userErr}=await userClient.auth.getUser();
   if(userErr||!user) return reply({ok:false,error:"Sign in required."},401);
-  const body=await req.json(), businessId=String(body.business_id||""), provider=String(body.provider||"");
+  const body=await req.json();
+  if(body.action==="verify_servicecoded_secret") {
+   const configured=Boolean(Deno.env.get("SERVICECODED_API_KEY")?.trim());
+   return reply({ok:true,provider:"ServiceCoded",secret_configured:configured,secret_value_exposed:false});
+  }
+  const businessId=String(body.business_id||""), provider=String(body.provider||"");
   if(body.action!=="sync_catalogue"||!businessId) return reply({ok:false,error:"Invalid request."},400);
   const {data:member,error:memberErr}=await userClient.from("business_members").select("role").eq("business_id",businessId).eq("user_id",user.id).maybeSingle();
   if(memberErr||!member||!["owner","admin","manager"].includes(String(member.role).toLowerCase())) return reply({ok:false,error:"Owner, admin or manager access required."},403);
