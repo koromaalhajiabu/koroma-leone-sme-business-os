@@ -141,7 +141,7 @@
     document.getElementById('shareStoreFacebook')?.addEventListener('click',()=>window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(storeShareUrl()),'_blank','noopener'));
     document.getElementById('shareStoreSMS')?.addEventListener('click',()=>location.href='sms:?body='+encodeURIComponent(storeShareText()));
     document.getElementById('shareStoreEmail')?.addEventListener('click',()=>location.href='mailto:?subject='+encodeURIComponent('Shop online at '+(currentStore.display_name||bizName()))+'&body='+encodeURIComponent(storeShareText()));
-    document.getElementById('shareStoreNative')?.addEventListener('click',async()=>{const data={title:currentStore.display_name||bizName(),text:storeShareText(),url:storeShareUrl()};if(navigator.share){try{await navigator.share(data)}catch(e){}}else{try{await navigator.clipboard.writeText(storeShareText());notify('Store link copied.')}}});
+    document.getElementById('shareStoreNative')?.addEventListener('click',async()=>{const data={title:currentStore.display_name||bizName(),text:storeShareText(),url:storeShareUrl()};if(navigator.share){try{await navigator.share(data)}catch(e){}}else{try{await navigator.clipboard.writeText(storeShareText());notify('Store link copied.')}catch(e){notify(storeShareText())}}});
     document.getElementById('copyStoreLink')?.addEventListener('click',async()=>{
       const url=storeShareUrl();
       try{await navigator.clipboard.writeText(url);notify('Storefront link copied.')}catch(e){notify(url)}
