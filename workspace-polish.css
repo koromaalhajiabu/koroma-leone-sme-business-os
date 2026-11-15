@@ -206,3 +206,106 @@ html[data-theme="dark"] .wl-flow-crumb{color:#aeb9c8}
 html[data-theme="dark"] .wl-flow-crumb strong{color:#d5e8d9}
 html[data-theme="dark"] .wl-flow-links button{background:#25354a;border-color:#41536b;color:#d7eadc}
 html[data-theme="dark"] #nav .wl-nav-group{border-color:rgba(255,255,255,.1)}
+
+
+/* UNIVERSAL RESPONSIVE FIT — phones, tablets, laptops and wide displays.
+   Layout-only overrides; no application logic, records, IDs or workflows changed. */
+html,body{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.app{width:100%;max-width:100%;min-width:0;grid-template-columns:minmax(0,260px) minmax(0,1fr)}
+.main,.content,#view{width:100%;max-width:100%;min-width:0}
+#view *{min-width:0}
+#view img,#view video,#view canvas,#view iframe{max-width:100%}
+#view h1,#view h2,#view h3,#view h4,#view p,#view label,#view button,
+#view a,#view span,#view strong,#view b{overflow-wrap:anywhere}
+#view .page-title,#view .panel-head,#view .toolbar,#view .top-actions{min-width:0}
+#view .page-title{flex-wrap:wrap}
+#view .page-title>.toolbar,#view .page-title>.actions{max-width:100%}
+#view .stats,#view .stock-kpis,#view .return-kpis,#view .report-kpis,
+#view .inventory-kpis{grid-template-columns:repeat(auto-fit,minmax(min(100%,175px),1fr))}
+#view .grid-main,#view .report-grid,#view .pos-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+#view .quick-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr))}
+#view .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#view .report-cards{grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))}
+#view .return-preview-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr))}
+#view .table-wrap,#view .inventory-table,#view .pos-history{width:100%;max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+#view table{width:max-content;min-width:100%;max-width:none}
+#view input,#view select,#view textarea{max-width:100%}
+#view .modal-back{overflow-y:auto}
+#view .modal{width:min(620px,calc(100vw - 30px));max-width:100%;max-height:min(90dvh,900px);overflow:auto}
+#view .pos-layout{align-items:start}
+#view .pos-checkout{position:sticky;top:86px}
+.mobile-menu{display:none}
+
+/* Compact laptop and tablet: convert the permanent sidebar to the existing drawer. */
+@media(max-width:900px){
+ .app{display:block;min-height:100dvh}
+ .sidebar,#sidebar.sidebar{position:fixed!important;left:-290px!important;right:auto!important;top:0!important;bottom:0!important;width:min(280px,86vw)!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;z-index:50!important}
+ .sidebar.open,#sidebar.sidebar.open{left:0!important}
+ .mobile-menu{display:inline-flex!important;align-items:center;justify-content:center}
+ .topbar{height:auto;min-height:60px;padding:9px 14px;gap:8px}
+ .top-actions{gap:7px;flex-wrap:wrap;justify-content:flex-end}
+ .content{padding:clamp(14px,2.4vw,24px)}
+ #view .grid-main,#view .report-grid{grid-template-columns:minmax(0,1fr)}
+ #view .pos-layout{grid-template-columns:minmax(0,1fr)}
+ #view .pos-checkout{position:static}
+}
+
+/* Phones and narrow split-screen windows. */
+@media(max-width:600px){
+ .topbar{padding:8px 10px;min-height:56px}
+ .crumb{font-size:13px;white-space:normal;line-height:1.25}
+ .top-actions{gap:5px}
+ .top-actions .wl-language-control{display:none}
+ .top-actions .theme-toggle{padding:7px 9px;font-size:10px}
+ .top-actions .theme-toggle #themeLabel{display:none}
+ .content{padding:14px 10px calc(28px + env(safe-area-inset-bottom))}
+ #view .page-title{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+ #view .page-title h1{font-size:clamp(19px,5vw,23px)}
+ #view .page-title .toolbar{display:flex;flex-wrap:wrap;width:100%}
+ #view .page-title .toolbar>*{max-width:100%;flex:1 1 auto}
+ #view .panel{padding:12px;margin-bottom:12px}
+ #view .panel-head{flex-wrap:wrap;align-items:flex-start}
+ #view .stats,#view .stock-kpis,#view .return-kpis,#view .report-kpis,
+ #view .inventory-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #view .stat,#view .stock-kpi,#view .return-kpi,#view .report-kpi,
+ #view .inventory-kpi{padding:11px}
+ #view .stat strong,#view .stock-kpi b,#view .return-kpi b,#view .report-kpi b,
+ #view .inventory-kpi b{font-size:clamp(16px,5vw,21px)}
+ #view .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #view .quick{padding:10px;min-height:78px}
+ #view .form-grid,#view .pos-products .form-grid,#view .pos-checkout .form-grid,
+ #view .return-workflow .form-grid{grid-template-columns:minmax(0,1fr)}
+ #view .field.full{grid-column:auto}
+ #view .toolbar{width:100%;gap:7px}
+ #view .toolbar .search{flex:1 1 100%;width:100%;min-width:0}
+ #view .btn{max-width:100%;white-space:normal}
+ #view .modal-back{align-items:flex-end;padding:0}
+ #view .modal{width:100%;max-width:100%;max-height:92dvh;border-radius:18px 18px 0 0;padding:17px 13px calc(16px + env(safe-area-inset-bottom))}
+ #view .modal-actions{flex-wrap:wrap}
+ #view .modal-actions .btn{flex:1 1 120px}
+ #view .pos-command-strip{flex-wrap:wrap}
+ #view .pos-command-meta{width:100%;display:flex;justify-content:flex-start;flex-wrap:wrap}
+ #view .pos-checkout-actions{position:sticky;bottom:calc(6px + env(safe-area-inset-bottom))}
+ #view .sales-chart{gap:5px}
+ #view .report-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* Very small Android screens and narrow portrait viewports. */
+@media(max-width:360px){
+ .content{padding-left:8px;padding-right:8px}
+ .topbar{padding-left:8px;padding-right:8px}
+ #view .stats,#view .stock-kpis,#view .return-kpis,#view .report-kpis,
+ #view .inventory-kpis,#view .report-cards{grid-template-columns:minmax(0,1fr)}
+ #view .quick-grid{grid-template-columns:minmax(0,1fr)}
+ #view .panel{padding:10px}
+ #view .stat-head{flex-wrap:wrap}
+ #view .pos-command-copy{align-items:flex-start}
+}
+
+/* Short landscape screens: keep the workspace scrollable without clipping controls. */
+@media(max-height:520px) and (max-width:900px){
+ #sidebar.sidebar{padding-top:12px!important;padding-bottom:12px!important}
+ .topbar{position:relative}
+ #view .modal{max-height:88dvh}
+}
