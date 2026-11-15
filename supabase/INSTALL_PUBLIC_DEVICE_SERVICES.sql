@@ -1,6 +1,6 @@
 -- White Lion Device Services public guest ordering installer.
 -- Run this entire file once in Supabase Dashboard > SQL Editor.
--- It creates public guest checkout and tracking, and restricts all device-services administration to the registered platform developer.
+-- Enables public guest checkout and tracking; only the registered platform developer can administer services, prices, provider access, orders, payments, refunds and approvals.
 
 -- Public guest ordering for the single-operator White Lion Device Services storefront.
 -- Customers can browse published services, submit orders without accounts, and track
@@ -28,12 +28,12 @@ alter table public.phone_unlocking_storefronts enable row level security;
 drop policy if exists phone_unlocking_storefronts_owner_read on public.phone_unlocking_storefronts;
 create policy phone_unlocking_storefronts_owner_read
   on public.phone_unlocking_storefronts for select to authenticated
-  using (public.has_business_role(business_id,array['owner']::public.business_role[]));
+  using (public.is_platform_developer());
 drop policy if exists phone_unlocking_storefronts_owner_manage on public.phone_unlocking_storefronts;
 create policy phone_unlocking_storefronts_owner_manage
   on public.phone_unlocking_storefronts for all to authenticated
-  using (public.has_business_role(business_id,array['owner']::public.business_role[]))
-  with check (public.has_business_role(business_id,array['owner']::public.business_role[]));
+  using (public.is_platform_developer())
+  with check (public.is_platform_developer());
 revoke all on public.phone_unlocking_storefronts from anon, authenticated;
 grant select on public.phone_unlocking_storefronts to authenticated;
 
@@ -340,7 +340,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the business owner can approve phone unlocking orders';
+    raise exception 'Only the registered platform developer can approve phone unlocking orders';
   end if;
   select * into v_order from public.phone_unlocking_orders
    where id=p_order_id and business_id=p_business_id for update;
@@ -376,7 +376,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the business owner can reject phone unlocking orders';
+    raise exception 'Only the registered platform developer can reject phone unlocking orders';
   end if;
   select * into v_order from public.phone_unlocking_orders
    where id=p_order_id and business_id=p_business_id for update;
@@ -410,7 +410,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the business owner can submit approved provider orders';
+    raise exception 'Only the registered platform developer can submit approved provider orders';
   end if;
   select * into v_order from public.phone_unlocking_orders
    where id=p_order_id and business_id=p_business_id for update;
@@ -455,7 +455,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the business owner can finalise provider submission';
+    raise exception 'Only the registered platform developer can finalise provider submission';
   end if;
   if p_outcome not in ('submitted','failed','unknown') then raise exception 'Invalid provider submission outcome'; end if;
   select * into v_order from public.phone_unlocking_orders
