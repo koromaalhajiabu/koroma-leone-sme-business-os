@@ -44,6 +44,30 @@ async function start(){
   if(!services.length)$('orderForm').hidden=true;
  }catch(e){$('services').innerHTML='';show('orderResult',e.message||String(e),'error');$('orderForm').hidden=true;$('trackForm').hidden=true}
 }
+$('findUnlockPrice').addEventListener('click',async()=>{
+ const form=$('orderForm'),fd=new FormData(form),btn=$('findUnlockPrice'),out=$('unlockQuoteResult');
+ const brand=String(fd.get('device_brand')||'').trim(),model=String(fd.get('device_model')||'').trim();
+ if(brand.length<2||model.length<2){out.className='result error';out.textContent='Enter the device brand and exact model first.';return}
+ btn.disabled=true;btn.textContent='Finding matching price…';
+ try{
+  const {data,error}=await sb.rpc('get_public_device_unlock_quote',{
+   p_slug:slug,p_device_brand:brand,p_device_model:model,
+   p_network_name:String(fd.get('network_name')||'').trim()||null,
+   p_country:String(fd.get('country')||'').trim()||null
+  });
+  if(error)throw error;
+  if(!data?.ok||!Array.isArray(data.matches)||!data.matches.length){
+   out.className='result error';out.textContent=data?.message||'No exact model-specific unlock price is available. Contact White Lion for a quote.';return;
+  }
+  const matches=data.matches;
+  $('serviceId').innerHTML='<option value="">Choose the matching unlock service</option>'+matches.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.service_name)+' — '+esc(money(s.price,s.currency_code||store.currency_code))+'</option>').join('');
+  if(matches.length===1)$('serviceId').value=matches[0].id;
+  out.className='result success';
+  out.textContent=data.message+' '+matches.map(s=>s.service_name+' — '+money(s.price,s.currency_code||store.currency_code)).join(' | ')+(matches.length>1?' Select the correct option in the Service field above.':' The matching service has been selected.');
+  $('serviceId').scrollIntoView({behavior:'smooth',block:'center'});
+ }catch(err){out.className='result error';out.textContent=err.message||String(err)}
+ finally{btn.disabled=false;btn.textContent='Find model-specific unlock price'}
+});
 $('orderForm').addEventListener('submit',async e=>{
  e.preventDefault();const form=e.currentTarget,fd=new FormData(form),btn=$('submitOrder');
  btn.disabled=true;btn.textContent='Submitting securely…';
