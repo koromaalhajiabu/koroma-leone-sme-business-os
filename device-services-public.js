@@ -22,8 +22,25 @@ async function start(){
   $('storeDescription').textContent='Need professional phone IMEI checks and authorised phone unlocking and device services? We’ve got you covered!';
   $('storeContact').textContent=[store.contact_phone,store.contact_email].filter(Boolean).join(' · ');
   $('serviceId').innerHTML='<option value="">Choose a service</option>'+services.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.service_name)+' — '+esc(money(s.price,store.currency_code))+'</option>').join('');
-  $('services').innerHTML=services.length?services.map(s=>'<article class="service"><h3>'+esc(s.service_name)+'</h3><p>'+esc(s.description||'Professional device service request.')+'</p><div class="price">'+esc(money(s.price,store.currency_code))+'</div><button type="button" data-choose="'+esc(s.id)+'">Order this service</button></article>').join(''):'<p class="muted">No services are currently published. Please check again later.</p>';
-  document.querySelectorAll('[data-choose]').forEach(b=>b.addEventListener('click',()=>{$('serviceId').value=b.dataset.choose;$('orderPanel').scrollIntoView({behavior:'smooth',block:'start'});$('serviceId').focus()}));
+  const groups=[
+   {key:'phones',title:'Phone & smartphone services',note:'Services explicitly listed for mobile phones.'},
+   {key:'tablets',title:'Tablet & iPad services',note:'Services explicitly listed for tablets and iPads.'},
+   {key:'computers',title:'PC & computer services',note:'Services explicitly listed for laptops, desktops and computers.'},
+   {key:'other',title:'IMEI, device checks & other services',note:'General checks and services that are not tied to one device type.'}
+  ];
+  const classify=s=>{
+   const name=String(s.service_name||'').toLowerCase(),desc=String(s.description||'').toLowerCase(),group=String(s.provider_group||'').toLowerCase(),v=name+' '+desc+' '+group;
+   if(/\\b(ipad|tablet|tab s[0-9]|galaxy tab)\\b/.test(v)) return 'tablets';
+   if(/\\b(pc|computer|desktop|laptop|macbook|imac|windows)\\b/.test(v)) return 'computers';
+   if(/\\b(iphone|smartphone|mobile phone|android phone|samsung galaxy s|galaxy note|sim.?lock|network unlock|carrier unlock)\\b/.test(v)) return 'phones';
+   return 'other';
+  };
+  const cards=list=>list.map(s=>'<article class="service"><h3>'+esc(s.service_name)+'</h3><p>'+esc(s.description||'Professional device service request.')+'</p><div class="price">'+esc(money(s.price,store.currency_code))+'</div><button type="button" data-choose="'+esc(s.id)+'">Order this service</button></article>').join('');
+  $('services').innerHTML=services.length?groups.map(g=>{
+   const items=services.filter(s=>classify(s)===g.key).sort((a,b)=>String(a.service_name).localeCompare(String(b.service_name)));
+   return '<section class="price-group"><h3>'+g.title+'</h3><p class="price-group-note">'+g.note+'</p>'+(items.length?'<div class="services">'+cards(items)+'</div>':'<div class="empty-category">No published '+g.title.toLowerCase()+' are currently listed. Contact White Lion to check availability.</div>')+'</section>';
+  }).join(''):'<p class="muted">No services are currently published. Please check again later.</p>';
+  $('services').querySelectorAll('[data-choose]').forEach(b=>b.addEventListener('click',()=>{$('serviceId').value=b.dataset.choose;$('orderPanel').scrollIntoView({behavior:'smooth',block:'start'});$('serviceId').focus()}));
   if(!services.length)$('orderForm').hidden=true;
  }catch(e){$('services').innerHTML='';show('orderResult',e.message||String(e),'error');$('orderForm').hidden=true;$('trackForm').hidden=true}
 }
