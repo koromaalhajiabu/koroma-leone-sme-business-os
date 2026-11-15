@@ -11,7 +11,7 @@
     cancelled:'Cancelled', refunded:'Refunded'
   };
   let client = null, business = null, branch = null, role = null, enabled = false, isDeveloper = false;
-  let services = [], orders = [];
+  let services = [], allServices = [], orders = [];
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const money = value => (business?.currency_code || 'SLE') + ' ' + Number(value || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -196,6 +196,7 @@
       $('wluOrders').addEventListener('click', approveOrder);
       $('wluOrders').addEventListener('click', rejectOrder);
       $('wluServices').addEventListener('click', editService);
+      $('wluServices').addEventListener('click', toggleServiceStatus);
     }
     return root;
   }
@@ -388,7 +389,7 @@
   async function editService(event) {
     const button=event.target.closest('[data-wlu-service-edit]'); if(!button) return;
     if(!canManage()) return say('Your role cannot change service pricing.',true);
-    const service=services.find(item=>item.id===button.dataset.wluServiceEdit); if(!service) return;
+    const service=allServices.find(item=>item.id===button.dataset.wluServiceEdit); if(!service) return;
     const next=prompt('New default price for '+service.service_name, String(service.default_price));
     if(next===null) return;
     const price=Number(next);
@@ -396,6 +397,17 @@
     const {error}=await client.from('phone_unlocking_services').update({default_price:price,updated_at:new Date().toISOString()}).eq('id',service.id).eq('business_id',business.id);
     if(error) return say('Could not update service price: '+error.message,true);
     await loadServices(); say('Default service price updated. Existing orders were not changed.');
+  }
+  async function toggleServiceStatus(event) {
+    const button=event.target.closest('[data-wlu-service-toggle]'); if(!button) return;
+    if(!canManage()) return say('Only the platform developer can change service visibility.',true);
+    const service=allServices.find(item=>item.id===button.dataset.wluServiceToggle); if(!service) return;
+    const next=button.dataset.nextActive==='true';
+    if(next && Number(service.default_price)<=0) return say('Set a real customer selling price above zero before activating this service.',true);
+    const {error}=await client.from('phone_unlocking_services').update({is_active:next,updated_at:new Date().toISOString()}).eq('id',service.id).eq('business_id',business.id);
+    if(error) return say('Could not change service visibility: '+error.message,true);
+    await loadServices();
+    say(service.service_name+(next?' is now visible to customers.':' has been moved to drafts and hidden from customers.'));
   }
   async function createOrder(event) {
     event.preventDefault();
@@ -511,11 +523,14 @@
     say('USD-to-SLE rate saved for this business on this device. Existing orders and customer prices were not changed.');
   }
   async function loadServices() {
-    const {data,error}=await client.from('phone_unlocking_services').select('id,service_name,description,default_price,is_active,provider_service_id,provider_service_type,provider_group,provider_cost,provider_currency').eq('business_id',business.id).eq('is_active',true).order('service_name');
+    const {data,error}=await client.from('phone_unlocking_services')
+      .select('id,service_name,description,default_price,is_active,provider_service_id,provider_service_type,provider_group,provider_cost,provider_currency')
+      .eq('business_id',business.id).order('service_name');
     if(error) throw error;
-    services=data||[];
+    allServices=data||[];
+    services=allServices.filter(item=>item.is_active===true);
     $('wluServiceSelect').innerHTML='<option value="">Choose service / price</option>'+services.map(item=>'<option value="'+esc(item.id)+'">'+esc(item.service_name)+' — '+esc(money(item.default_price))+'</option>').join('');
-    $('wluServices').innerHTML=services.map(item=>'<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.description||'')+'</small>'+(item.provider_service_id?'<br><small class="wlu-muted">Provider service ID: '+esc(item.provider_service_id)+' · Provider cost: '+esc(providerCostLabel(item.provider_currency,item.provider_cost))+' · '+esc(estimatedSleLabel(item.provider_currency,item.provider_cost))+'</small>':'')+'</span><span><strong>'+esc(money(item.default_price))+'</strong> <button type="button" class="secondary" data-wlu-service-edit="'+esc(item.id)+'">Change price</button></span></div>').join('')||'<p class="wlu-muted">No services yet. Add the services you offer and their default prices.</p>';
+    $('wluServices').innerHTML=allServices.map(item=>'<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+(item.is_active?'ACTIVE · visible to customers':'DRAFT · hidden from customers')+'</small><br><small class="wlu-muted">'+esc(item.description||'')+'</small>'+(item.provider_service_id?'<br><small class="wlu-muted">Provider service ID: '+esc(item.provider_service_id)+' · Provider cost: '+esc(providerCostLabel(item.provider_currency,item.provider_cost))+' · '+esc(estimatedSleLabel(item.provider_currency,item.provider_cost))+'</small>':'')+'</span><span><strong>'+esc(money(item.default_price))+'</strong> <button type="button" class="secondary" data-wlu-service-edit="'+esc(item.id)+'">Change price</button> <button type="button" data-wlu-service-toggle="'+esc(item.id)+'" data-next-active="'+(item.is_active?'false':'true')+'">'+(item.is_active?'Deactivate':'Activate')+'</button></span></div>').join('')||'<p class="wlu-muted">No services yet. Add or import services from the live provider catalogue.</p>';
   }
   async function loadOrders() {
     const {data,error}=await client.from('phone_unlocking_orders').select('id,reference,customer_name,customer_phone,device_brand,device_model,imei,network_name,service_name,provider_name,provider_reference,provider_service_id,provider_service_type,provider_cost,service_price,amount_paid,amount_refunded,status,approval_status,approved_at,provider_submission_status,provider_submission_message,created_at').eq('business_id',business.id).order('created_at',{ascending:false}).limit(60);
