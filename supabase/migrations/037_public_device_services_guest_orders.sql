@@ -74,11 +74,11 @@ $fn$;
 create or replace function public.get_public_device_services(p_slug text)
 returns jsonb language plpgsql security definer set search_path=public
 as $fn$
-declare v_store public.phone_unlocking_storefronts%rowtype; v_business_name text; v_currency text; v_services jsonb;
+declare v_store public.phone_unlocking_storefronts%rowtype; v_currency text; v_services jsonb;
 begin
-  select s.*,b.name,b.currency_code into v_store,v_business_name,v_currency
-  from public.phone_unlocking_storefronts s join public.businesses b on b.id=s.business_id
+  select s.* into v_store from public.phone_unlocking_storefronts s
   where s.slug=lower(trim(coalesce(p_slug,''))) and s.is_published and s.accepts_orders;
+  if found then select b.currency_code into v_currency from public.businesses b where b.id=v_store.business_id; end if;
   if not found then return jsonb_build_object('ok',false,'message','This service store is unavailable or is not accepting orders.'); end if;
   if not exists(select 1 from public.business_industry_modules m where m.business_id=v_store.business_id and m.module_key='phone_unlocking' and m.is_enabled) then
     return jsonb_build_object('ok',false,'message','This service store is temporarily unavailable.');
