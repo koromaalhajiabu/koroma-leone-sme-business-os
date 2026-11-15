@@ -16,6 +16,11 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const money = value => (business?.currency_code || 'SLE') + ' ' + Number(value || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   const providerCostLabel = (currency,value) => value==null?'Not supplied':String(currency||'').toUpperCase()==='CREDITS'?Number(value).toLocaleString(undefined,{maximumFractionDigits:4})+' credits':String(currency||'Provider cost')+' '+Number(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:4});
+  const DEFAULT_USD_SLE_RATE = 22.98;
+  const rateStorageKey = () => 'wl_device_credit_usd_sle_rate_'+String(business?.id||'default');
+  const getUsdSleRate = () => { try { const value=Number(localStorage.getItem(rateStorageKey())); return Number.isFinite(value)&&value>0?value:DEFAULT_USD_SLE_RATE; } catch (_) { return DEFAULT_USD_SLE_RATE; } };
+  const creditsToSle = credits => Number(credits||0)*0.01*getUsdSleRate();
+  const estimatedSleLabel = (currency,value) => String(currency||'').toUpperCase()==='CREDITS'&&value!=null?'Estimated SLE '+creditsToSle(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'SLE estimate unavailable';
   const canManage = () => ALLOWED_ROLES.includes(role);
   function panel() {
     const host = $('wlCloudWork');
@@ -73,6 +78,12 @@
               <p class="wlu-muted">Sync the provider's current IMEI and server services. Provider costs are stored in the provider's own unit (DeviceDecoded uses raw credits; USD conversion is unconfirmed). Customer selling prices are set separately. Adding a service does not place an order.</p>
               <label>Provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label><button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
               <span id="wluCatalogueStatus" class="wlu-muted" role="status">No live catalogue sync yet.</span>
+              <div class="wlu-grid" style="margin:10px 0;padding:10px;border:1px solid #e2eee5;border-radius:9px">
+                <label class="wlu-full">USD to SLE exchange rate
+                  <input id="wluUsdSleRate" type="number" min="0.01" max="1000" step="0.01" value="22.98" inputmode="decimal" aria-label="SLE per one US dollar">
+                </label>
+                <div class="wlu-full wlu-muted">Current estimate: US$1 = SLE <strong id="wluRateDisplay">22.98</strong>. One DeviceDecoded credit = US$0.01. Change this rate to match the rate you actually pay. This setting is saved on this device for the selected business.</div>
+              </div>
               <div id="wluLiveServices"></div>
             </div>
           </details>
@@ -156,6 +167,8 @@
       $('wluSyncCatalogue').addEventListener('click', syncProviderCatalogue);
       $('wluVerifyServiceCoded').addEventListener('click', verifyServicecodedSecret);
       $('wluLiveServices').addEventListener('click', importProviderService);
+      $('wluUsdSleRate').addEventListener('change', saveUsdSleRate);
+      $('wluUsdSleRate').addEventListener('input', updateUsdSlePreview);
       $('wluCheckerForm').addEventListener('submit', checkDeviceCompatibility);
       $('wluCheckerClear').addEventListener('click', clearCompatibilityCheck);
       $('wluOrderForm').addEventListener('submit', createOrder);
@@ -230,9 +243,12 @@
       .order('provider_group').order('service_name').limit(500);
     if(error) throw error;
     const rows=data||[];
-    $('wluLiveServices').innerHTML=rows.length?'<div class="wlu-scroll"><table><thead><tr><th>Group / service</th><th>Type</th><th>Provider credit</th><th>Delivery</th><th>Action</th></tr></thead><tbody>'+rows.map(item=>{
+    const rateInput=$('wluUsdSleRate'); if(rateInput) rateInput.value=getUsdSleRate().toFixed(2);
+    updateUsdSlePreview();
+    $('wluLiveServices').innerHTML=rows.length?'<div class="wlu-scroll"><table><thead><tr><th>Group / service</th><th>Type</th><th>Provider credit</th><th>Estimated provider cost (SLE)</th><th>Delivery</th><th>Action</th></tr></thead><tbody>'+rows.map(item=>{
       const credit=esc(providerCostLabel(item.provider_currency,item.provider_credit));
-      return '<tr><td><strong>'+esc(item.service_name)+'</strong><br><small>'+esc(item.provider_group||'')+'</small><br><small>'+esc(item.description||'')+'</small></td><td>'+esc(item.provider_service_type)+'</td><td>'+credit+'</td><td>'+esc(item.delivery_time||'Not specified')+'</td><td><button type="button" class="secondary" data-wlu-import-provider-service="'+esc(item.id)+'">Add to customer catalogue</button></td></tr>';
+      const estimate=esc(estimatedSleLabel(item.provider_currency,item.provider_credit));
+      return '<tr><td><strong>'+esc(item.service_name)+'</strong><br><small>'+esc(item.provider_group||'')+'</small><br><small>'+esc(item.description||'')+'</small></td><td>'+esc(item.provider_service_type)+'</td><td>'+credit+'</td><td>'+estimate+'</td><td>'+esc(item.delivery_time||'Not specified')+'</td><td><button type="button" class="secondary" data-wlu-import-provider-service="'+esc(item.id)+'">Add to customer catalogue</button></td></tr>';
     }).join('')+'</tbody></table></div>':'<p class="wlu-muted">No provider services saved yet. Choose a provider and sync its catalogue.</p>';
     window.__wluProviderCatalogue=rows;
     if($('wluCheckerResult') && rows.length) $('wluCheckerResult').textContent='Provider catalogue loaded ('+rows.length+' active services). Enter a device and problem to check for a catalogue match.';
@@ -320,9 +336,10 @@
     const cards=matches.map(item=>{
       const local=services.find(s=>s.provider_service_id&&String(s.provider_service_id)===String(item.provider_service_id)&&String(s.provider_service_type||'').toUpperCase()==='IMEI');
       const providerCost=esc(providerCostLabel(item.provider_currency,item.provider_credit));
+      const providerEstimate=esc(estimatedSleLabel(item.provider_currency,item.provider_credit));
       const selling=local?money(local.default_price):'Not yet priced in your customer catalogue';
       const delivery=item.delivery_time||'Not specified by provider';
-      return '<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.provider_group||'IMEI service')+' · '+esc(item.description||'')+'</small><br><small class="wlu-muted">Provider cost: '+providerCost+' · Delivery: '+esc(delivery)+'</small><br><small class="wlu-muted">Your customer price: '+esc(selling)+'</small></span><span>'+(local?'<button type="button" data-wlu-use-check-service="'+esc(local.id)+'">Use this service</button>':'<span class="wlu-muted">Add to customer catalogue first</span>')+'</span></div>';
+      return '<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.provider_group||'IMEI service')+' · '+esc(item.description||'')+'</small><br><small class="wlu-muted">Provider cost: '+providerCost+' · '+providerEstimate+' · Delivery: '+esc(delivery)+'</small><br><small class="wlu-muted">Your customer price: '+esc(selling)+'</small></span><span>'+(local?'<button type="button" data-wlu-use-check-service="'+esc(local.id)+'">Use this service</button>':'<span class="wlu-muted">Add to customer catalogue first</span>')+'</span></div>';
     }).join('');
     const imei=data.check_imei.trim();
     const validImei=!imei||/^[0-9]{14,16}$/.test(imei);
@@ -462,12 +479,34 @@
     if(error) return say('Could not update order status: '+error.message,true);
     await load(); say('Order '+order.reference+' updated to '+STATUS_LABELS[next]+'.');
   }
+  function updateUsdSlePreview() {
+    const input=$('wluUsdSleRate'), display=$('wluRateDisplay');
+    const rate=Number(input?.value);
+    if(display) display.textContent=Number.isFinite(rate)&&rate>0?rate.toFixed(2):'Enter a valid rate';
+    const live=$('wluLiveServices');
+    if(live&&Array.isArray(window.__wluProviderCatalogue)) {
+      const rows=window.__wluProviderCatalogue;
+      const table=live.querySelector('tbody');
+      if(table) table.innerHTML=rows.map(item=>{
+        const credit=esc(providerCostLabel(item.provider_currency,item.provider_credit));
+        const estimate=esc(estimatedSleLabel(item.provider_currency,item.provider_credit));
+        return '<tr><td><strong>'+esc(item.service_name)+'</strong><br><small>'+esc(item.provider_group||'')+'</small><br><small>'+esc(item.description||'')+'</small></td><td>'+esc(item.provider_service_type)+'</td><td>'+credit+'</td><td>'+estimate+'</td><td>'+esc(item.delivery_time||'Not specified')+'</td><td><button type="button" class="secondary" data-wlu-import-provider-service="'+esc(item.id)+'">Add to customer catalogue</button></td></tr>';
+      }).join('');
+    }
+  }
+  function saveUsdSleRate() {
+    const input=$('wluUsdSleRate'), rate=Number(input?.value);
+    if(!Number.isFinite(rate)||rate<=0||rate>1000) { say('Enter a valid USD-to-SLE rate greater than 0 and no more than 1,000.',true); return; }
+    try { localStorage.setItem(rateStorageKey(),String(rate)); } catch (_) {}
+    updateUsdSlePreview();
+    say('USD-to-SLE rate saved for this business on this device. Existing orders and customer prices were not changed.');
+  }
   async function loadServices() {
     const {data,error}=await client.from('phone_unlocking_services').select('id,service_name,description,default_price,is_active,provider_service_id,provider_service_type,provider_group,provider_cost,provider_currency').eq('business_id',business.id).eq('is_active',true).order('service_name');
     if(error) throw error;
     services=data||[];
     $('wluServiceSelect').innerHTML='<option value="">Choose service / price</option>'+services.map(item=>'<option value="'+esc(item.id)+'">'+esc(item.service_name)+' — '+esc(money(item.default_price))+'</option>').join('');
-    $('wluServices').innerHTML=services.map(item=>'<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.description||'')+'</small>'+(item.provider_service_id?'<br><small class="wlu-muted">Mobile-Unlock '+esc(item.provider_service_type)+' ID: '+esc(item.provider_service_id)+' · Provider cost: '+esc(providerCostLabel(item.provider_currency,item.provider_cost))+'</small>':'')+'</span><span><strong>'+esc(money(item.default_price))+'</strong> <button type="button" class="secondary" data-wlu-service-edit="'+esc(item.id)+'">Change price</button></span></div>').join('')||'<p class="wlu-muted">No services yet. Add the services you offer and their default prices.</p>';
+    $('wluServices').innerHTML=services.map(item=>'<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+esc(item.description||'')+'</small>'+(item.provider_service_id?'<br><small class="wlu-muted">Provider service ID: '+esc(item.provider_service_id)+' · Provider cost: '+esc(providerCostLabel(item.provider_currency,item.provider_cost))+' · '+esc(estimatedSleLabel(item.provider_currency,item.provider_cost))+'</small>':'')+'</span><span><strong>'+esc(money(item.default_price))+'</strong> <button type="button" class="secondary" data-wlu-service-edit="'+esc(item.id)+'">Change price</button></span></div>').join('')||'<p class="wlu-muted">No services yet. Add the services you offer and their default prices.</p>';
   }
   async function loadOrders() {
     const {data,error}=await client.from('phone_unlocking_orders').select('id,reference,customer_name,customer_phone,device_brand,device_model,imei,network_name,service_name,provider_name,provider_reference,provider_service_id,provider_service_type,provider_cost,service_price,amount_paid,amount_refunded,status,approval_status,approved_at,provider_submission_status,provider_submission_message,created_at').eq('business_id',business.id).order('created_at',{ascending:false}).limit(60);
