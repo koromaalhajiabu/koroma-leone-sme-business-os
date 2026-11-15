@@ -24,12 +24,12 @@ alter table public.phone_unlocking_storefronts enable row level security;
 drop policy if exists phone_unlocking_storefronts_owner_read on public.phone_unlocking_storefronts;
 create policy phone_unlocking_storefronts_owner_read
   on public.phone_unlocking_storefronts for select to authenticated
-  using (public.has_business_role(business_id,array['owner']::public.business_role[]));
+  using (public.is_platform_developer());
 drop policy if exists phone_unlocking_storefronts_owner_manage on public.phone_unlocking_storefronts;
 create policy phone_unlocking_storefronts_owner_manage
   on public.phone_unlocking_storefronts for all to authenticated
-  using (public.has_business_role(business_id,array['owner']::public.business_role[]))
-  with check (public.has_business_role(business_id,array['owner']::public.business_role[]));
+  using (public.is_platform_developer())
+  with check (public.is_platform_developer());
 revoke all on public.phone_unlocking_storefronts from anon, authenticated;
 grant select on public.phone_unlocking_storefronts to authenticated;
 
