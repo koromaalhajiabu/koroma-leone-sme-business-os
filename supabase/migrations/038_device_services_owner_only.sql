@@ -3,51 +3,51 @@ begin;
 
 drop policy if exists phone_unlocking_services_read on public.phone_unlocking_services;
 create policy phone_unlocking_services_read on public.phone_unlocking_services
- for select to authenticated using (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ for select to authenticated using (public.is_platform_developer());
 drop policy if exists phone_unlocking_services_manage on public.phone_unlocking_services;
 create policy phone_unlocking_services_manage on public.phone_unlocking_services
  for all to authenticated
- using (public.has_business_role(business_id,array['owner']::public.business_role[]))
- with check (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ using (public.is_platform_developer())
+ with check (public.is_platform_developer());
 
 drop policy if exists phone_unlocking_orders_read on public.phone_unlocking_orders;
 create policy phone_unlocking_orders_read on public.phone_unlocking_orders
- for select to authenticated using (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ for select to authenticated using (public.is_platform_developer());
 drop policy if exists phone_unlocking_orders_insert on public.phone_unlocking_orders;
 create policy phone_unlocking_orders_insert on public.phone_unlocking_orders
  for insert to authenticated with check (
-   created_by=auth.uid() and public.has_business_role(business_id,array['owner']::public.business_role[])
+   created_by=auth.uid() and public.is_platform_developer()
  );
 drop policy if exists phone_unlocking_orders_update on public.phone_unlocking_orders;
 create policy phone_unlocking_orders_update on public.phone_unlocking_orders
  for update to authenticated
- using (public.has_business_role(business_id,array['owner']::public.business_role[]))
- with check (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ using (public.is_platform_developer())
+ with check (public.is_platform_developer());
 
 drop policy if exists phone_unlocking_payments_read on public.phone_unlocking_payments;
 create policy phone_unlocking_payments_read on public.phone_unlocking_payments
- for select to authenticated using (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ for select to authenticated using (public.is_platform_developer());
 drop policy if exists phone_unlocking_refunds_read on public.phone_unlocking_refunds;
 create policy phone_unlocking_refunds_read on public.phone_unlocking_refunds
- for select to authenticated using (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ for select to authenticated using (public.is_platform_developer());
 
 drop policy if exists phone_unlocking_provider_services_read on public.phone_unlocking_provider_services;
 create policy phone_unlocking_provider_services_read on public.phone_unlocking_provider_services
- for select to authenticated using (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ for select to authenticated using (public.is_platform_developer());
 drop policy if exists phone_unlocking_provider_services_manage on public.phone_unlocking_provider_services;
 create policy phone_unlocking_provider_services_manage on public.phone_unlocking_provider_services
  for all to authenticated
- using (public.has_business_role(business_id,array['owner']::public.business_role[]))
- with check (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ using (public.is_platform_developer())
+ with check (public.is_platform_developer());
 
 drop policy if exists phone_unlocking_provider_connections_read on public.phone_unlocking_provider_connections;
 create policy phone_unlocking_provider_connections_read on public.phone_unlocking_provider_connections
- for select to authenticated using (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ for select to authenticated using (public.is_platform_developer());
 drop policy if exists phone_unlocking_provider_connections_manage on public.phone_unlocking_provider_connections;
 create policy phone_unlocking_provider_connections_manage on public.phone_unlocking_provider_connections
  for all to authenticated
- using (public.has_business_role(business_id,array['owner']::public.business_role[]))
- with check (public.has_business_role(business_id,array['owner']::public.business_role[]));
+ using (public.is_platform_developer())
+ with check (public.is_platform_developer());
 
 create or replace function public.record_phone_unlocking_payment(
  p_business_id uuid,p_order_id uuid,p_amount numeric,p_payment_method text,
@@ -57,7 +57,7 @@ as $fn$
 declare v_order public.phone_unlocking_orders%rowtype; v_payment_id uuid:=gen_random_uuid();
 begin
  if auth.uid() is null then raise exception 'Authentication required'; end if;
- if not public.has_business_role(p_business_id,array['owner']::public.business_role[]) then raise exception 'Only the business owner can record device-service payments'; end if;
+ if not public.is_platform_developer() then raise exception 'Only the registered platform developer can record device-service payments'; end if;
  if p_amount is null or p_amount<=0 then raise exception 'Payment amount must be greater than zero'; end if;
  if p_payment_method not in ('cash','mobile_money','bank_transfer','card','other') then raise exception 'Unsupported payment method'; end if;
  select * into v_order from public.phone_unlocking_orders where id=p_order_id and business_id=p_business_id for update;
@@ -83,7 +83,7 @@ as $fn$
 declare v_order public.phone_unlocking_orders%rowtype; v_refund_id uuid:=gen_random_uuid(); v_new_refunded numeric(18,2);
 begin
  if auth.uid() is null then raise exception 'Authentication required'; end if;
- if not public.has_business_role(p_business_id,array['owner']::public.business_role[]) then raise exception 'Only the business owner can issue device-service refunds'; end if;
+ if not public.is_platform_developer() then raise exception 'Only the registered platform developer can issue device-service refunds'; end if;
  if p_amount is null or p_amount<=0 then raise exception 'Refund amount must be greater than zero'; end if;
  if p_refund_method not in ('cash','mobile_money','bank_transfer','card','other') then raise exception 'Unsupported refund method'; end if;
  select * into v_order from public.phone_unlocking_orders where id=p_order_id and business_id=p_business_id for update;
