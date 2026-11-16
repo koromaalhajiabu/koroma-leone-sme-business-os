@@ -4,6 +4,11 @@ begin;
 
 alter table public.phone_unlocking_services
   add column if not exists provider_key text;
+alter table public.phone_unlocking_provider_services
+  add column if not exists provider_is_instant boolean;
+update public.phone_unlocking_provider_services
+ set provider_is_instant=(delivery_time='Instant')
+ where provider_key='devicedecoded' and provider_is_instant is null;
 alter table public.phone_unlocking_orders
   add column if not exists provider_key text,
   add column if not exists provider_credits_used numeric(18,4),
@@ -140,8 +145,8 @@ begin
  end if;
  if not exists(select 1 from public.phone_unlocking_provider_services ps
   where ps.business_id=v_business and ps.provider_key='devicedecoded'
-   and ps.provider_service_type='IMEI' and ps.provider_service_id=v_order.provider_service_id and ps.is_active) then
-  raise exception 'The mapped DeviceDecoded service is no longer active. Sync the provider catalogue and review the mapping.';
+   and ps.provider_service_type='IMEI' and ps.provider_service_id=v_order.provider_service_id and ps.is_active and ps.provider_is_instant is false) then
+  raise exception 'The mapped DeviceDecoded service is not an active non-instant fulfilment service. Sync the catalogue and choose a supported unlock service.';
  end if;
  if lower(concat_ws(' ',v_order.service_name)) !~ '(network|carrier|sim.?lock|unlock)' or
     lower(v_order.service_name) ~ '(icloud|activation.?lock|frp|mdm|google.?lock|mi.?account|bypass|blacklist|lost|stolen)' then
