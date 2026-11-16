@@ -1,9 +1,9 @@
 /* White Lion SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='white-lion-sme-v178';
+const CACHE_NAME='white-lion-sme-v179';
 const APP_SHELL=[
   './',
   './index.html',
-  './login-premium.css?v=3',
+  './login-premium.css?v=4',
   './workspace-polish.css?v=3',
   './workspace-navigation.js?v=1',
   './storefront-admin.js?v=2',
@@ -16,8 +16,8 @@ const APP_SHELL=[
   './manifest.webmanifest?v=46',
   './shared.js?v=2',
   './i18n.js?v=11',
-  './cloud.js?v=47',
-  './phone-unlocking.js?v=23',
+  './cloud.js?v=49',
+  './phone-unlocking.js?v=24',
   './operations.js?v=22',
   './documents.js?v=3',
   './icons/white-lion-icon.svg',
