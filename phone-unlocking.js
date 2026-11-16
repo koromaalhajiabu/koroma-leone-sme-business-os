@@ -66,7 +66,8 @@
           <span class="wlu-muted" id="wluWorkspace">No workspace selected</span>
         </div>
         <div id="wluStatus" class="wlu-status" role="status" aria-live="polite">Waiting for a business workspace…</div>
-        <div class="wlu-provider-tools"><strong>Multi-provider connection hub</strong><span id="wluProviderResult" class="wlu-muted" role="status">Legacy Mobile-Unlock API retired. Use the provider selector below.</span><button id="wluVerifyServiceCoded" type="button" class="secondary">Test ServiceCoded secret</button></div>
+        <div class="wlu-provider-tools"><strong>Multi-provider connection hub</strong><span id="wluProviderResult" class="wlu-muted" role="status">Manage provider connections securely. API keys are stored in Supabase Edge Function Secrets, never in this browser panel.</span><button id="wluVerifyServiceCoded" type="button" class="secondary">Test ServiceCoded secret</button></div>
+        <details open id="wluServiceCodedSetup"><summary><strong>ServiceCoded provider setup</strong></summary><p class="wlu-muted">ServiceCoded is now listed as a provider option. The secret check confirms only whether SERVICECODED_API_KEY is present in the deployed Supabase function. Live catalogue sync and order submission remain disabled until the provider's official API base URL, authentication format, catalogue endpoint, order endpoint, status endpoint and response format are confirmed. Do not fund this provider or accept customer orders against it yet.</p><div id="wluServiceCodedStatus" class="wlu-status">Integration status: setup shell added; API connection not yet verified.</div><button id="wluVerifyServiceCoded" type="button" class="secondary">Check ServiceCoded secret</button></details>
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
@@ -86,7 +87,7 @@
             <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e8eee9">
               <h4>Live multi-provider catalogue</h4>
               <p class="wlu-muted">Sync the provider's current IMEI and server services. Provider costs are stored in the provider's own unit (DeviceDecoded uses raw credits; USD conversion is unconfirmed). Customer selling prices are set separately. Adding a service does not place an order.</p>
-              <label>Provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label><button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
+              <label>Provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="servicecoded">ServiceCoded (API setup required)</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label><button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
               <span id="wluCatalogueStatus" class="wlu-muted" role="status">No live catalogue sync yet.</span>
               <div class="wlu-grid" style="margin:10px 0;padding:10px;border:1px solid #e2eee5;border-radius:9px">
                 <label class="wlu-full">USD to SLE exchange rate
@@ -254,6 +255,11 @@
     if(!client||!business?.id) return say('Select a business workspace first.',true);
     if(!canManage()) return say('Only an owner, administrator or manager can sync provider catalogues.',true);
     const provider=$('wluProviderChoice')?.value||'devicedecoded';
+    if(provider==='servicecoded') {
+      status.textContent='ServiceCoded is listed, but catalogue sync is not enabled. The provider API documentation and endpoint/authentication details must be verified before connecting or spending credits.';
+      const setup=$('wluServiceCodedStatus'); if(setup) setup.textContent='Not connected: API specification required. Secret presence alone does not prove the provider API works.';
+      return say(status.textContent,true);
+    }
     if(provider==='imei_info'||provider==='gsma') {
       status.textContent=provider==='imei_info'?'IMEI.info requires funded API access and confirmed API credentials.':'GSMA Device Check requires commercial onboarding and private API documentation.';
       return say(status.textContent,true);
