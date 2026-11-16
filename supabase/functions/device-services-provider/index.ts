@@ -61,6 +61,60 @@ Deno.serve(async(req)=>{
   const {data:platformContext,error:contextError}=await userClient.rpc("get_platform_device_services_context");
   if(contextError||!platformContext?.business_id) return reply({ok:false,error:"Independent Device Services platform context is unavailable."},409);
   const businessId=String(platformContext.business_id);
+  if(body.action==="test_devicedecoded_connection"){
+   const key=Deno.env.get("DEVICEDECODED_API_KEY")?.trim();
+   const response=await fetch("https://devicedecoded.com/api/v1/checks/services",{headers:{Accept:"application/json"}});
+   const payload=await response.json().catch(()=>({}));
+   if(!response.ok||!Array.isArray(payload.services)) return reply({ok:false,error:"DeviceDecoded catalogue endpoint returned HTTP "+response.status,api_key_configured:Boolean(key)},502);
+   return reply({ok:true,provider:"DeviceDecoded",catalogue_reachable:true,service_count:payload.services.length,api_key_configured:Boolean(key),api_key_validity:"not tested; DeviceDecoded documents no non-billable key-validation endpoint"});
+  }
+  if(body.action==="submit_devicedecoded_order"){
+   const key=Deno.env.get("DEVICEDECODED_API_KEY")?.trim();
+   if(!key) return reply({ok:false,error:"DEVICEDECODED_API_KEY is not configured in Supabase Edge Function secrets."},503);
+   const orderId=String(body.order_id||"");
+   if(!/^[0-9a-f-]{36}$/i.test(orderId)) return reply({ok:false,error:"A valid order ID is required."},400);
+   const {data:order,error:claimError}=await userClient.rpc("claim_devicedecoded_order",{p_order_id:orderId});
+   if(claimError||!order?.id) return reply({ok:false,error:claimError?.message||"The order could not be claimed for provider submission."},409);
+   let providerResponse:any=null;
+   try{
+    const response=await fetch("https://devicedecoded.com/api/v1/checks",{
+     method:"POST",
+     headers:{"X-API-Key":key,"Content-Type":"application/json","Accept":"application/json"},
+     body:JSON.stringify({imei:String(order.imei),service:Number(order.provider_service_id)})
+    });
+    providerResponse=await response.json().catch(async()=>({raw:await response.text().catch(()=>"")}));
+    if(response.ok){
+     const used=Number(providerResponse.credits_used);
+     const reference=providerResponse.order_reference||providerResponse.reference||providerResponse.check_id||providerResponse.id||null;
+     const {error:finishError}=await userClient.rpc("finish_devicedecoded_order",{
+      p_order_id:orderId,p_outcome:"submitted",p_provider_reference:reference,
+      p_provider_credits_used:Number.isFinite(used)?used:null,p_provider_response:providerResponse,
+      p_message:"DeviceDecoded accepted the API request. Review the provider response and verify the device outcome before marking the customer order completed."
+     });
+     if(finishError) return reply({ok:false,outcome:"unknown",error:"DeviceDecoded returned success, but White Lion could not save the response. Check DeviceDecoded order history before retrying. "+finishError.message},502);
+     return reply({ok:true,outcome:"submitted",provider:"DeviceDecoded",provider_reference:reference,
+      credits_used:Number.isFinite(used)?used:null,credit_balance:providerResponse.credit_balance??null,
+      provider_response:providerResponse,
+      message:"Provider accepted the request. The customer order is now Processing; verify the final unlock result before marking it Completed."});
+    }
+    const outcome=[401,402,404,422].includes(response.status)?"failed":"unknown";
+    const message=String(providerResponse?.error||providerResponse?.message||("DeviceDecoded returned HTTP "+response.status)).slice(0,450);
+    const {error:finishError}=await userClient.rpc("finish_devicedecoded_order",{
+     p_order_id:orderId,p_outcome:outcome,p_provider_reference:null,p_provider_credits_used:null,
+     p_provider_response:providerResponse,p_message:message
+    });
+    if(finishError) return reply({ok:false,outcome:"unknown",error:"Provider response received but could not be saved. Reconcile in DeviceDecoded before retrying."},502);
+    return reply({ok:false,outcome,error:message,provider_http_status:response.status,
+     no_retry:outcome==="unknown",message:outcome==="unknown"?"Do not retry until the provider account is checked for this request.":"The provider rejected the request; the documented response indicates no successful charge."},response.status===402?402:502);
+   }catch(networkError){
+    const message="The connection ended before White Lion could confirm the DeviceDecoded response. Check provider order history before any retry.";
+    await userClient.rpc("finish_devicedecoded_order",{
+     p_order_id:orderId,p_outcome:"unknown",p_provider_reference:null,p_provider_credits_used:null,
+     p_provider_response:null,p_message:message
+    });
+    return reply({ok:false,outcome:"unknown",error:message,no_retry:true},502);
+   }
+  }
   let services:any[]=[], providerName="", currency="USD";
   if(provider==="devicedecoded"){
    providerName="DeviceDecoded"; currency="CREDITS"; const response=await fetch("https://devicedecoded.com/api/v1/checks/services",{headers:{Accept:"application/json"}});
