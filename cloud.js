@@ -185,7 +185,7 @@
           <option value="imei_org">IMEI.org</option>
           <option value="servicecoded">ServiceCoded</option>
         </select>
-        <div id="wlDevApiServiceInfo" class="dev-role-help" aria-live="polite" style="margin-top:8px">DeviceDecoded integration is present. Catalogue and IMEI identification are supported; automated provider orders are not enabled.</div>
+        <div id="wlDevApiServiceInfo" class="dev-role-help" aria-live="polite" style="margin-top:8px">DeviceDecoded catalogue, IMEI identification and owner-approved API submission are implemented for mapped IMEI services. Premium fulfilment remains processing pending provider-side completion.</div>
       </section>
       <div id="wlDevAlertSettingsPanel" style="display:block;visibility:visible;margin:14px 0;padding:14px;border:2px solid #4f8a5b;border-radius:12px;background:#152a1e;color:#fff;position:relative;z-index:2">
         <h3 style="margin:0 0 8px;color:#9fe3ae;font-size:16px">EMAIL ALERTS</h3>
