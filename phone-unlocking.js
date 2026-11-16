@@ -704,9 +704,39 @@
     if(!canManage()){$('wluApp').hidden=true;say('Developer permission is required to manage Device Services.',true);return;}
     await load();
   }
-  window.addEventListener('whiteLionCloudReady',()=>refreshWorkspace().catch(e=>say(e.message,true)));
+  // Initialise reliably even when the developer panel or Supabase client appears
+  // after this script has loaded. Events remain the fast path; bounded retries
+  // cover delayed panel injection, SDK loading and restored authentication.
+  let initTimer=null, initAttempts=0, refreshInFlight=false;
+  async function initialiseDeviceServices() {
+    if(refreshInFlight) return;
+    const root=panel();
+    const cloud=window.whiteLionCloud;
+    if(!root || !cloud?.getClient?.()) {
+      if(initAttempts++ < 120) {
+        if(initTimer) clearTimeout(initTimer);
+        initTimer=setTimeout(initialiseDeviceServices,500);
+      } else {
+        const host=$('wlDeviceServicesSlot');
+        if(host) {
+          const status=$('wluStatus');
+          if(status) status.textContent='Cloud connection is not ready. Refresh this developer panel after signing in.';
+        }
+      }
+      return;
+    }
+    if(initTimer){clearTimeout(initTimer);initTimer=null;}
+    refreshInFlight=true;
+    try { await refreshWorkspace(); }
+    catch(error) { say('Device Services could not initialise: '+(error?.message||String(error)),true); }
+    finally { refreshInFlight=false; }
+  }
+  window.addEventListener('whiteLionCloudReady',initialiseDeviceServices);
   // Re-check developer context after sign-in. The selected SME workspace is ignored.
-  window.addEventListener('whiteLionWorkspaceChanged',()=>refreshWorkspace().catch(err=>say(err.message,true)));
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{panel();refreshWorkspace().catch(()=>{});});
-  else {panel();refreshWorkspace().catch(()=>{});}
+  window.addEventListener('whiteLionWorkspaceChanged',initialiseDeviceServices);
+  window.addEventListener('focus',initialiseDeviceServices);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initialiseDeviceServices);
+  else initialiseDeviceServices();
+  // Start a bounded retry independently of event delivery.
+  initTimer=setTimeout(initialiseDeviceServices,250);
 })();
