@@ -18,11 +18,15 @@ for (const name of migrations) {
   byVersion.set(match[1], files);
 }
 
-// These two pairs are legacy SQL-Editor scripts already present in the repository.
-// Keep the exception explicit so no new duplicate migration versions can be added silently.
+// These pairs are historical SQL-Editor migrations already present in the repository.
+// They are explicitly allowlisted so new duplicate versions still fail this check.
+// The 046/047 pairs were applied as separate SQL-Editor scripts; do not use the
+// Supabase CLI migration runner against this history until it is reconciled.
 const legacyDuplicates = new Map([
   ['022', ['022_public_league_directory.sql', '022_public_leagues_directory.sql']],
-  ['026', ['026_automatic_seven_day_business_trial.sql', '026_seven_day_professional_trial.sql']]
+  ['026', ['026_automatic_seven_day_business_trial.sql', '026_seven_day_professional_trial.sql']],
+  ['046', ['046_independent_device_services_platform.sql', '046_integrated_missing_capabilities.sql']],
+  ['047', ['047_device_services_catalogue_drafts.sql', '047_expansion_integrity_and_module_seeding.sql']]
 ]);
 for (const [version, names] of byVersion) {
   if (names.length < 2) continue;
