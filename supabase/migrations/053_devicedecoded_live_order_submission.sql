@@ -135,7 +135,7 @@ begin
  if v_business is null then raise exception 'Device Services platform is not configured'; end if;
  select * into v_order from public.phone_unlocking_orders where id=p_order_id and business_id=v_business for update;
  if not found then raise exception 'Order not found'; end if;
- if v_order.provider_key<>'devicedecoded' or v_order.provider_service_type<>'IMEI' or coalesce(v_order.provider_service_id,'')='' then
+ if v_order.provider_key is distinct from 'devicedecoded' or v_order.provider_service_type is distinct from 'IMEI' or coalesce(v_order.provider_service_id,'')='' then
   raise exception 'This order is not mapped to an active DeviceDecoded IMEI service';
  end if;
  if not exists(select 1 from public.phone_unlocking_provider_services ps
