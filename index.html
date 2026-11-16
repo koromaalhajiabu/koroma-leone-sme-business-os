@@ -1007,7 +1007,7 @@ async function render(){
      document.getElementById('wlRenewSubscription').onclick=()=>setPage('billing');
      return;
     }
-   }catch(subscriptionCheckError){console.warn('Subscription access check unavailable; local-first operation remains available.',subscriptionCheckError)}
+   }catch(subscriptionCheckError){const cache=window.__wlSubscriptionAccessCache;if(cache&&workspace?.id)cache.set(String(workspace.id),{data:null,expiresAt:Date.now()+15000});console.warn('Subscription access check unavailable; local-first operation remains available.',subscriptionCheckError)}
   }
  }
  if(state.page==='league'){if(window.whiteLionLeague){await window.whiteLionLeague.render();return}v.innerHTML=pageHeader('Sports & Local League','Loading football competition management…');return}
