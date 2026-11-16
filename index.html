@@ -945,7 +945,8 @@ function esc(value) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
 }
-window.esc = window.esc || esc;let db, state={page:'dashboard',business:{name:'My Business',industry:'Multi-industry',currency:'SLE',email:'',phone:'',address:''}};
+window.esc = window.esc || esc;
+let db, state={page:'dashboard',business:{name:'My Business',industry:'Multi-industry',currency:'SLE',email:'',phone:'',address:''}};
 const INDUSTRY_WORDING={
  'Retail':{sales:'Point of Sale',products:'Products & Stock',purchases:'Stock Purchases',customers:'Customers',suppliers:'Suppliers',expenses:'Operating Expenses',reports:'Retail Reports'},
  'Pharmacy':{sales:'Pharmacy Sales',products:'Medicines & Stock',purchases:'Medicine Purchases',customers:'Customers',suppliers:'Suppliers',expenses:'Operating Expenses',reports:'Pharmacy Reports'},
