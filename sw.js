@@ -39,16 +39,27 @@ const APP_SHELL=[
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    await Promise.all(APP_SHELL.map(async path => {
+    const critical = [
+      './',
+      './index.html',
+      './login-premium.css?v=4',
+      './workspace-polish.css?v=3'
+    ];
+    await Promise.all(critical.map(async path => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
       try {
-        const response = await fetch(path, {cache:'reload'});
+        const response = await fetch(path, {cache:'reload', signal:controller.signal});
         if (response && response.ok) await cache.put(path, response);
-      } catch (_) {}
+      } catch (_) {
+        // Installation must not hang indefinitely on a slow mobile connection.
+      } finally {
+        clearTimeout(timeout);
+      }
     }));
     await self.skipWaiting();
   })());
 });
-
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
