@@ -76,24 +76,23 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  const refresh = (async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const response = await fetch(request, {cache:'no-store'});
+    if (response && response.ok) await cache.put(request, response.clone());
+    return response;
+  })();
+  // Register background refresh immediately; never hold a cached screen for it.
+  event.waitUntil(refresh.then(() => undefined, () => undefined));
+
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(request);
-    if (cached) {
-      // Serve the last verified app asset immediately on repeat visits.
-      // Refresh it in the background so a slow mobile connection does not
-      // hold the screen open while GitHub Pages responds.
-      event.waitUntil(fetch(request, {cache:'no-store'}).then(response => {
-        if (response && response.ok) return cache.put(request, response.clone());
-      }).catch(() => {}));
-      return cached;
-    }
+    if (cached) return cached;
 
-    // First visit or newly-versioned asset: use the network, then save it.
+    // First visit or a new asset: use the network and cache the result.
     try {
-      const fresh = await fetch(request, {cache:'no-store'});
-      if (fresh && fresh.ok) await cache.put(request, fresh.clone());
-      return fresh;
+      return await refresh;
     } catch (_) {
       if (request.mode === 'navigate') {
         const page = await cache.match('./index.html');
