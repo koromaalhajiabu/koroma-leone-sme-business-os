@@ -82,7 +82,9 @@ Deno.serve(async(req)=>{
      headers:{"X-API-Key":key,"Content-Type":"application/json","Accept":"application/json"},
      body:JSON.stringify({imei:String(order.imei),service:Number(order.provider_service_id)})
     });
-    providerResponse=await response.json().catch(async()=>({raw:await response.text().catch(()=>"")}));
+    const responseText=await response.text();
+    try{providerResponse=JSON.parse(responseText);}catch{providerResponse={raw:responseText.slice(0,5000)};}
+    if(!providerResponse||typeof providerResponse!=="object") providerResponse={raw:String(responseText).slice(0,5000)};
     if(response.ok){
      const used=Number(providerResponse.credits_used);
      const reference=providerResponse.order_reference||providerResponse.reference||providerResponse.check_id||providerResponse.id||null;
