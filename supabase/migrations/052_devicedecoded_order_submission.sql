@@ -5,13 +5,30 @@ alter table public.phone_unlocking_services add column if not exists provider_ke
 alter table public.phone_unlocking_orders add column if not exists provider_key text, add column if not exists provider_is_instant boolean, add column if not exists provider_response jsonb, add column if not exists provider_credits_used numeric(18,4), add column if not exists provider_credit_balance numeric(18,4);
 
 update public.phone_unlocking_services s
-set provider_key=p.provider_key, provider_is_instant=p.provider_is_instant
-from lateral (
-  select ps.provider_key,ps.provider_is_instant from public.phone_unlocking_provider_services ps
-  where ps.business_id=s.business_id and ps.provider_service_id=s.provider_service_id and ps.provider_service_type=s.provider_service_type
-  order by case when ps.provider_key='devicedecoded' then 0 else 1 end limit 1
-) p
-where s.provider_service_id is not null and s.provider_key is null;
+set provider_key = (
+      select ps.provider_key from public.phone_unlocking_provider_services ps
+      where ps.business_id=s.business_id
+        and ps.provider_service_id=s.provider_service_id
+        and ps.provider_service_type=s.provider_service_type
+      order by case when ps.provider_key='devicedecoded' then 0 else 1 end
+      limit 1
+    ),
+    provider_is_instant = (
+      select ps.provider_is_instant from public.phone_unlocking_provider_services ps
+      where ps.business_id=s.business_id
+        and ps.provider_service_id=s.provider_service_id
+        and ps.provider_service_type=s.provider_service_type
+      order by case when ps.provider_key='devicedecoded' then 0 else 1 end
+      limit 1
+    )
+where s.provider_service_id is not null
+  and s.provider_key is null
+  and exists (
+    select 1 from public.phone_unlocking_provider_services ps
+    where ps.business_id=s.business_id
+      and ps.provider_service_id=s.provider_service_id
+      and ps.provider_service_type=s.provider_service_type
+  );
 
 update public.phone_unlocking_orders o
 set provider_key=s.provider_key,provider_is_instant=s.provider_is_instant
