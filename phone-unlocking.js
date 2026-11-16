@@ -67,7 +67,6 @@
         </div>
         <div id="wluStatus" class="wlu-status" role="status" aria-live="polite">Waiting for a business workspace…</div>
         <div class="wlu-provider-tools"><strong>Multi-provider connection hub</strong><span id="wluProviderResult" class="wlu-muted" role="status">Manage provider connections securely. API keys are stored in Supabase Edge Function Secrets, never in this browser panel.</span></div>
-        <details open id="wluServiceCodedSetup"><summary><strong>ServiceCoded provider setup</strong></summary><p class="wlu-muted">ServiceCoded is now listed as a provider option. The secret check confirms only whether SERVICECODED_API_KEY is present in the deployed Supabase function. Live catalogue sync and order submission remain disabled until the provider's official API base URL, authentication format, catalogue endpoint, order endpoint, status endpoint and response format are confirmed. Do not fund this provider or accept customer orders against it yet.</p><div id="wluServiceCodedStatus" class="wlu-status">Integration status: setup shell added; API connection not yet verified.</div><button id="wluVerifyServiceCoded" type="button" class="secondary">Check ServiceCoded secret</button></details>
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
@@ -87,7 +86,7 @@
             <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e8eee9">
               <h4>Live multi-provider catalogue</h4>
               <p class="wlu-muted">Sync the provider's current IMEI and server services. Provider costs are stored in the provider's own unit (DeviceDecoded uses raw credits; USD conversion is unconfirmed). Customer selling prices are set separately. Adding a service does not place an order.</p>
-              <label>Provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="servicecoded">ServiceCoded (API setup required)</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label><button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
+              <label>Provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label><button id="wluTestDeviceDecoded" type="button" class="secondary">Test DeviceDecoded connection</button><button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
               <span id="wluCatalogueStatus" class="wlu-muted" role="status">No live catalogue sync yet.</span>
               <div class="wlu-grid" style="margin:10px 0;padding:10px;border:1px solid #e2eee5;border-radius:9px">
                 <label class="wlu-full">USD to SLE exchange rate
@@ -191,7 +190,7 @@
       host.appendChild(root);
       $('wluEnable').addEventListener('click', enableModule);
       $('wluSyncCatalogue').addEventListener('click', syncProviderCatalogue);
-      $('wluVerifyServiceCoded').addEventListener('click', verifyServicecodedSecret);
+      $('wluTestDeviceDecoded').addEventListener('click', testDeviceDecodedConnection);
       $('wluStorefrontForm').addEventListener('submit', saveStorefrontSettings);
       $('wluPaymentSettingsForm').addEventListener('submit', savePaymentSettings);
       $('wluPaymentClaims').addEventListener('click', reviewPaymentClaim);
@@ -228,38 +227,24 @@
   function say(message, error=false) {
     const el=$('wluStatus'); if(el){el.textContent=message;el.style.background=error?'#fff1f0':'#f3f8f4';el.style.color=error?'#9b2c24':'#315641';}
   }
-  async function verifyServicecodedSecret() {
-    const button=$('wluVerifyServiceCoded'), status=$('wluProviderResult');
-    if(!client) return say('Sign in first to test the provider secret.',true);
-    if(!canManage()) return say('Only an owner, administrator or manager can test provider settings.',true);
-    button.disabled=true; button.textContent='Checking…';
-    status.textContent='Checking whether the deployed Supabase function can read the saved secret…';
-    try {
-      const {data,error}=await client.functions.invoke('device-services-provider',{body:{action:'verify_servicecoded_secret'}});
-      if(error) throw new Error(error.message||'Secret verification request failed.');
-      if(!data?.ok) throw new Error(data?.error||'Secret verification failed.');
-      if(data.secret_configured===true) {
-        status.textContent='ServiceCoded secret is visible to the deployed Supabase function. This does not verify the API endpoint or key validity.';
-        say('Secret check passed. No ServiceCoded API request was made and no provider credit was spent.');
-      } else {
-        status.textContent='SERVICECODED_API_KEY is not visible to the deployed function. Check the exact secret name in Supabase Edge Function Secrets, then redeploy.';
-        say('Secret check failed: the deployed function cannot see SERVICECODED_API_KEY.',true);
-      }
-    } catch(error) {
-      status.textContent='Secret check not completed: '+(error.message||String(error));
-      say('Could not verify the ServiceCoded secret: '+(error.message||String(error)),true);
-    } finally { button.disabled=false; button.textContent='Test ServiceCoded secret'; }
+  async function testDeviceDecodedConnection() {
+    const button=$('wluTestDeviceDecoded'),status=$('wluProviderResult');
+    if(!client||!isDeveloper) return say('Developer sign-in is required to test DeviceDecoded.',true);
+    button.disabled=true;button.textContent='Testing…';status.textContent='Checking the official DeviceDecoded catalogue endpoint…';
+    try{
+      const {data,error}=await client.functions.invoke('device-services-provider',{body:{action:'test_devicedecoded_connection'}});
+      if(error) throw new Error(error.message||'Connection test failed.');
+      if(!data?.ok) throw new Error(data?.error||'DeviceDecoded connection test failed.');
+      status.textContent='DeviceDecoded catalogue reachable ('+Number(data.service_count||0)+' services). API key secret '+(data.api_key_configured?'is present':'is missing')+'. Key validity is not tested by this non-billable check.';
+      say('DeviceDecoded catalogue endpoint is reachable. No provider credits were spent. The key is only validated when a paid API request is made.');
+    }catch(error){status.textContent='DeviceDecoded test failed: '+(error.message||String(error));say('DeviceDecoded connection test failed: '+(error.message||String(error)),true);}
+    finally{button.disabled=false;button.textContent='Test DeviceDecoded connection';}
   }
   async function syncProviderCatalogue() {
     const button=$('wluSyncCatalogue'), status=$('wluCatalogueStatus');
     if(!client||!business?.id) return say('Select a business workspace first.',true);
     if(!canManage()) return say('Only an owner, administrator or manager can sync provider catalogues.',true);
     const provider=$('wluProviderChoice')?.value||'devicedecoded';
-    if(provider==='servicecoded') {
-      status.textContent='ServiceCoded is listed, but catalogue sync is not enabled. The provider API documentation and endpoint/authentication details must be verified before connecting or spending credits.';
-      const setup=$('wluServiceCodedStatus'); if(setup) setup.textContent='Not connected: API specification required. Secret presence alone does not prove the provider API works.';
-      return say(status.textContent,true);
-    }
     if(provider==='imei_info'||provider==='gsma') {
       status.textContent=provider==='imei_info'?'IMEI.info requires funded API access and confirmed API credentials.':'GSMA Device Check requires commercial onboarding and private API documentation.';
       return say(status.textContent,true);
@@ -304,7 +289,7 @@
     const price=Number(entered);
     if(!Number.isFinite(price)||price<0) return say('Enter a valid non-negative customer selling price.',true);
     const {error}=await client.from('phone_unlocking_services').insert({
-      business_id:business.id,service_name:item.service_name,
+      business_id:business.id,service_name:item.service_name,provider_key:item.provider_key,
       description:[item.provider_group,item.description,item.delivery_time?'Delivery: '+item.delivery_time:null].filter(Boolean).join(' · ').slice(0,240)||null,
       default_price:price,provider_service_id:item.provider_service_id,provider_service_type:item.provider_service_type,
       provider_group:item.provider_group,provider_cost:item.provider_credit,provider_currency:item.provider_currency,
@@ -454,7 +439,7 @@
       customer_name:data.customer_name.trim(),customer_phone:data.customer_phone.trim()||null,
       device_brand:data.device_brand.trim(),device_model:data.device_model.trim(),imei,
       network_name:data.network_name.trim(),country:data.country.trim()||null,
-      service_name:service.service_name,provider_service_id:service.provider_service_id||null,provider_service_type:service.provider_service_type||null,provider_name:data.provider_name.trim()||null,
+      service_name:service.service_name,provider_key:service.provider_key||null,provider_service_id:service.provider_service_id||null,provider_service_type:service.provider_service_type||null,provider_name:data.provider_name.trim()||null,
       provider_reference:data.provider_reference.trim()||null,
       provider_cost:Number(data.provider_cost||0),service_price:Number(data.service_price),
       notes:data.notes.trim()||null,status:'received'
@@ -469,7 +454,7 @@
     if((order.approval_status||'pending')!=='pending') return say('This order has already been reviewed.',true);
     const reason=window.prompt('Optional reason for rejecting order '+order.reference+':','');
     if(reason===null) return;
-    if(!window.confirm('Reject this customer order? It will not be submitted to Mobile-Unlock.')) return;
+    if(!window.confirm('Reject this customer order? It will not be submitted to DeviceDecoded.')) return;
     button.disabled=true;
     try {
       const {error}=await client.rpc('reject_phone_unlocking_order',{
@@ -488,15 +473,35 @@
     if(Number(order.amount_paid)<Number(order.service_price)) return say('The customer must pay the full order amount before approval.',true);
     if(!['received','quoted','awaiting_payment'].includes(order.status)) return say('This order is not eligible for approval.',true);
     if((order.approval_status||'pending')!=='pending') return say('This order has already been reviewed.',true);
-    if(!window.confirm('Approve this customer order for manual processing? No provider API order will be sent.')) return;
+    if(!window.confirm('Approve this fully-paid customer order for DeviceDecoded processing? Approval alone will not send the IMEI or spend provider credits.')) return;
     button.disabled=true; button.textContent='Approving…';
     try {
       const {error:approvalError}=await client.rpc('approve_phone_unlocking_order',{p_business_id:business.id,p_order_id:order.id});
       if(approvalError) throw approvalError;
-      await load(); say('Order '+order.reference+' approved for manual processing. Automated provider submission is disabled until replacement provider order workflows are tested.');
+      await load(); say('Order '+order.reference+' approved. Use Send to DeviceDecoded when you are ready to submit and spend provider credits.');
     } catch(error) {
       await load(); say('Approval/submission result: '+(error.message||String(error))+'. Check the order register before trying again; do not submit a duplicate.',true);
     } finally { button.disabled=false; }
+  }
+  async function submitDeviceDecodedOrder(event) {
+    const button=event.target.closest('[data-wlu-submit-devicedecoded]');if(!button)return;
+    if(!isDeveloper) return say('Developer sign-in is required.',true);
+    const order=orders.find(item=>item.id===button.dataset.id);if(!order)return;
+    if(order.approval_status!=='approved'||Number(order.amount_paid)<Number(order.service_price))return say('This order must be approved and fully paid before provider submission.',true);
+    if(order.provider_submission_status!=='not_submitted')return say('A provider submission was already attempted. Reconcile it in DeviceDecoded before retrying.',true);
+    if(!window.confirm('Send '+order.device_brand+' '+order.device_model+' IMEI '+order.imei+' to DeviceDecoded for '+order.service_name+'? DeviceDecoded may deduct credits if successful. Continue only if the customer has paid and you authorise this provider charge.'))return;
+    button.disabled=true;button.textContent='Submitting…';
+    try{
+      const {data,error}=await client.functions.invoke('device-services-provider',{body:{action:'submit_devicedecoded_order',order_id:order.id}});
+      if(error) throw new Error(error.message||'Provider submission request failed.');
+      await load();
+      if(data?.ok&&data.outcome==='submitted') say('DeviceDecoded accepted order '+order.reference+'. Credits used: '+(data.credits_used??'not reported')+'. Verify the actual device result before marking Completed.');
+      else if(data?.outcome==='unknown') say('Submission outcome is uncertain for '+order.reference+'. Check DeviceDecoded order history before any retry; do not submit again.',true);
+      else say('DeviceDecoded did not accept '+order.reference+': '+(data?.error||'Provider submission failed. No automatic retry was made.'),true);
+    }catch(error){
+      await load().catch(()=>{});
+      say('Could not confirm the DeviceDecoded submission. Check the order register and provider dashboard before retrying: '+(error.message||String(error)),true);
+    }finally{button.disabled=false;button.textContent='Send to DeviceDecoded';}
   }
   async function recordPayment(event) {
     event.preventDefault();
@@ -554,7 +559,7 @@
   }
   async function loadServices() {
     const {data,error}=await client.from('phone_unlocking_services')
-      .select('id,service_name,description,default_price,is_active,provider_service_id,provider_service_type,provider_group,provider_cost,provider_currency')
+      .select('id,service_name,description,default_price,is_active,provider_key,provider_service_id,provider_service_type,provider_group,provider_cost,provider_currency')
       .eq('business_id',business.id).order('service_name');
     if(error) throw error;
     allServices=data||[];
@@ -563,7 +568,7 @@
     $('wluServices').innerHTML=allServices.map(item=>'<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+(item.is_active?'ACTIVE · visible to customers':'DRAFT · hidden from customers')+'</small><br><small class="wlu-muted">'+esc(item.description||'')+'</small>'+(item.provider_service_id?'<br><small class="wlu-muted">Provider service ID: '+esc(item.provider_service_id)+' · Provider cost: '+esc(providerCostLabel(item.provider_currency,item.provider_cost))+' · '+esc(estimatedSleLabel(item.provider_currency,item.provider_cost))+'</small>':'')+'</span><span><strong>'+esc(money(item.default_price))+'</strong> <button type="button" class="secondary" data-wlu-service-edit="'+esc(item.id)+'">Change price</button> <button type="button" data-wlu-service-toggle="'+esc(item.id)+'" data-next-active="'+(item.is_active?'false':'true')+'">'+(item.is_active?'Deactivate':'Activate')+'</button></span></div>').join('')||'<p class="wlu-muted">No services yet. Add or import services from the live provider catalogue.</p>';
   }
   async function loadOrders() {
-    const {data,error}=await client.from('phone_unlocking_orders').select('id,reference,customer_name,customer_phone,device_brand,device_model,imei,network_name,service_name,provider_name,provider_reference,provider_service_id,provider_service_type,provider_cost,service_price,amount_paid,amount_refunded,status,approval_status,approved_at,provider_submission_status,provider_submission_message,created_at').eq('business_id',business.id).order('created_at',{ascending:false}).limit(60);
+    const {data,error}=await client.from('phone_unlocking_orders').select('id,reference,customer_name,customer_phone,device_brand,device_model,imei,network_name,service_name,provider_name,provider_reference,provider_key,provider_service_id,provider_service_type,provider_cost,provider_credits_used,service_price,amount_paid,amount_refunded,status,approval_status,approved_at,provider_submission_status,provider_submission_message,created_at').eq('business_id',business.id).order('created_at',{ascending:false}).limit(60);
     if(error) throw error;
     orders=data||[];
     const total=orders.length, open=orders.filter(o=>!['completed','failed','cancelled','refunded'].includes(o.status)).length;
@@ -589,8 +594,9 @@
       const options=(o.status==='refunded'?'<option value="refunded" selected disabled>Refunded</option>':'')+STATUSES.map(s=>'<option value="'+s+'" '+(s===o.status?'selected':'')+'>'+STATUS_LABELS[s]+'</option>').join('');
       const approvalText=APPROVAL_LABELS[o.approval_status||'pending']||'Awaiting owner approval';
       const canApprove=role==='owner'&&(o.approval_status||'pending')==='pending'&&Number(o.amount_paid)>=Number(o.service_price)&&!['cancelled','failed','refunded'].includes(o.status);
+      const canSubmitProvider=o.provider_key==='devicedecoded'&&o.provider_service_id&&o.provider_service_type==='IMEI'&&o.approval_status==='approved'&&Number(o.amount_paid)>=Number(o.service_price)&&o.provider_submission_status==='not_submitted'&&!['cancelled','failed','refunded','completed'].includes(o.status);
       const providerText=o.provider_submission_status==='submitted'?'Submitted · '+(o.provider_reference||'reference pending'):o.provider_submission_status==='submitting'?'Submission in progress':o.provider_submission_status==='unknown'?'Submission uncertain — reconcile before retry':o.provider_submission_status==='failed'?'Provider rejected/failed':o.provider_service_id?'Provider service mapped':'Manual service';
-      return '<tr><td><strong>'+esc(o.reference)+'</strong><br>'+esc(o.customer_name)+'<br><small>'+esc(o.customer_phone||'')+'</small></td><td>'+esc(o.device_brand)+' '+esc(o.device_model)+'<br><small>IMEI: '+esc(o.imei)+'</small></td><td>'+esc(o.network_name)+'<br>'+esc(o.service_name)+'</td><td>'+esc(o.provider_name||'Manual fulfilment')+'<br><small>'+esc(o.provider_reference||'No provider ref')+'</small></td><td>'+esc(money(o.service_price))+'<br>Net paid: '+esc(money(netPaid))+'<br>Due: '+esc(money(balance))+'<br>Refunded: '+esc(money(o.amount_refunded))+'<br><small>Provider cost: '+esc(money(o.provider_cost))+'</small></td><td><strong>'+esc(approvalText)+'</strong><br><small>'+esc(providerText)+'</small>'+(o.provider_submission_message?'<br><small>'+esc(o.provider_submission_message)+'</small>':'')+'</td><td>'+esc(STATUS_LABELS[o.status]||o.status)+'</td><td>'+((o.approval_status||'pending')==='pending'&&role==='owner'?'<button type="button" data-wlu-reject data-id="'+esc(o.id)+'" class="secondary">Reject</button>':'')+(canApprove?'<button type="button" data-wlu-approve data-id="'+esc(o.id)+'">Approve</button>':(o.approval_status==='pending'&&Number(o.amount_paid)<Number(o.service_price)?'<small>Full payment required before approval</small>':''))+'<select aria-label="Status for '+esc(o.reference)+'" data-status-select="'+esc(o.id)+'">'+options+'</select><button type="button" class="secondary" data-wlu-status="'+esc(o.status)+'" data-id="'+esc(o.id)+'" '+(o.status==='refunded'?'disabled':'')+'>Update</button></td></tr>';
+      return '<tr><td><strong>'+esc(o.reference)+'</strong><br>'+esc(o.customer_name)+'<br><small>'+esc(o.customer_phone||'')+'</small></td><td>'+esc(o.device_brand)+' '+esc(o.device_model)+'<br><small>IMEI: '+esc(o.imei)+'</small></td><td>'+esc(o.network_name)+'<br>'+esc(o.service_name)+'</td><td>'+esc(o.provider_name||'Manual fulfilment')+'<br><small>'+esc(o.provider_reference||'No provider ref')+'</small></td><td>'+esc(money(o.service_price))+'<br>Net paid: '+esc(money(netPaid))+'<br>Due: '+esc(money(balance))+'<br>Refunded: '+esc(money(o.amount_refunded))+'<br><small>Provider cost: '+esc(money(o.provider_cost))+'</small></td><td><strong>'+esc(approvalText)+'</strong><br><small>'+esc(providerText)+'</small>'+(o.provider_submission_message?'<br><small>'+esc(o.provider_submission_message)+'</small>':'')+'</td><td>'+esc(STATUS_LABELS[o.status]||o.status)+'</td><td>'+((o.approval_status||'pending')==='pending'&&role==='owner'?'<button type="button" data-wlu-reject data-id="'+esc(o.id)+'" class="secondary">Reject</button>':'')+(canApprove?'<button type="button" data-wlu-approve data-id="'+esc(o.id)+'">Approve</button>':(o.approval_status==='pending'&&Number(o.amount_paid)<Number(o.service_price)?'<small>Full payment required before approval</small>':''))+(canSubmitProvider?'<button type="button" data-wlu-submit-devicedecoded data-id="'+esc(o.id)+'">Send to DeviceDecoded</button>':'')+'<select aria-label="Status for '+esc(o.reference)+'" data-status-select="'+esc(o.id)+'">'+options+'</select><button type="button" class="secondary" data-wlu-status="'+esc(o.status)+'" data-id="'+esc(o.id)+'" '+(o.status==='refunded'?'disabled':'')+'>Update</button></td></tr>';
     }).join('')+'</tbody></table>':(orders.length?'<p class="wlu-muted">No orders match your search or status filter.</p>':'<p class="wlu-muted">No unlocking orders yet. Customer orders will appear here when submitted.</p>');
     $('wluOrders').querySelectorAll('[data-status-select]').forEach(select=>select.addEventListener('change',()=>{
       const btn=$('wluOrders').querySelector('[data-wlu-status][data-id="'+select.dataset.statusSelect+'"]');
