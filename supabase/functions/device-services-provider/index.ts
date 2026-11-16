@@ -56,6 +56,86 @@ Deno.serve(async(req)=>{
    const configured=Boolean(Deno.env.get("SERVICECODED_API_KEY")?.trim());
    return reply({ok:true,provider:"ServiceCoded",secret_configured:configured,secret_value_exposed:false});
   }
+  if(body.action==="submit_devicedecoded_order") {
+   const businessId=String(body.business_id||"");
+   const orderId=String(body.order_id||"");
+   if(!/^[0-9a-f-]{36}$/i.test(businessId)||!/^[0-9a-f-]{36}$/i.test(orderId))
+    return reply({ok:false,error:"A valid business and order ID are required."},400);
+   const key=Deno.env.get("DEVICEDECODED_API_KEY")?.trim();
+   if(!key) return reply({ok:false,error:"DEVICEDECODED_API_KEY is not configured in Supabase Edge Function secrets."},503);
+   const {data:platformContext,error:contextError}=await userClient.rpc("get_platform_device_services_context");
+   if(contextError||String(platformContext?.business_id||"")!==businessId)
+    return reply({ok:false,error:"This order is outside the independent Device Services workspace."},403);
+   const {data:order,error:claimError}=await userClient.rpc("claim_phone_unlocking_provider_submission",{
+    p_business_id:businessId,p_order_id:orderId
+   });
+   if(claimError||!order) return reply({ok:false,error:claimError?.message||"The order could not be safely claimed for submission."},409);
+   const serviceId=Number(order.provider_service_id);
+   const imei=String(order.imei||"").trim();
+   if(!Number.isInteger(serviceId)||serviceId<=0||!/^[0-9]{14,16}$/.test(imei)) {
+    await userClient.rpc("finish_devicedecoded_provider_submission",{
+     p_business_id:businessId,p_order_id:orderId,p_outcome:"failed",
+     p_message:"The mapped provider service ID or IMEI is invalid.",p_provider_response:null,
+     p_credits_used:null,p_credit_balance:null,p_is_instant:Boolean(order.provider_is_instant)
+    });
+    return reply({ok:false,error:"The mapped DeviceDecoded service ID or IMEI is invalid."},422);
+   }
+   let response:Response;
+   try {
+    response=await fetch("https://devicedecoded.com/api/v1/checks",{
+     method:"POST",
+     headers:{"X-API-Key":key,"Content-Type":"application/json","Accept":"application/json"},
+     body:JSON.stringify({imei,service:serviceId}),
+     signal:AbortSignal.timeout(65000)
+    });
+   } catch(e) {
+    const message="The provider request timed out or the network failed. Its charge/submission outcome is uncertain; do not retry automatically.";
+    await userClient.rpc("finish_devicedecoded_provider_submission",{
+     p_business_id:businessId,p_order_id:orderId,p_outcome:"unknown",p_message:message,
+     p_provider_response:null,p_credits_used:null,p_credit_balance:null,p_is_instant:Boolean(order.provider_is_instant)
+    });
+    return reply({ok:false,unknown:true,error:message},504);
+   }
+   let payload:any=null;
+   try { payload=await response.json(); } catch(_) {}
+   if(!response.ok) {
+    const definite=[401,402,404,422].includes(response.status);
+    const outcome=definite?"failed":"unknown";
+    const message=String(payload?.error||payload?.message||("DeviceDecoded returned HTTP "+response.status)).slice(0,450);
+    const {error:finishError}=await userClient.rpc("finish_devicedecoded_provider_submission",{
+     p_business_id:businessId,p_order_id:orderId,p_outcome:outcome,p_message:message,
+     p_provider_response:payload,p_credits_used:null,p_credit_balance:payload?.balance??null,
+     p_is_instant:Boolean(order.provider_is_instant)
+    });
+    if(finishError) return reply({ok:false,unknown:true,error:"Provider responded, but the result could not be safely recorded. Do not retry this order. "+finishError.message},500);
+    return reply({ok:false,unknown:!definite,error:message,provider_http_status:response.status},definite?502:504);
+   }
+   if(!payload||typeof payload!=="object") {
+    const message="DeviceDecoded returned HTTP 200 but its response could not be read. Treat this order as uncertain and do not retry.";
+    await userClient.rpc("finish_devicedecoded_provider_submission",{
+     p_business_id:businessId,p_order_id:orderId,p_outcome:"unknown",p_message:message,
+     p_provider_response:null,p_credits_used:null,p_credit_balance:null,p_is_instant:Boolean(order.provider_is_instant)
+    });
+    return reply({ok:false,unknown:true,error:message},502);
+   }
+   const credits=Number(payload.credits_used);
+   const balance=Number(payload.credit_balance);
+   const providerRef=payload.order_id??payload.orderId??payload.id??null;
+   const message=Boolean(order.provider_is_instant)
+    ?"DeviceDecoded returned a result. Provider credits used: "+(Number.isFinite(credits)?credits:"not reported")+"."
+    :"DeviceDecoded accepted the premium fulfilment request. The provider API documentation does not specify an order-status polling endpoint; reconcile completion in the provider dashboard.";
+   const {error:finishError}=await userClient.rpc("finish_devicedecoded_provider_submission",{
+    p_business_id:businessId,p_order_id:orderId,p_outcome:"submitted",
+    p_provider_reference:providerRef==null?null:String(providerRef),p_message:message,
+    p_provider_response:payload,p_credits_used:Number.isFinite(credits)?credits:null,
+    p_credit_balance:Number.isFinite(balance)?balance:null,p_is_instant:Boolean(order.provider_is_instant)
+   });
+   if(finishError) return reply({ok:false,unknown:true,error:"DeviceDecoded responded successfully, but the result could not be safely recorded. Do not resubmit. "+finishError.message},500);
+   return reply({ok:true,provider:"DeviceDecoded",provider_reference:providerRef,
+    credits_used:Number.isFinite(credits)?credits:null,credit_balance:Number.isFinite(balance)?balance:null,
+    instant:Boolean(order.provider_is_instant),status:Boolean(order.provider_is_instant)?"completed":"processing",
+    message,payload});
+  }
   const provider=String(body.provider||"");
   if(body.action!=="sync_catalogue") return reply({ok:false,error:"Invalid request."},400);
   const {data:platformContext,error:contextError}=await userClient.rpc("get_platform_device_services_context");
