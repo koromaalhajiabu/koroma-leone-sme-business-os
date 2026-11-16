@@ -86,4 +86,12 @@ revoke all on function public.claim_phone_unlocking_provider_submission(uuid,uui
 revoke all on function public.finish_devicedecoded_provider_submission(uuid,uuid,text,text,text,jsonb,numeric,numeric,boolean) from public;
 grant execute on function public.claim_phone_unlocking_provider_submission(uuid,uuid) to authenticated;
 grant execute on function public.finish_devicedecoded_provider_submission(uuid,uuid,text,text,text,jsonb,numeric,numeric,boolean) to authenticated;
+
+-- Existing tables use column-level INSERT grants; explicitly permit the new mapping fields.
+grant insert (provider_key,provider_is_instant,provider_service_id,provider_service_type,provider_group,
+  provider_cost,provider_currency,provider_delivery_time,provider_info,provider_requires_custom)
+  on public.phone_unlocking_services to authenticated;
+grant insert (provider_key,provider_is_instant)
+  on public.phone_unlocking_orders to authenticated;
+
 commit;
