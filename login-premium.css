@@ -275,3 +275,53 @@
   .wl-auth-story h1 em { animation:none!important; text-shadow:none!important; }
   .wl-auth-feature-list>div { animation:wlVisibleFeatureFade .35s ease-out both!important; }
 }
+
+
+/* Emergency mobile visibility repair: keep sign-in story and account card visible. */
+.wl-auth-shell .wl-auth-brand,
+.wl-auth-shell .wl-auth-layout,
+.wl-auth-shell .wl-auth-bottom {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.wl-auth-shell .wl-auth-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  position: relative !important;
+}
+.wl-auth-shell .wl-auth-story,
+.wl-auth-shell .wl-auth-card,
+.wl-auth-shell .wl-auth-story > *,
+.wl-auth-shell .wl-auth-card > * {
+  display: revert !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+  height: auto !important;
+  max-height: none !important;
+}
+.wl-auth-shell .wl-auth-story {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+.wl-auth-shell .wl-auth-card {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  animation: none !important;
+}
+.wl-auth-shell #wlCloudAuth,
+.wl-auth-shell #wlCloudEmail,
+.wl-auth-shell #wlCloudPassword,
+.wl-auth-shell #wlSignIn,
+.wl-auth-shell #wlSignUp {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
