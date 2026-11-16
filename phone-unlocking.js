@@ -216,6 +216,7 @@
       $('wluOrders').addEventListener('click', updateOrderStatus);
       $('wluOrders').addEventListener('click', approveOrder);
       $('wluOrders').addEventListener('click', rejectOrder);
+      $('wluOrders').addEventListener('click', submitDeviceDecodedOrder);
       $('wluOrderSearch').addEventListener('input', renderOrderRegister);
       $('wluOrderStatusFilter').addEventListener('change', renderOrderRegister);
       $('wluExportOrders').addEventListener('click', exportOrderRegisterCsv);
