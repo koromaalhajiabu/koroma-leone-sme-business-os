@@ -989,8 +989,20 @@ async function render(){
   const cloud=window.whiteLionCloud, sb=cloud?.getClient?.(), workspace=cloud?.getActiveBusiness?.();
   if(sb&&workspace?.id){
    try{
-    const {data:access,error:accessError}=await sb.rpc('get_business_subscription_access',{p_business_id:workspace.id});
-    if(!accessError&&access&&access.allowed===false){
+    const cache=window.__wlSubscriptionAccessCache||(window.__wlSubscriptionAccessCache=new Map());
+    const key=String(workspace.id),now=Date.now(),cached=cache.get(key);
+    let access;
+    if(cached&&cached.expiresAt>now){access=cached.data}
+    else{
+     const result=await Promise.race([
+      sb.rpc('get_business_subscription_access',{p_business_id:workspace.id}),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Subscription check timed out')),2500))
+     ]);
+     if(result.error)throw result.error;
+     access=result.data||null;
+     cache.set(key,{data:access,expiresAt:Date.now()+60000});
+    }
+    if(access&&access.allowed===false){
      v.innerHTML='<div class="panel" style="max-width:760px;margin:28px auto;padding:26px"><div class="eyebrow">Subscription access</div><h2 style="margin:8px 0">Renew your White Lion SME subscription</h2><p class="panel-sub">'+esc(access.reason||'This workspace subscription has expired.')+'</p><div class="report-cards"><div class="report-box"><small>Subscription status</small><b>'+esc(String(access.status||'expired').replaceAll('_',' '))+'</b></div><div class="report-box"><small>Grace period ended</small><b>'+ (access.grace_until?new Date(access.grace_until).toLocaleString():'Not available')+'</b></div></div><p>Your business records have not been deleted. Open Plans & Billing to request a renewal invoice. Access will be restored after payment verification.</p><button class="btn primary" id="wlRenewSubscription" type="button">Open Plans & Billing</button></div>';
      document.getElementById('wlRenewSubscription').onclick=()=>setPage('billing');
      return;
