@@ -1465,14 +1465,36 @@
     if (activeBusiness) syncStatus('Internet restored. Tap Sync local records to upload pending records and transactions.');
   });
 
-  function loadSdk() {
-    return new Promise((resolve, reject) => {
-      if (window.supabase?.createClient) return resolve();
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      script.onload = resolve; script.onerror = () => reject(new Error('Could not load Supabase library.'));
-      document.head.appendChild(script);
-    });
+  function withTimeout(promise, ms, label) {
+    let timer;
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(label + ' timed out after ' + Math.round(ms / 1000) + ' seconds.')), ms);
+      })
+    ]).finally(() => clearTimeout(timer));
+  }
+  async function loadSdk() {
+    if (window.supabase?.createClient) return;
+    const sources = [
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+      'https://unpkg.com/@supabase/supabase-js@2'
+    ];
+    let lastError;
+    for (const src of sources) {
+      try {
+        await withTimeout(new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.onload = resolve;
+          script.onerror = () => { script.remove(); reject(new Error('Could not load Supabase library from ' + new URL(src).hostname + '.')); };
+          document.head.appendChild(script);
+        }), 10000, 'Supabase library download');
+        if (window.supabase?.createClient) return;
+        throw new Error('Supabase library loaded without its client.');
+      } catch (error) { lastError = error; }
+    }
+    throw lastError || new Error('Could not load Supabase library.');
   }
   async function init() {
     addPanel();
@@ -1481,7 +1503,7 @@
       client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
-      const { data } = await client.auth.getSession();
+      const { data } = await withTimeout(client.auth.getSession(), 15000, 'Supabase session check');
       session = data.session;
       if (session) await loadBusinesses(); else showSignedOut();
       client.auth.onAuthStateChange((event, nextSession) => {
@@ -1504,7 +1526,18 @@
       };
       window.dispatchEvent(new CustomEvent('whiteLionCloudReady'));
     } catch (error) {
-      say(error.message || 'Cloud connection could not be initialised.');
+      const message = error.message || 'Cloud connection could not be initialised.';
+      say(message + ' Your saved business records have not been changed.');
+      const status = $('wlCloudStatus');
+      if (status && !document.getElementById('wlCloudRetry')) {
+        const retry = document.createElement('button');
+        retry.id = 'wlCloudRetry';
+        retry.type = 'button';
+        retry.textContent = 'Retry connection';
+        retry.style.cssText = 'display:block;margin-top:10px;padding:10px 14px;border:0;border-radius:9px;background:#087a43;color:#fff;font-weight:700';
+        retry.onclick = () => location.reload();
+        status.appendChild(retry);
+      }
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
