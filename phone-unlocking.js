@@ -286,7 +286,7 @@
   async function loadProviderCatalogue() {
     if(!client||!business?.id||!$('wluLiveServices')) return;
     const {data,error}=await client.from('phone_unlocking_provider_services')
-      .select('id,provider_key,provider_service_id,provider_service_type,provider_group,service_name,provider_credit,provider_currency,delivery_time,description,quantity,requires_custom,is_active,last_synced_at')
+      .select('id,provider_key,provider_service_id,provider_service_type,provider_group,service_name,provider_credit,provider_currency,provider_is_instant,delivery_time,description,quantity,requires_custom,is_active,last_synced_at')
       .eq('business_id',business.id).eq('is_active',true)
       .order('provider_group').order('service_name').limit(500);
     if(error) throw error;
@@ -312,7 +312,7 @@
     const price=Number(entered);
     if(!Number.isFinite(price)||price<0) return say('Enter a valid non-negative customer selling price.',true);
     const {error}=await client.from('phone_unlocking_services').insert({
-      business_id:business.id,service_name:item.service_name,
+      business_id:business.id,service_name:item.service_name,provider_key:item.provider_key,provider_is_instant:item.provider_is_instant??null,
       description:[item.provider_group,item.description,item.delivery_time?'Delivery: '+item.delivery_time:null].filter(Boolean).join(' · ').slice(0,240)||null,
       default_price:price,provider_service_id:item.provider_service_id,provider_service_type:item.provider_service_type,
       provider_group:item.provider_group,provider_cost:item.provider_credit,provider_currency:item.provider_currency,
@@ -462,7 +462,7 @@
       customer_name:data.customer_name.trim(),customer_phone:data.customer_phone.trim()||null,
       device_brand:data.device_brand.trim(),device_model:data.device_model.trim(),imei,
       network_name:data.network_name.trim(),country:data.country.trim()||null,
-      service_name:service.service_name,provider_service_id:service.provider_service_id||null,provider_service_type:service.provider_service_type||null,provider_name:data.provider_name.trim()||null,
+      service_name:service.service_name,provider_key:service.provider_key||null,provider_is_instant:service.provider_is_instant??null,provider_service_id:service.provider_service_id||null,provider_service_type:service.provider_service_type||null,provider_name:data.provider_name.trim()||null,
       provider_reference:data.provider_reference.trim()||null,
       provider_cost:Number(data.provider_cost||0),service_price:Number(data.service_price),
       notes:data.notes.trim()||null,status:'received'
@@ -496,15 +496,43 @@
     if(Number(order.amount_paid)<Number(order.service_price)) return say('The customer must pay the full order amount before approval.',true);
     if(!['received','quoted','awaiting_payment'].includes(order.status)) return say('This order is not eligible for approval.',true);
     if((order.approval_status||'pending')!=='pending') return say('This order has already been reviewed.',true);
-    if(!window.confirm('Approve this customer order for manual processing? No provider API order will be sent.')) return;
+    const useDeviceDecoded=order.provider_key==='devicedecoded'&&order.provider_service_type==='IMEI'&&Boolean(order.provider_service_id);
+    const confirmText=useDeviceDecoded
+      ?'Approve and submit this fully paid order to DeviceDecoded now? A successful check may deduct provider credits. Premium fulfilment may remain processing. If the result is uncertain, the system will block automatic resubmission.'
+      :'Approve this customer order for manual processing? No provider API order will be sent.';
+    if(!window.confirm(confirmText)) return;
     button.disabled=true; button.textContent='Approving…';
     try {
       const {error:approvalError}=await client.rpc('approve_phone_unlocking_order',{p_business_id:business.id,p_order_id:order.id});
       if(approvalError) throw approvalError;
-      await load(); say('Order '+order.reference+' approved for manual processing. Automated provider submission is disabled until replacement provider order workflows are tested.');
+      if(useDeviceDecoded) {
+        button.textContent='Submitting…';
+        const result=await client.functions.invoke('device-services-provider',{body:{
+          action:'submit_devicedecoded_order',business_id:business.id,order_id:order.id
+        }});
+        if(result.error||!result.data?.ok) {
+          let detail=result.data?.error||result.error?.message||'DeviceDecoded submission did not complete.';
+          try {
+            const response=result.error?.context;
+            if(response&&typeof response.json==='function') {
+              const payload=await response.clone().json();
+              detail=payload?.error||payload?.message||detail;
+            }
+          } catch(_) {}
+          await load();
+          say('Order was approved, but provider submission needs attention: '+detail+'. Check the order register. Do not submit it again if its status is uncertain.',true);
+          return;
+        }
+        await load();
+        say(result.data.status==='completed'
+          ?'DeviceDecoded returned the result for '+order.reference+'. Provider credits used: '+(result.data.credits_used??'not reported')+'.'
+          :'DeviceDecoded accepted '+order.reference+' for premium fulfilment. Check the provider dashboard for completion; automatic status polling is not documented.');
+      } else {
+        await load(); say('Order '+order.reference+' approved for manual processing. No provider API request was sent.');
+      }
     } catch(error) {
       await load(); say('Approval/submission result: '+(error.message||String(error))+'. Check the order register before trying again; do not submit a duplicate.',true);
-    } finally { button.disabled=false; }
+    } finally { button.disabled=false; button.textContent='Approve'; }
   }
   async function recordPayment(event) {
     event.preventDefault();
@@ -562,7 +590,7 @@
   }
   async function loadServices() {
     const {data,error}=await client.from('phone_unlocking_services')
-      .select('id,service_name,description,default_price,is_active,provider_service_id,provider_service_type,provider_group,provider_cost,provider_currency')
+      .select('id,service_name,description,default_price,is_active,provider_key,provider_is_instant,provider_service_id,provider_service_type,provider_group,provider_cost,provider_currency')
       .eq('business_id',business.id).order('service_name');
     if(error) throw error;
     allServices=data||[];
@@ -571,7 +599,7 @@
     $('wluServices').innerHTML=allServices.map(item=>'<div class="wlu-service-row"><span><strong>'+esc(item.service_name)+'</strong><br><small class="wlu-muted">'+(item.is_active?'ACTIVE · visible to customers':'DRAFT · hidden from customers')+'</small><br><small class="wlu-muted">'+esc(item.description||'')+'</small>'+(item.provider_service_id?'<br><small class="wlu-muted">Provider service ID: '+esc(item.provider_service_id)+' · Provider cost: '+esc(providerCostLabel(item.provider_currency,item.provider_cost))+' · '+esc(estimatedSleLabel(item.provider_currency,item.provider_cost))+'</small>':'')+'</span><span><strong>'+esc(money(item.default_price))+'</strong> <button type="button" class="secondary" data-wlu-service-edit="'+esc(item.id)+'">Change price</button> <button type="button" data-wlu-service-toggle="'+esc(item.id)+'" data-next-active="'+(item.is_active?'false':'true')+'">'+(item.is_active?'Deactivate':'Activate')+'</button></span></div>').join('')||'<p class="wlu-muted">No services yet. Add or import services from the live provider catalogue.</p>';
   }
   async function loadOrders() {
-    const {data,error}=await client.from('phone_unlocking_orders').select('id,reference,customer_name,customer_phone,device_brand,device_model,imei,network_name,service_name,provider_name,provider_reference,provider_service_id,provider_service_type,provider_cost,service_price,amount_paid,amount_refunded,status,approval_status,approved_at,provider_submission_status,provider_submission_message,created_at').eq('business_id',business.id).order('created_at',{ascending:false}).limit(60);
+    const {data,error}=await client.from('phone_unlocking_orders').select('id,reference,customer_name,customer_phone,device_brand,device_model,imei,network_name,service_name,provider_name,provider_reference,provider_service_id,provider_service_type,provider_cost,service_price,amount_paid,amount_refunded,status,approval_status,approved_at,provider_submission_status,provider_submission_message,provider_key,provider_is_instant,provider_credits_used,provider_credit_balance,created_at').eq('business_id',business.id).order('created_at',{ascending:false}).limit(60);
     if(error) throw error;
     orders=data||[];
     const total=orders.length, open=orders.filter(o=>!['completed','failed','cancelled','refunded'].includes(o.status)).length;
@@ -597,8 +625,8 @@
       const options=(o.status==='refunded'?'<option value="refunded" selected disabled>Refunded</option>':'')+STATUSES.map(s=>'<option value="'+s+'" '+(s===o.status?'selected':'')+'>'+STATUS_LABELS[s]+'</option>').join('');
       const approvalText=APPROVAL_LABELS[o.approval_status||'pending']||'Awaiting owner approval';
       const canApprove=role==='owner'&&(o.approval_status||'pending')==='pending'&&Number(o.amount_paid)>=Number(o.service_price)&&!['cancelled','failed','refunded'].includes(o.status);
-      const providerText=o.provider_submission_status==='submitted'?'Submitted · '+(o.provider_reference||'reference pending'):o.provider_submission_status==='submitting'?'Submission in progress':o.provider_submission_status==='unknown'?'Submission uncertain — reconcile before retry':o.provider_submission_status==='failed'?'Provider rejected/failed':o.provider_service_id?'Provider service mapped':'Manual service';
-      return '<tr><td><strong>'+esc(o.reference)+'</strong><br>'+esc(o.customer_name)+'<br><small>'+esc(o.customer_phone||'')+'</small></td><td>'+esc(o.device_brand)+' '+esc(o.device_model)+'<br><small>IMEI: '+esc(o.imei)+'</small></td><td>'+esc(o.network_name)+'<br>'+esc(o.service_name)+'</td><td>'+esc(o.provider_name||'Manual fulfilment')+'<br><small>'+esc(o.provider_reference||'No provider ref')+'</small></td><td>'+esc(money(o.service_price))+'<br>Net paid: '+esc(money(netPaid))+'<br>Due: '+esc(money(balance))+'<br>Refunded: '+esc(money(o.amount_refunded))+'<br><small>Provider cost: '+esc(money(o.provider_cost))+'</small></td><td><strong>'+esc(approvalText)+'</strong><br><small>'+esc(providerText)+'</small>'+(o.provider_submission_message?'<br><small>'+esc(o.provider_submission_message)+'</small>':'')+'</td><td>'+esc(STATUS_LABELS[o.status]||o.status)+'</td><td>'+((o.approval_status||'pending')==='pending'&&role==='owner'?'<button type="button" data-wlu-reject data-id="'+esc(o.id)+'" class="secondary">Reject</button>':'')+(canApprove?'<button type="button" data-wlu-approve data-id="'+esc(o.id)+'">Approve</button>':(o.approval_status==='pending'&&Number(o.amount_paid)<Number(o.service_price)?'<small>Full payment required before approval</small>':''))+'<select aria-label="Status for '+esc(o.reference)+'" data-status-select="'+esc(o.id)+'">'+options+'</select><button type="button" class="secondary" data-wlu-status="'+esc(o.status)+'" data-id="'+esc(o.id)+'" '+(o.status==='refunded'?'disabled':'')+'>Update</button></td></tr>';
+      const providerText=o.provider_submission_status==='submitted'?(o.provider_key==='devicedecoded'?'DeviceDecoded · credits '+(o.provider_credits_used??'not reported'):'Submitted · '+(o.provider_reference||'reference pending')):o.provider_submission_status==='submitting'?'Submission in progress':o.provider_submission_status==='unknown'?'Submission uncertain — reconcile before retry':o.provider_submission_status==='failed'?'Provider rejected/failed':o.provider_service_id?'Provider service mapped':'Manual service';
+      return '<tr><td><strong>'+esc(o.reference)+'</strong><br>'+esc(o.customer_name)+'<br><small>'+esc(o.customer_phone||'')+'</small></td><td>'+esc(o.device_brand)+' '+esc(o.device_model)+'<br><small>IMEI: '+esc(o.imei)+'</small></td><td>'+esc(o.network_name)+'<br>'+esc(o.service_name)+'</td><td>'+esc(o.provider_name||'Manual fulfilment')+'<br><small>'+esc(o.provider_reference||'No provider ref')+'</small></td><td>'+esc(money(o.service_price))+'<br>Net paid: '+esc(money(netPaid))+'<br>Due: '+esc(money(balance))+'<br>Refunded: '+esc(money(o.amount_refunded))+'<br><small>Provider cost: '+esc(money(o.provider_cost))+'</small></td><td><strong>'+esc(approvalText)+'</strong><br><small>'+esc(providerText)+'</small>'+(o.provider_submission_message?'<br><small>'+esc(o.provider_submission_message)+'</small>':'')+'</td><td>'+esc(STATUS_LABELS[o.status]||o.status)+'</td><td>'+((o.approval_status||'pending')==='pending'&&role==='owner'?'<button type="button" data-wlu-reject data-id="'+esc(o.id)+'" class="secondary">Reject</button>':'')+(canApprove?'<button type="button" data-wlu-approve data-id="'+esc(o.id)+'">'+(o.provider_key==='devicedecoded'?'Approve &amp; submit':'Approve')+'</button>':(o.approval_status==='pending'&&Number(o.amount_paid)<Number(o.service_price)?'<small>Full payment required before approval</small>':''))+'<select aria-label="Status for '+esc(o.reference)+'" data-status-select="'+esc(o.id)+'">'+options+'</select><button type="button" class="secondary" data-wlu-status="'+esc(o.status)+'" data-id="'+esc(o.id)+'" '+(o.status==='refunded'?'disabled':'')+'>Update</button></td></tr>';
     }).join('')+'</tbody></table>':(orders.length?'<p class="wlu-muted">No orders match your search or status filter.</p>':'<p class="wlu-muted">No unlocking orders yet. Customer orders will appear here when submitted.</p>');
     $('wluOrders').querySelectorAll('[data-status-select]').forEach(select=>select.addEventListener('change',()=>{
       const btn=$('wluOrders').querySelector('[data-wlu-status][data-id="'+select.dataset.statusSelect+'"]');
