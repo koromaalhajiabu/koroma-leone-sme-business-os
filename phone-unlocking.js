@@ -245,8 +245,22 @@
         say('Secret check failed: the deployed function cannot see SERVICECODED_API_KEY.',true);
       }
     } catch(error) {
-      status.textContent='Secret check not completed: '+(error.message||String(error));
-      say('Could not verify the ServiceCoded secret: '+(error.message||String(error)),true);
+      let detail=error?.message||String(error);
+      // Supabase FunctionsHttpError keeps the actual HTTP response in error.context.
+      try {
+        const response=error?.context;
+        if(response && typeof response.json==='function') {
+          const payload=await response.clone().json();
+          if(payload?.error) detail=String(payload.error);
+          else if(payload?.message) detail=String(payload.message);
+          else detail=JSON.stringify(payload);
+          detail='HTTP '+response.status+': '+detail;
+        } else if(response?.status) {
+          detail='HTTP '+response.status+': '+detail;
+        }
+      } catch(_) {}
+      status.textContent='Secret check not completed: '+detail;
+      say('Could not verify the ServiceCoded secret: '+detail,true);
     } finally { button.disabled=false; button.textContent='Test ServiceCoded secret'; }
   }
   async function syncProviderCatalogue() {
