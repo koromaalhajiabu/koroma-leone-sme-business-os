@@ -186,7 +186,7 @@ begin
   updated_at=now()
  where id=p_order_id and business_id=v_business;
  insert into public.audit_logs(business_id,actor_user_id,action,entity_table,entity_id,details)
- values(v_business,'00000000-0000-0000-0000-000000000000'::uuid,'devicedecoded_order_'||p_outcome,
+ values(v_business,auth.uid(),'devicedecoded_order_'||p_outcome,
   'phone_unlocking_orders',p_order_id::text,jsonb_build_object('reference',v_order.reference,'provider_reference',p_provider_reference,'message',left(coalesce(p_message,''),500)));
 end;
 $fn$;
