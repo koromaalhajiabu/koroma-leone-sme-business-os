@@ -1,5 +1,5 @@
 /* White Lion SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='white-lion-sme-v179';
+const CACHE_NAME='white-lion-sme-v180';
 const APP_SHELL=[
   './',
   './index.html',
@@ -65,40 +65,29 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  const path = url.pathname.toLowerCase();
-  const isAppCode = request.mode === 'navigate' ||
-    /\.(html|js|css|webmanifest)$/.test(path);
-
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
-    if (isAppCode) {
-      // Always try the deployed version first. Use the cached copy only offline.
-      try {
-        const fresh = await fetch(request, {cache:'no-store'});
-        if (fresh && fresh.ok) {
-          await cache.put(request, fresh.clone());
-          return fresh;
-        }
-        if (fresh) return fresh;
-      } catch (_) {}
-      // Keep the public leagues app on its own entry page, including offline launches.
-      if (request.mode === 'navigate' && /\/public-leagues\.html$/i.test(url.pathname)) {
-        const publicPage = await cache.match('./public-leagues.html', {ignoreSearch:true});
-        return publicPage || Response.error();
-      }
-      const cached = await cache.match(request) ||
-        (request.mode === 'navigate' ? await cache.match('./index.html') : null);
-      return cached || Response.error();
+    const cached = await cache.match(request);
+    if (cached) {
+      // Serve the last verified app asset immediately on repeat visits.
+      // Refresh it in the background so a slow mobile connection does not
+      // hold the screen open while GitHub Pages responds.
+      event.waitUntil(fetch(request, {cache:'no-store'}).then(response => {
+        if (response && response.ok) return cache.put(request, response.clone());
+      }).catch(() => {}));
+      return cached;
     }
 
-    // Static media can be served from cache immediately.
-    const cached = await cache.match(request);
-    if (cached) return cached;
+    // First visit or newly-versioned asset: use the network, then save it.
     try {
-      const fresh = await fetch(request);
+      const fresh = await fetch(request, {cache:'no-store'});
       if (fresh && fresh.ok) await cache.put(request, fresh.clone());
       return fresh;
     } catch (_) {
+      if (request.mode === 'navigate') {
+        const page = await cache.match('./index.html');
+        if (page) return page;
+      }
       return Response.error();
     }
   })());
