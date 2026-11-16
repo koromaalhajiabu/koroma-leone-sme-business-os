@@ -717,9 +717,41 @@
     if(!canManage()){$('wluApp').hidden=true;say('Developer permission is required to manage Device Services.',true);return;}
     await load();
   }
-  window.addEventListener('whiteLionCloudReady',()=>refreshWorkspace().catch(e=>say(e.message,true)));
-  // Re-check developer context after sign-in. The selected SME workspace is ignored.
-  window.addEventListener('whiteLionWorkspaceChanged',()=>refreshWorkspace().catch(err=>say(err.message,true)));
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{panel();refreshWorkspace().catch(()=>{});});
-  else {panel();refreshWorkspace().catch(()=>{});}
+  // The main dashboard creates this module slot dynamically. If Cloud initialises
+  // before the slot exists, the original one-shot event can be missed; observe for
+  // the slot and initialise the independent Device Services tenant when it appears.
+  let panelObserver=null, authSubscription=null, refreshQueued=false;
+  function queueWorkspaceRefresh() {
+    if(refreshQueued) return;
+    refreshQueued=true;
+    Promise.resolve().then(async()=>{
+      refreshQueued=false;
+      try { await refreshWorkspace(); }
+      catch(error) { say('Device Services workspace could not initialise: '+(error.message||String(error)),true); }
+    });
+  }
+  function watchPanelSlot() {
+    if(panelObserver) return;
+    panelObserver=new MutationObserver(()=>{
+      if($('wlDeviceServicesSlot')) queueWorkspaceRefresh();
+    });
+    panelObserver.observe(document.documentElement,{childList:true,subtree:true});
+    if($('wlDeviceServicesSlot')) queueWorkspaceRefresh();
+  }
+  function watchAuth() {
+    const current=window.whiteLionCloud?.getClient?.();
+    if(!current || current===client && authSubscription) return;
+    client=current;
+    const registration=current.auth.onAuthStateChange((event)=>{
+      if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='TOKEN_REFRESHED'||event==='USER_UPDATED') {
+        queueWorkspaceRefresh();
+      }
+    });
+    authSubscription=registration?.data?.subscription||null;
+  }
+  window.addEventListener('whiteLionCloudReady',()=>{watchAuth();queueWorkspaceRefresh();});
+  window.addEventListener('whiteLionWorkspaceChanged',()=>{watchAuth();queueWorkspaceRefresh();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)queueWorkspaceRefresh();});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>{panel();watchPanelSlot();watchAuth();queueWorkspaceRefresh();});
+  else {panel();watchPanelSlot();watchAuth();queueWorkspaceRefresh();}
 })();
