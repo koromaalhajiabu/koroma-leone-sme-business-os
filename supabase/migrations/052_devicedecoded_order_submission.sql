@@ -46,7 +46,7 @@ begin
  if not found then raise exception 'Unlocking order not found'; end if;
  if v_order.approval_status<>'approved' or v_order.approved_by<>auth.uid() then raise exception 'This order has not been approved by the signed-in business owner'; end if;
  if v_order.amount_paid<v_order.service_price then raise exception 'Full customer payment is required'; end if;
- if v_order.provider_key<>'devicedecoded' or v_order.provider_service_id is null or v_order.provider_service_type<>'IMEI' then raise exception 'This order is not mapped to a supported DeviceDecoded IMEI service'; end if;
+ if v_order.provider_key is distinct from 'devicedecoded' or v_order.provider_service_id is null or v_order.provider_service_type<>'IMEI' then raise exception 'This order is not mapped to a supported DeviceDecoded IMEI service'; end if;
  if v_order.provider_submission_status<>'not_submitted' then raise exception 'A provider submission has already been attempted. Reconcile its status before any retry'; end if;
  if v_order.status in ('cancelled','failed','refunded','completed') then raise exception 'This order is not in a submit-ready state'; end if;
  update public.phone_unlocking_orders set provider_submission_status='submitting',provider_submission_attempted_at=now(),provider_submission_message='Owner-approved DeviceDecoded submission started',updated_at=now()
