@@ -177,6 +177,16 @@
       <div id="wlDevIdentity" class="dev-meta">Verifying developer permissions…</div>
       <div id="wlDevStatus" class="cloud-status">Loading secure platform controls…</div>
       <div id="wlDevStats" class="dev-meta"></div>
+      <section class="dev-role-manager" id="wlDevApiServicesPanel" style="margin-top:12px">
+        <h3 style="margin:0 0 6px;color:#f0d28b">Installed API Services</h3>
+        <label for="wlDevApiServiceSelect">Select an API service</label>
+        <select id="wlDevApiServiceSelect" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #64748b;border-radius:8px;background:#fff;color:#17243a">
+          <option value="devicedecoded">DeviceDecoded</option>
+          <option value="imei_org">IMEI.org</option>
+          <option value="servicecoded">ServiceCoded</option>
+        </select>
+        <div id="wlDevApiServiceInfo" class="dev-role-help" aria-live="polite" style="margin-top:8px">DeviceDecoded integration is present. Catalogue and IMEI identification are supported; automated provider orders are not enabled.</div>
+      </section>
       <div id="wlDevAlertSettingsPanel" style="display:block;visibility:visible;margin:14px 0;padding:14px;border:2px solid #4f8a5b;border-radius:12px;background:#152a1e;color:#fff;position:relative;z-index:2">
         <h3 style="margin:0 0 8px;color:#9fe3ae;font-size:16px">EMAIL ALERTS</h3>
         <div style="color:#bac6d8;font-size:11px;margin-bottom:8px">Get an email the moment someone registers a new account or submits a payment. Requires a one-time Resend API key setup (see below).</div>
@@ -252,6 +262,21 @@
       <div class="dev-meta" style="margin-top:10px">Developer access is verified by Supabase database permissions. This console does not expose passwords or secret API keys.</div>
       <section style="margin-top:18px;padding:14px;border:1px solid #2d9b62;border-radius:13px;background:#10251d"><h3 style="margin:0 0 5px;color:#9fe3ae">WHITE LION DEVICE SERVICES</h3><div class="dev-meta" style="margin-bottom:10px">Independent platform business · developer-only operations · separate from all SME workspaces</div><div id="wlDeviceServicesSlot"></div></section>`;
     box.insertAdjacentElement('afterend', dev);
+    const apiServiceInfo = {
+      devicedecoded: 'DeviceDecoded — catalogue and IMEI identification integration is present. Automated provider order submission is not enabled.',
+      imei_org: 'IMEI.org — catalogue integration is present. A valid IMEI_ORG_API_KEY is required before live catalogue sync can work.',
+      servicecoded: 'ServiceCoded — the Supabase secret check is available. API endpoint, key validity, catalogue retrieval and live orders have not been verified.'
+    };
+    const apiServiceSelect = $('wlDevApiServiceSelect');
+    const renderApiServiceInfo = () => {
+      const selected = apiServiceSelect?.value || 'devicedecoded';
+      const info = $('wlDevApiServiceInfo');
+      if (info) info.textContent = apiServiceInfo[selected] || 'No details are available for this API service.';
+    };
+    if (apiServiceSelect) {
+      apiServiceSelect.onchange = renderApiServiceInfo;
+      renderApiServiceInfo();
+    }
     $('wlDevRefresh').onclick = loadDeveloperDashboard;
     $('wlDevFreeze').onclick = toggleMaintenance;
     $('wlDevAssign').onclick = () => $('wlDevRoleManager')?.scrollIntoView({behavior:'smooth',block:'center'});
