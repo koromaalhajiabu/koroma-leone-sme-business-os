@@ -157,6 +157,20 @@ Deno.serve(async(req)=>{
   const rows=services.map(x=>({business_id:businessId,provider_key:provider,provider_service_id:x.id,provider_service_type:x.type||"IMEI",provider_group:x.group,service_name:x.name,provider_credit:Number.isFinite(x.price)?x.price:null,provider_currency:x.currency||currency,delivery_time:x.delivery,description:x.description,provider_is_instant:x.provider_is_instant??null,is_active:true,last_synced_at:stamp}));
   const {error:upsertErr}=await admin.from("phone_unlocking_provider_services").upsert(rows,{onConflict:"business_id,provider_key,provider_service_type,provider_service_id"});
   if(upsertErr) throw upsertErr;
+  if(provider==="devicedecoded") {
+   for(const item of services) {
+    const mapping={provider_key:"devicedecoded",provider_is_instant:item.provider_is_instant??null};
+    const {error:serviceMapError}=await admin.from("phone_unlocking_services").update(mapping)
+     .eq("business_id",businessId).eq("provider_service_id",item.id)
+     .eq("provider_service_type",item.type||"IMEI").eq("service_name",item.name);
+    if(serviceMapError) throw serviceMapError;
+    const {error:orderMapError}=await admin.from("phone_unlocking_orders").update(mapping)
+     .eq("business_id",businessId).eq("provider_service_id",item.id)
+     .eq("provider_service_type",item.type||"IMEI").eq("service_name",item.name)
+     .eq("provider_submission_status","not_submitted");
+    if(orderMapError) throw orderMapError;
+   }
+  }
   const {error:connectionErr}=await admin.from("phone_unlocking_provider_connections").upsert({business_id:businessId,provider_key:provider,connection_status:"connected",last_synced_at:stamp,last_error:null,updated_at:stamp},{onConflict:"business_id,provider_key"});
   if(connectionErr) throw connectionErr;
   return reply({ok:true,provider_name:providerName,provider_currency:currency,synced_count:rows.length});
