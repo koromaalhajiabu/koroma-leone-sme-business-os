@@ -52,10 +52,6 @@ Deno.serve(async(req)=>{
   if(userErr||!user) return reply({ok:false,error:"Sign in required."},401);
   const {data:isDeveloper,error:developerError}=await userClient.rpc("is_platform_developer");
   if(developerError||isDeveloper!==true) return reply({ok:false,error:"Only the registered White Lion platform developer can manage device-service providers."},403);
-  if(body.action==="verify_servicecoded_secret") {
-   const configured=Boolean(Deno.env.get("SERVICECODED_API_KEY")?.trim());
-   return reply({ok:true,provider:"ServiceCoded",secret_configured:configured,secret_value_exposed:false});
-  }
   const provider=String(body.provider||"");
   if(body.action!=="sync_catalogue") return reply({ok:false,error:"Invalid request."},400);
   const {data:platformContext,error:contextError}=await userClient.rpc("get_platform_device_services_context");
