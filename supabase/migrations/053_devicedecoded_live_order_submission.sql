@@ -45,7 +45,7 @@ declare
 begin
  if length(trim(coalesce(p_customer_name,'')))<2 then raise exception 'Enter your full name'; end if;
  if length(trim(coalesce(p_customer_phone,'')))<5 then raise exception 'Enter a valid phone number'; end if;
- if coalesce(p_customer_email,'')<>'' and p_customer_email !~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$' then raise exception 'Enter a valid email address'; end if;
+ if coalesce(p_customer_email,'')<>'' and p_customer_email !~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$' then raise exception 'Enter a valid email address'; end if;
  if length(trim(coalesce(p_device_brand,'')))<2 or length(trim(coalesce(p_device_model,'')))<1 then raise exception 'Enter the phone brand and model'; end if;
  if coalesce(p_imei,'') !~ '^[0-9]{14,16}$' then raise exception 'Enter a valid 14–16 digit IMEI'; end if;
  if length(trim(coalesce(p_network_name,'')))<2 then raise exception 'Enter the original network or carrier'; end if;
