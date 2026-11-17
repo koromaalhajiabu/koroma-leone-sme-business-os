@@ -29,6 +29,116 @@
     return 0;
   };
   const canManage = () => isDeveloper;
+  const QUICK_FAULTS = {
+    apple: [
+      {key:'icloud', label:'iCloud Lock status', service_name:'iCloud On/off', provider_service_id:'3', fallback_credit:299},
+      {key:'network', label:'Network / Carrier lock', service_name:'iPhone Carrier', provider_service_id:'103', fallback_credit:299},
+      {key:'simlock', label:'SIM lock', service_name:'iPhone Sim-lock', provider_service_id:'8', fallback_credit:299},
+      {key:'blacklist', label:'IMEI blacklist / stolen check', service_name:'WW Blacklist Status', provider_service_id:'54', fallback_credit:299},
+      {key:'info', label:'Device info / model verification', service_name:'Apple Basic Info', provider_service_id:'30', fallback_credit:299}
+    ],
+    samsung: [
+      {key:'blacklist', label:'IMEI blacklist / stolen check', service_name:'WW Blacklist Status', provider_service_id:'54', fallback_credit:299},
+      {key:'info', label:'Device info / model verification', service_name:'Samsung Info', provider_service_id:'80', fallback_credit:299}
+    ],
+    android: [
+      {key:'milock', label:'Mi Account / device lock check (Xiaomi, Redmi, Poco only)', service_name:'Xiaomi / Redmi / Poco Mi Lock On/off Info', provider_service_id:'206', fallback_credit:299},
+      {key:'blacklist', label:'IMEI blacklist / stolen check', service_name:'WW Blacklist Status', provider_service_id:'54', fallback_credit:299},
+      {key:'info', label:'Device info / model verification', service_name:'Brand & Model Info', provider_service_id:'203', fallback_credit:299}
+    ]
+  };
+  const BRAND_LABELS = {apple:'Apple', samsung:'Samsung', android:'Android'};
+  const DEFAULT_MARKUP_PERCENT = 80;
+  const markupStorageKey = () => 'wl_device_fault_markup_'+String(business?.id||'default');
+  const getMarkupPercent = () => {
+    const live=Number($('wluFaultMarkup')?.value);
+    if(Number.isFinite(live)&&live>=0&&live<=1000) return live;
+    try { const value=Number(localStorage.getItem(markupStorageKey())); return Number.isFinite(value)&&value>=0?value:DEFAULT_MARKUP_PERCENT; } catch(_) { return DEFAULT_MARKUP_PERCENT; }
+  };
+  function saveFaultMarkup() {
+    const input=$('wluFaultMarkup'), value=Number(input?.value);
+    if(!Number.isFinite(value)||value<0) { say('Enter a valid markup percentage (0 or more).',true); return; }
+    try { localStorage.setItem(markupStorageKey(),String(value)); } catch(_) {}
+    updateQuickFaultPrice();
+  }
+  function renderQuickFaultBrand() {
+    const brand=$('wluFaultBrand')?.value||'apple';
+    const list=QUICK_FAULTS[brand]||[];
+    $('wluFaultSelect').innerHTML='<option value="">Choose the reported problem…</option>'+list.map(f=>'<option value="'+esc(f.key)+'">'+esc(f.label)+'</option>').join('');
+    updateQuickFaultPrice();
+  }
+  function currentQuickFault() {
+    const brand=$('wluFaultBrand')?.value||'apple';
+    const key=$('wluFaultSelect')?.value;
+    return (QUICK_FAULTS[brand]||[]).find(f=>f.key===key)||null;
+  }
+  function updateQuickFaultPrice() {
+    const box=$('wluFaultPrice'); if(!box) return;
+    const fault=currentQuickFault();
+    if(!fault) { box.textContent='Choose a brand and problem to see the price.'; delete box.dataset.price; return; }
+    const catalogue=Array.isArray(window.__wluProviderCatalogue)?window.__wluProviderCatalogue:[];
+    const live=catalogue.find(row=>String(row.provider_service_id)===String(fault.provider_service_id));
+    const credit=live?Number(live.provider_credit):fault.fallback_credit;
+    const currency=live?live.provider_currency:'CREDITS';
+    const costInBusinessCurrency=String(currency).toUpperCase()==='CREDITS'?creditsToSle(credit):Number(credit);
+    const markup=getMarkupPercent();
+    const customerPrice=costInBusinessCurrency*(1+markup/100);
+    box.innerHTML='<strong>'+esc(fault.service_name)+'</strong><br>Provider cost: '+esc(providerCostLabel(currency,credit))+' (~'+esc(money(costInBusinessCurrency))+')<br><strong>Customer price ('+esc(String(markup))+'% markup): '+esc(money(customerPrice))+'</strong>'+(live?'':'<br><small class="wlu-muted">Using last-known price — sync the DeviceDecoded catalogue (Advanced section below) to refresh it.</small>');
+    box.dataset.price=customerPrice.toFixed(2);
+    box.dataset.providerCost=costInBusinessCurrency.toFixed(2);
+  }
+  async function createQuickOrder(event) {
+    event.preventDefault();
+    if(!canManage()) return say('Your role cannot create orders.',true);
+    if(!branch?.id) return say('Select an active branch before creating an order.',true);
+    const fault=currentQuickFault();
+    if(!fault) return say('Choose the reported problem first.',true);
+    const box=$('wluFaultPrice');
+    const customerPrice=Number(box?.dataset.price);
+    const providerCost=Number(box?.dataset.providerCost);
+    if(!Number.isFinite(customerPrice)||customerPrice<=0) return say('Could not compute a price for this fault yet.',true);
+    const form=event.currentTarget, data=Object.fromEntries(new FormData(form).entries());
+    const imei=String(data.imei||'').trim();
+    if(!/^[0-9]{15}$/.test(imei)) return say('Enter a valid 15-digit IMEI.',true);
+    const status=$('wluFaultOrderStatus');
+    status.textContent='Creating order…';
+    let service=allServices.find(s=>String(s.provider_service_id)===String(fault.provider_service_id)&&s.provider_key==='devicedecoded');
+    if(service) {
+      const {error:updError}=await client.from('phone_unlocking_services').update({default_price:customerPrice.toFixed(2),provider_cost:providerCost,provider_currency:business?.currency_code||'SLE',is_active:true,updated_at:new Date().toISOString()}).eq('id',service.id).eq('business_id',business.id);
+      if(updError) { status.textContent='Could not update service price: '+updError.message; return; }
+    } else {
+      const {data:inserted,error:insError}=await client.from('phone_unlocking_services').insert({
+        business_id:business.id, service_name:fault.service_name, description:'Quick fault check: '+fault.label,
+        default_price:customerPrice.toFixed(2), is_active:true,
+        provider_key:'devicedecoded', provider_service_id:fault.provider_service_id, provider_service_type:'IMEI',
+        provider_cost:providerCost, provider_currency:business?.currency_code||'SLE'
+      }).select().single();
+      if(insError) { status.textContent='Could not create the priced service: '+insError.message; return; }
+      service={id:inserted.id};
+    }
+    await loadServices();
+    const linked=allServices.find(s=>s.id===service.id);
+    if(!linked) { status.textContent='Service saved, but could not be reloaded. Try again.'; return; }
+    const orderForm=$('wluOrderForm');
+    orderForm.elements.customer_name.value=data.customer_name;
+    orderForm.elements.customer_phone.value=data.customer_phone||'';
+    orderForm.elements.device_brand.value=BRAND_LABELS[$('wluFaultBrand').value]||'Other';
+    orderForm.elements.device_model.value=data.device_model;
+    orderForm.elements.imei.value=imei;
+    orderForm.elements.network_name.value='Not specified';
+    orderForm.elements.country.value='';
+    orderForm.elements.provider_name.value='';
+    orderForm.elements.provider_reference.value='';
+    orderForm.elements.notes.value='';
+    $('wluServiceSelect').value=linked.id;
+    orderForm.elements.service_price.value=Number(linked.default_price).toFixed(2);
+    orderForm.elements.provider_cost.value=providerCostInBusinessCurrency(linked).toFixed(2);
+    await createOrder({preventDefault(){}, currentTarget:orderForm});
+    form.reset();
+    $('wluFaultSelect').value='';
+    updateQuickFaultPrice();
+    status.textContent='Order created for '+data.customer_name+' — find it in the order register below to record payment.';
+  }
   function panel() {
     const host = $('wlDeviceServicesSlot');
     if (!host) return null;
@@ -68,8 +178,8 @@
         <div id="wluStatus" class="wlu-status" role="status" aria-live="polite">Waiting for a business workspace…</div>
         <div class="wlu-provider-tools"><strong>Multi-provider connection hub</strong><span id="wluProviderResult" class="wlu-muted" role="status">Legacy Mobile-Unlock API retired. Use the provider selector below.</span><button id="wluVerifyServiceCoded" type="button" class="secondary">Test ServiceCoded secret</button></div>
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
-          <details open class="wlu-catalogue">
-            <summary><strong>Live provider catalogue synchronisation</strong></summary>
+          <details class="wlu-catalogue">
+            <summary><strong>Advanced: live provider catalogue synchronisation (95+ services)</strong></summary>
             <p class="wlu-muted">Select a provider and sync its current service catalogue. This control is shown in the Developer Panel even while the independent Device Services workspace is loading. A valid platform workspace is still required to save the catalogue.</p>
             <label>Selected provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label>
             <button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
@@ -78,11 +188,30 @@
           </details>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
-          <details open id="wluOpsInbox"><summary><strong>Live operations inbox &amp; payment verification</strong></summary><p class="wlu-muted">Review customer-submitted claims against your actual account. A submitted reference alone is not proof of payment.</p><h4>Pending payment claims</h4><div id="wluPaymentClaims" class="wlu-scroll">Loading…</div><h4>Recent operational activity</h4><div id="wluOperationalEvents" class="wlu-scroll">Loading…</div><button type="button" id="wluRefreshOperations" class="secondary">Refresh operations inbox</button></details>
+          <details open class="wlu-quickorder">
+            <summary><strong>Quick fault check &amp; order</strong></summary>
+            <p class="wlu-muted">Pick the brand and the customer's problem. The price shown is the live DeviceDecoded provider cost converted to your currency, plus your markup — no need to browse the full provider catalogue.</p>
+            <p class="wlu-muted"><strong>Not offered here:</strong> FRP / Google account lock and Apple Activation Lock bypass. These anti-theft locks deter stolen-phone resale — only proceed with valid proof of ownership, handled manually (see the Compatibility Checker below).</p>
+            <div class="wlu-grid">
+              <label>Your markup<input id="wluFaultMarkup" type="number" min="0" step="1" placeholder="80"> %</label>
+              <select id="wluFaultBrand"><option value="apple">Apple (iPhone/iPad/Mac)</option><option value="samsung">Samsung</option><option value="android">Other Android (Xiaomi, Oppo, Huawei, etc.)</option></select>
+              <select id="wluFaultSelect"><option value="">Choose the reported problem…</option></select>
+            </div>
+            <div id="wluFaultPrice" class="wlu-status">Choose a brand and problem to see the price.</div>
+            <form id="wluQuickOrderForm" class="wlu-grid">
+              <input name="customer_name" required minlength="2" maxlength="120" placeholder="Customer full name">
+              <input name="customer_phone" maxlength="40" placeholder="Customer phone number">
+              <input name="device_model" required maxlength="100" placeholder="Exact phone model">
+              <input name="imei" required inputmode="numeric" pattern="[0-9]{15}" maxlength="15" placeholder="IMEI (15 digits)">
+              <button type="submit">Create order for this fault</button>
+            </form>
+            <div id="wluFaultOrderStatus" class="wlu-muted"></div>
+          </details>
+          <details id="wluOpsInbox"><summary><strong>Live operations inbox &amp; payment verification</strong></summary><p class="wlu-muted">Review customer-submitted claims against your actual account. A submitted reference alone is not proof of payment.</p><h4>Pending payment claims</h4><div id="wluPaymentClaims" class="wlu-scroll">Loading…</div><h4>Recent operational activity</h4><div id="wluOperationalEvents" class="wlu-scroll">Loading…</div><button type="button" id="wluRefreshOperations" class="secondary">Refresh operations inbox</button></details>
           <details id="wluPaymentSettings"><summary><strong>Customer payment instructions</strong></summary><p class="wlu-muted">Enter only verified business account details. Leave a method blank until its account is active.</p><form id="wluPaymentSettingsForm" class="wlu-grid"><input name="bank_name" maxlength="100" placeholder="Bank name"><input name="bank_account_name" maxlength="120" placeholder="Bank account holder name"><input name="bank_account_number" maxlength="80" placeholder="Bank account number"><input name="mobile_money_network" maxlength="80" placeholder="Mobile money network"><input name="mobile_money_account_name" maxlength="120" placeholder="Mobile money account holder name"><input name="mobile_money_number" maxlength="80" placeholder="Mobile money number"><textarea class="wlu-full" name="payment_instructions" maxlength="1000" rows="3" placeholder="Extra payment instructions (optional)"></textarea><button type="submit">Save customer payment instructions</button></form><div id="wluPaymentSettingsStatus" class="wlu-status">No payment instructions loaded.</div></details>
           <details open id="wluPublicStoreSettings"><summary><strong>Public customer ordering page</strong></summary><p class="wlu-muted">Publish a guest checkout page. Customers can browse your active services, submit orders without accounts and track their own order using the order reference and phone number. Only the registered White Lion platform developer can change these settings.</p><form id="wluStorefrontForm" class="wlu-grid"><input name="display_name" required maxlength="100" placeholder="Public store name"><input name="slug" required minlength="3" maxlength="60" pattern="[a-z0-9][a-z0-9-]{2,59}" placeholder="Public link slug (lowercase letters, numbers, hyphens)"><input name="contact_phone" maxlength="40" placeholder="Customer contact phone"><input name="contact_email" type="email" maxlength="160" placeholder="Customer contact email"><textarea class="wlu-full" name="description" maxlength="500" rows="2" placeholder="Short public description (optional)"></textarea><label class="wlu-full"><input type="checkbox" name="is_published" style="width:auto;min-height:0"> Publish customer ordering page</label><label class="wlu-full"><input type="checkbox" name="accepts_orders" style="width:auto;min-height:0"> Accept new customer orders</label><button type="submit">Save public store settings</button></form><div id="wluStorefrontLink" class="wlu-status">Save settings to create your customer ordering link.</div></details>
-          <details open class="wlu-catalogue">
-            <summary><strong>Service catalogue &amp; pricing</strong></summary>
+          <details class="wlu-catalogue">
+            <summary><strong>Advanced: full service catalogue &amp; pricing</strong></summary>
             <p class="wlu-muted">Add and manage the services your business offers and their standard customer prices. Saved services appear in the order form.</p>
             <form id="wluServiceForm" class="wlu-grid">
               <input name="service_name" required minlength="2" maxlength="120" placeholder="Service name">
@@ -92,8 +221,8 @@
             </form>
             <div id="wluServices"></div>
           </details>
-          <details open class="wlu-checker">
-            <summary><strong>Phone Compatibility &amp; Repair Checker</strong></summary>
+          <details class="wlu-checker">
+            <summary><strong>Advanced: Phone Compatibility &amp; Repair Checker</strong></summary>
             <p class="wlu-muted">Check whether your latest synced provider catalogue contains a service for the reported problem. This is a service-availability pre-check, not a device-specific IMEI eligibility result or a physical hardware diagnosis.</p>
             <form id="wluCheckerForm" class="wlu-grid">
               <input name="check_brand" required maxlength="80" placeholder="Phone brand (e.g. Apple, Samsung)">
@@ -121,8 +250,8 @@
             </form>
             <div id="wluCheckerResult" class="wlu-status" role="status" aria-live="polite">Enter the phone details and reported problem to begin.</div>
           </details>
-          <details open>
-            <summary><strong>Create unlocking order</strong></summary>
+          <details>
+            <summary><strong>Advanced: manual order entry</strong></summary>
             <p class="wlu-muted">Record only devices you are authorised to service. IMEI is restricted to business owners, administrators and managers.</p>
             <form id="wluOrderForm">
               <div class="wlu-grid">
@@ -216,6 +345,13 @@
       $('wluExportOrders').addEventListener('click', exportOrderRegisterCsv);
       $('wluServices').addEventListener('click', editService);
       $('wluServices').addEventListener('click', toggleServiceStatus);
+      $('wluFaultBrand').addEventListener('change', renderQuickFaultBrand);
+      $('wluFaultSelect').addEventListener('change', updateQuickFaultPrice);
+      $('wluFaultMarkup').addEventListener('change', saveFaultMarkup);
+      $('wluFaultMarkup').addEventListener('input', updateQuickFaultPrice);
+      $('wluQuickOrderForm').addEventListener('submit', createQuickOrder);
+      $('wluFaultMarkup').value=getMarkupPercent();
+      renderQuickFaultBrand();
     }
     return root;
   }
@@ -311,6 +447,7 @@
     }).join('')+'</tbody></table></div>':'<p class="wlu-muted">No provider services saved yet. Choose a provider and sync its catalogue.</p>';
     window.__wluProviderCatalogue=rows;
     if($('wluCheckerResult') && rows.length) $('wluCheckerResult').textContent='Provider catalogue loaded ('+rows.length+' active services). Enter a device and problem to check for a catalogue match.';
+    if($('wluFaultPrice')) updateQuickFaultPrice();
   }
   async function importProviderService(event) {
     const button=event.target.closest('[data-wlu-import-provider-service]'); if(!button) return;
