@@ -370,14 +370,14 @@
     }
     const synced=Array.isArray(window.__wluProviderCatalogue)?window.__wluProviderCatalogue:[];
     if(!synced.length) {
-      result.innerHTML='<strong>Provider catalogue not available yet</strong><br>First select <em>Test legacy API connection</em>, then <em>Sync live provider catalogue</em>. This check uses the latest catalogue synced for the selected business.';
+      result.innerHTML='<strong>Provider catalogue not available yet</strong><br>Choose a provider above and select <em>Sync selected provider catalogue</em>, then try again. This check uses the latest catalogue synced for that provider.';
       result.style.background='#fff8e8';result.style.color='#79520b';
       return;
     }
     const rules={
-      network_lock:{type:'IMEI',terms:['unlock','network','carrier','sim lock','simlock','operator']},
+      network_lock:{type:'IMEI',terms:['unlock','network','carrier','sim lock','sim-lock','simlock','operator']},
       blacklist:{type:'IMEI',terms:['blacklist','black list','lost','stolen','gsma','clean check','blacklisted']},
-      imei_status:{type:'IMEI',terms:['imei check','imei status','device info','blacklist','black list','gsma','clean check']}
+      imei_status:{type:'IMEI',terms:['imei check','imei status','device info','blacklist','black list','gsma','clean check',' info','brand & model','serial','basic info']}
     };
     const rule=rules[issue];
     const matches=synced.filter(item=>{
