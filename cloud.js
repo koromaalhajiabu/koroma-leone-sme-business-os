@@ -262,6 +262,8 @@
       <div class="dev-meta" style="margin-top:10px">Developer access is verified by Supabase database permissions. This console does not expose passwords or secret API keys.</div>
       <section style="margin-top:18px;padding:14px;border:1px solid #2d9b62;border-radius:13px;background:#10251d"><h3 style="margin:0 0 5px;color:#9fe3ae">WHITE LION DEVICE SERVICES</h3><div class="dev-meta" style="margin-bottom:10px">Independent platform business · developer-only operations · separate from all SME workspaces</div><div id="wlDeviceServicesSlot"></div></section>`;
     box.insertAdjacentElement('afterend', dev);
+    // Notify modules whose mount slots are created dynamically with the developer panel.
+    window.dispatchEvent(new Event('whiteLionDeveloperPanelReady'));
     const apiServiceInfo = {
       devicedecoded: 'DeviceDecoded — catalogue, IMEI identification and owner-approved API submission for mapped IMEI services are implemented. Instant checks can complete with a returned result; premium fulfilment remains processing because automatic status polling is not documented.',
       imei_org: 'IMEI.org — catalogue integration is present. A valid IMEI_ORG_API_KEY is required before live catalogue sync can work.',
