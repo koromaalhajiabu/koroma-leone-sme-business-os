@@ -275,7 +275,7 @@
     button.disabled=true; button.textContent='Syncing…'; status.textContent='Connecting securely to '+provider+'…';
     try {
       const {data,error}=await client.functions.invoke('device-services-provider',{body:{action:'sync_catalogue',business_id:business.id,provider}});
-      if(error) throw new Error(error.message||'Provider request failed.');
+      if(error) throw error; // Preserve FunctionsHttpError.context so the provider's actual HTTP response is shown below.
       if(!data?.ok) throw new Error(data?.error||'Provider catalogue sync failed.');
       await loadProviderCatalogue();
       status.textContent=Number(data.synced_count||0)+' services synced from '+data.provider_name+'.';
