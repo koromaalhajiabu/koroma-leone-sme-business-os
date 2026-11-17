@@ -280,14 +280,29 @@
       await loadProviderCatalogue();
       status.textContent=Number(data.synced_count||0)+' services synced from '+data.provider_name+'.';
       say('Catalogue sync completed. No customer order was placed and no provider credit was spent.');
-    } catch(error) { status.textContent='Sync not completed: '+(error.message||String(error)); say('Provider catalogue sync failed: '+(error.message||String(error)),true); }
+    } catch(error) {
+      let detail=error?.message||String(error);
+      const response=error?.context;
+      if(response&&typeof response.clone==='function') {
+        try {
+          const payload=await response.clone().json();
+          detail=payload?.error||payload?.message||detail;
+          if(response.status) detail+=' (HTTP '+response.status+')';
+        } catch(_) {
+          try { const raw=await response.clone().text(); if(raw) detail=raw.slice(0,500); } catch(__) {}
+        }
+      }
+      status.textContent='DeviceDecoded catalogue sync failed: '+detail;
+      say('DeviceDecoded catalogue sync failed: '+detail,true);
+    }
     finally { button.disabled=false; button.textContent='Sync selected provider catalogue'; }
   }
   async function loadProviderCatalogue() {
     if(!client||!business?.id||!$('wluLiveServices')) return;
+    const selectedProvider=$('wluProviderChoice')?.value||'devicedecoded';
     const {data,error}=await client.from('phone_unlocking_provider_services')
       .select('id,provider_key,provider_service_id,provider_service_type,provider_group,service_name,provider_credit,provider_currency,provider_is_instant,delivery_time,description,quantity,requires_custom,is_active,last_synced_at')
-      .eq('business_id',business.id).eq('is_active',true)
+      .eq('business_id',business.id).eq('provider_key',selectedProvider).eq('is_active',true)
       .order('provider_group').order('service_name').limit(500);
     if(error) throw error;
     const rows=data||[];
