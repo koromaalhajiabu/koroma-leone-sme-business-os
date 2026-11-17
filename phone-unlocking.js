@@ -31,7 +31,8 @@
   const canManage = () => isDeveloper;
   const QUICK_FAULTS = {
     apple: [
-      {key:'icloud', label:'iCloud Lock status', service_name:'iCloud On/off', provider_service_id:'3', fallback_credit:299},
+      {key:'icloud', label:'iCloud Lock status check', service_name:'iCloud On/off', provider_service_id:'3', fallback_credit:299},
+      {key:'activation_mdm_bypass', label:'Activation Lock / MDM bypass (requires proof of ownership)', service_name:'MDM Lock Bypass — Iphone/ipad', provider_service_id:'94', fallback_credit:39999, requiresOwnershipProof:true, ownershipNote:'This removes an Apple MDM (Mobile Device Management) enrolment lock. Apple’s personal iCloud Activation Lock cannot be bypassed by any third-party provider — only its status can be checked, above.'},
       {key:'network', label:'Network / Carrier lock', service_name:'iPhone Carrier', provider_service_id:'103', fallback_credit:299},
       {key:'simlock', label:'SIM lock', service_name:'iPhone Sim-lock', provider_service_id:'8', fallback_credit:299},
       {key:'blacklist', label:'IMEI blacklist / stolen check', service_name:'WW Blacklist Status', provider_service_id:'54', fallback_credit:299},
@@ -39,12 +40,14 @@
     ],
     samsung: [
       {key:'blacklist', label:'IMEI blacklist / stolen check', service_name:'WW Blacklist Status', provider_service_id:'54', fallback_credit:299},
-      {key:'info', label:'Device info / model verification', service_name:'Samsung Info', provider_service_id:'80', fallback_credit:299}
+      {key:'info', label:'Device info / model verification', service_name:'Samsung Info', provider_service_id:'80', fallback_credit:299},
+      {key:'frp_manual', label:'Google FRP lock removal — manual (requires proof of ownership)', manual:true, requiresOwnershipProof:true, ownershipNote:'No connected provider offers an automated FRP-removal action — this creates a priced order you fulfil yourself; nothing is submitted to DeviceDecoded.'}
     ],
     android: [
       {key:'milock', label:'Mi Account / device lock check (Xiaomi, Redmi, Poco only)', service_name:'Xiaomi / Redmi / Poco Mi Lock On/off Info', provider_service_id:'206', fallback_credit:299},
       {key:'blacklist', label:'IMEI blacklist / stolen check', service_name:'WW Blacklist Status', provider_service_id:'54', fallback_credit:299},
-      {key:'info', label:'Device info / model verification', service_name:'Brand & Model Info', provider_service_id:'203', fallback_credit:299}
+      {key:'info', label:'Device info / model verification', service_name:'Brand & Model Info', provider_service_id:'203', fallback_credit:299},
+      {key:'frp_manual', label:'Google FRP lock removal — manual (requires proof of ownership)', manual:true, requiresOwnershipProof:true, ownershipNote:'No connected provider offers an automated FRP-removal action — this creates a priced order you fulfil yourself; nothing is submitted to DeviceDecoded.'}
     ]
   };
   const BRAND_LABELS = {apple:'Apple', samsung:'Samsung', android:'Android'};
@@ -75,7 +78,18 @@
   function updateQuickFaultPrice() {
     const box=$('wluFaultPrice'); if(!box) return;
     const fault=currentQuickFault();
+    const ownershipWrap=$('wluOwnershipProof'), manualWrap=$('wluManualPriceWrap');
+    if(ownershipWrap) ownershipWrap.hidden=!fault?.requiresOwnershipProof;
+    if($('wluOwnershipConfirm')) $('wluOwnershipConfirm').required=!!fault?.requiresOwnershipProof;
+    if($('wluOwnershipReference')) $('wluOwnershipReference').required=!!fault?.requiresOwnershipProof;
+    if(manualWrap) manualWrap.hidden=!fault?.manual;
+    if($('wluManualPrice')) $('wluManualPrice').required=!!fault?.manual;
     if(!fault) { box.textContent='Choose a brand and problem to see the price.'; delete box.dataset.price; return; }
+    if(fault.manual) {
+      box.innerHTML='<strong>'+esc(fault.service_name||fault.label)+'</strong><br>No connected provider performs this automatically. Set your own price below — the order is created for manual fulfilment, nothing is sent to DeviceDecoded.'+(fault.ownershipNote?'<br><small class="wlu-muted">'+esc(fault.ownershipNote)+'</small>':'');
+      delete box.dataset.price; delete box.dataset.providerCost;
+      return;
+    }
     const catalogue=Array.isArray(window.__wluProviderCatalogue)?window.__wluProviderCatalogue:[];
     const live=catalogue.find(row=>String(row.provider_service_id)===String(fault.provider_service_id));
     const credit=live?Number(live.provider_credit):fault.fallback_credit;
@@ -83,7 +97,7 @@
     const costInBusinessCurrency=String(currency).toUpperCase()==='CREDITS'?creditsToSle(credit):Number(credit);
     const markup=getMarkupPercent();
     const customerPrice=costInBusinessCurrency*(1+markup/100);
-    box.innerHTML='<strong>'+esc(fault.service_name)+'</strong><br>Provider cost: '+esc(providerCostLabel(currency,credit))+' (~'+esc(money(costInBusinessCurrency))+')<br><strong>Customer price ('+esc(String(markup))+'% markup): '+esc(money(customerPrice))+'</strong>'+(live?'':'<br><small class="wlu-muted">Using last-known price — sync the DeviceDecoded catalogue (Advanced section below) to refresh it.</small>');
+    box.innerHTML='<strong>'+esc(fault.service_name)+'</strong><br>Provider cost: '+esc(providerCostLabel(currency,credit))+' (~'+esc(money(costInBusinessCurrency))+')<br><strong>Customer price ('+esc(String(markup))+'% markup): '+esc(money(customerPrice))+'</strong>'+(live?'':'<br><small class="wlu-muted">Using last-known price — sync the DeviceDecoded catalogue (Advanced section below) to refresh it.</small>')+(fault.ownershipNote?'<br><small class="wlu-muted">'+esc(fault.ownershipNote)+'</small>':'');
     box.dataset.price=customerPrice.toFixed(2);
     box.dataset.providerCost=costInBusinessCurrency.toFixed(2);
   }
@@ -93,26 +107,44 @@
     if(!branch?.id) return say('Select an active branch before creating an order.',true);
     const fault=currentQuickFault();
     if(!fault) return say('Choose the reported problem first.',true);
-    const box=$('wluFaultPrice');
-    const customerPrice=Number(box?.dataset.price);
-    const providerCost=Number(box?.dataset.providerCost);
-    if(!Number.isFinite(customerPrice)||customerPrice<=0) return say('Could not compute a price for this fault yet.',true);
     const form=event.currentTarget, data=Object.fromEntries(new FormData(form).entries());
     const imei=String(data.imei||'').trim();
     if(!/^[0-9]{15}$/.test(imei)) return say('Enter a valid 15-digit IMEI.',true);
+    let ownershipNote='';
+    if(fault.requiresOwnershipProof) {
+      if(!$('wluOwnershipConfirm')?.checked) return say('Confirm the customer presented proof of ownership and signed the liability waiver before creating this order.',true);
+      const reference=String(data.ownership_reference||'').trim();
+      if(!reference) return say('Record the receipt/ID reference the customer presented, and the waiver reference.',true);
+      ownershipNote='Proof of ownership confirmed by staff — receipt/ID & signed liability waiver on file. Reference: '+reference+'. The customer accepted responsibility if ownership is later found to be misrepresented.';
+    }
     const status=$('wluFaultOrderStatus');
+    let customerPrice, providerCost;
+    if(fault.manual) {
+      customerPrice=Number(data.manual_price);
+      if(!Number.isFinite(customerPrice)||customerPrice<=0) return say('Enter a valid price for this manual service.',true);
+      providerCost=0;
+    } else {
+      const box=$('wluFaultPrice');
+      customerPrice=Number(box?.dataset.price);
+      providerCost=Number(box?.dataset.providerCost);
+      if(!Number.isFinite(customerPrice)||customerPrice<=0) return say('Could not compute a price for this fault yet.',true);
+    }
     status.textContent='Creating order…';
-    let service=allServices.find(s=>String(s.provider_service_id)===String(fault.provider_service_id)&&s.provider_key==='devicedecoded');
+    let service=fault.manual
+      ?allServices.find(s=>s.service_name===fault.service_name&&!s.provider_key)
+      :allServices.find(s=>String(s.provider_service_id)===String(fault.provider_service_id)&&s.provider_key==='devicedecoded');
+    const serviceName=fault.manual?fault.label:fault.service_name;
     if(service) {
       const {error:updError}=await client.from('phone_unlocking_services').update({default_price:customerPrice.toFixed(2),provider_cost:providerCost,provider_currency:business?.currency_code||'SLE',is_active:true,updated_at:new Date().toISOString()}).eq('id',service.id).eq('business_id',business.id);
       if(updError) { status.textContent='Could not update service price: '+updError.message; return; }
     } else {
-      const {data:inserted,error:insError}=await client.from('phone_unlocking_services').insert({
-        business_id:business.id, service_name:fault.service_name, description:'Quick fault check: '+fault.label,
+      const insertRow={
+        business_id:business.id, service_name:serviceName, description:'Quick fault: '+fault.label+(fault.manual?' (manual fulfilment, requires proof of ownership)':''),
         default_price:customerPrice.toFixed(2), is_active:true,
-        provider_key:'devicedecoded', provider_service_id:fault.provider_service_id, provider_service_type:'IMEI',
         provider_cost:providerCost, provider_currency:business?.currency_code||'SLE'
-      }).select().single();
+      };
+      if(!fault.manual) { insertRow.provider_key='devicedecoded'; insertRow.provider_service_id=fault.provider_service_id; insertRow.provider_service_type='IMEI'; }
+      const {data:inserted,error:insError}=await client.from('phone_unlocking_services').insert(insertRow).select().single();
       if(insError) { status.textContent='Could not create the priced service: '+insError.message; return; }
       service={id:inserted.id};
     }
@@ -129,7 +161,7 @@
     orderForm.elements.country.value='';
     orderForm.elements.provider_name.value='';
     orderForm.elements.provider_reference.value='';
-    orderForm.elements.notes.value='';
+    orderForm.elements.notes.value=ownershipNote;
     $('wluServiceSelect').value=linked.id;
     orderForm.elements.service_price.value=Number(linked.default_price).toFixed(2);
     orderForm.elements.provider_cost.value=providerCostInBusinessCurrency(linked).toFixed(2);
@@ -191,7 +223,7 @@
           <details open class="wlu-quickorder">
             <summary><strong>Quick fault check &amp; order</strong></summary>
             <p class="wlu-muted">Pick the brand and the customer's problem. The price shown is the live DeviceDecoded provider cost converted to your currency, plus your markup — no need to browse the full provider catalogue.</p>
-            <p class="wlu-muted"><strong>Not offered here:</strong> FRP / Google account lock and Apple Activation Lock bypass. These anti-theft locks deter stolen-phone resale — only proceed with valid proof of ownership, handled manually (see the Compatibility Checker below).</p>
+            <p class="wlu-muted"><strong>Lock-bypass services (Activation Lock, MDM, FRP):</strong> require proof of ownership and a signed liability waiver before the order can be created. The app records that these were obtained; it does not generate the waiver document itself.</p>
             <div class="wlu-grid">
               <label>Your markup<input id="wluFaultMarkup" type="number" min="0" step="1" placeholder="80"> %</label>
               <select id="wluFaultBrand"><option value="apple">Apple (iPhone/iPad/Mac)</option><option value="samsung">Samsung</option><option value="android">Other Android (Xiaomi, Oppo, Huawei, etc.)</option></select>
@@ -203,6 +235,12 @@
               <input name="customer_phone" maxlength="40" placeholder="Customer phone number">
               <input name="device_model" required maxlength="100" placeholder="Exact phone model">
               <input name="imei" required inputmode="numeric" pattern="[0-9]{15}" maxlength="15" placeholder="IMEI (15 digits)">
+              <div id="wluManualPriceWrap" class="wlu-full" hidden><input id="wluManualPrice" name="manual_price" type="number" min="0" step="0.01" placeholder="Your price for this manual service"></div>
+              <div id="wluOwnershipProof" class="wlu-full" hidden>
+                <p class="wlu-muted">This is a lock-bypass service. Before continuing: the customer must present proof of purchase (receipt, invoice or matching ID) and sign a liability waiver stating that if the device is later found to be stolen or not legitimately theirs, responsibility is on them, not the business.</p>
+                <input id="wluOwnershipReference" name="ownership_reference" maxlength="200" placeholder="Receipt/ID reference and waiver reference on file">
+                <label style="display:flex;align-items:center;gap:8px;min-height:0"><input id="wluOwnershipConfirm" type="checkbox" style="width:auto;min-height:0"> I confirm the customer presented proof of ownership and signed the liability waiver</label>
+              </div>
               <button type="submit">Create order for this fault</button>
             </form>
             <div id="wluFaultOrderStatus" class="wlu-muted"></div>
