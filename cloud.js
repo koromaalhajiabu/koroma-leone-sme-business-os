@@ -92,6 +92,12 @@
     if (!host || !anchor) return;
     const box = $('wlCloudBox') || document.createElement('section');
     box.id = 'wlCloudBox';
+    // Attach authentication actions immediately, before optional developer-panel controls.
+    // A missing admin-only element must never leave the public sign-in buttons inert.
+    const signInButton = $('wlSignIn');
+    const signUpButton = $('wlSignUp');
+    if (signInButton) signInButton.onclick = () => authenticate(false);
+    if (signUpButton) signUpButton.onclick = () => authenticate(true);
     if (box.classList.contains('wl-auth-shell') && $('wlCloudAuth') && $('wlCloudWork')) {
       // Keep the premium login markup from index.html; only hydrate the authenticated workspace.
       $('wlCloudWork').innerHTML = `
@@ -272,8 +278,6 @@
     $('wlDevDeletionRefresh').onclick = loadDeveloperDeletionRequests;
     $('wlDevAuditRefresh').onclick = loadDeveloperActivity;
     $('wlDevAuditSearch').oninput = renderDeveloperActivity;
-    $('wlSignIn').onclick = () => authenticate(false);
-    $('wlSignUp').onclick = () => authenticate(true);
     $('wlSignOut').onclick = async () => { await client.auth.signOut(); session = null; activeBusiness = null; $('wlDeveloperBox').hidden = true; showSignedOut(); };
     $('wlCreateBusiness').onclick = createBusiness;
     $('wlSyncNow').onclick = syncLocalRecords;
