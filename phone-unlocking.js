@@ -789,6 +789,7 @@
     finally { refreshInFlight=false; }
   }
   window.addEventListener('whiteLionCloudReady',initialiseDeviceServices);
+  window.addEventListener('whiteLionDeveloperPanelReady',initialiseDeviceServices);
   // Re-check developer context after sign-in. The selected SME workspace is ignored.
   window.addEventListener('whiteLionWorkspaceChanged',initialiseDeviceServices);
   window.addEventListener('focus',initialiseDeviceServices);
