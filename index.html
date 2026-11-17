@@ -926,6 +926,26 @@ html[data-theme="dark"] .footer{color:#8795aa}
  </div>
  <div class="wl-auth-bottom"><span>WHITE LION TECH SOLUTIONS</span><span>Designed for better business management</span></div>
 </section>
+<script id="wl-login-tap-diagnostic">
+(function(){
+  if(window.__wlLoginTapDiagnosticInstalled)return;
+  window.__wlLoginTapDiagnosticInstalled=true;
+  document.addEventListener('click',function(event){
+    var button=event.target&&event.target.closest?event.target.closest('#wlSignIn,#wlSignUp'):null;
+    if(!button)return;
+    var status=document.getElementById('wlCloudStatus');
+    if(!status)return;
+    status.textContent='Button tap received. Checking the sign-in connection…';
+    setTimeout(function(){
+      if(status.textContent==='Button tap received. Checking the sign-in connection…'){
+        status.textContent=window.__wlCloudScriptLoaded
+          ? 'The tap reached the page, but the sign-in handler did not respond. Please report this message.'
+          : 'The tap reached the page, but the cloud sign-in script did not load. Please report this message.';
+      }
+    },1500);
+  },true);
+})();
+</script>
 <div class="wl-install-banner" id="wlInstallBanner" hidden><div class="wl-install-copy"><b>Install White Lion SME</b><small id="wlInstallHint">Add the business system to your home screen for quick access.</small></div><button class="wl-install-button" id="wlInstallButton" type="button">Install app</button></div>
 <div id="appearanceBar"><div><strong>Appearance settings</strong><small id="appearanceBarLabel">Current theme: Light mode</small></div><button id="appearanceBarToggle" type="button">Switch to dark mode</button></div>
 <section class="content" id="view"></section>
@@ -1565,7 +1585,7 @@ if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventLi
 <script src="./executive-intelligence.js?v=2" defer onerror="window.__wlScriptFail.push('executive-intelligence.js')"></script>
 <script src="./supplier-intelligence.js?v=1" defer onerror="window.__wlScriptFail.push('supplier-intelligence.js')"></script>
 <script src="./smart-reorder.js?v=2" defer onerror="window.__wlScriptFail.push('smart-reorder.js')"></script>
-<script src="./cloud.js?v=53" defer onerror="window.__wlScriptFail.push('cloud.js')"></script>
+<script src="./cloud.js?v=54" defer onerror="window.__wlScriptFail.push('cloud.js')"></script>
 <script src="./operations.js?v=22" defer onerror="window.__wlScriptFail.push('operations.js')"></script>
 <script src="./documents.js?v=3" defer onerror="window.__wlScriptFail.push('documents.js')"></script>
 <script src="./league.js?v=5" defer onerror="window.__wlScriptFail.push('league.js')"></script>
