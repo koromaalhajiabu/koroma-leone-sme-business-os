@@ -3,6 +3,14 @@
   const SUPABASE_URL = 'https://nclncqlgnxnijlumznnt.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
   const $ = (id) => document.getElementById(id);
+  // Use document-level delegation so authentication remains clickable even if
+  // optional workspace/developer UI mounting fails or replaces button elements.
+  document.addEventListener('click', (event) => {
+    const button = event.target && event.target.closest ? event.target.closest('#wlSignIn, #wlSignUp') : null;
+    if (!button) return;
+    event.preventDefault();
+    authenticate(button.id === 'wlSignUp');
+  }, true);
   let client = null, session = null, activeBusiness = null, selectedBranch = null;
 
   const style = document.createElement('style');
@@ -94,10 +102,6 @@
     box.id = 'wlCloudBox';
     // Attach authentication actions immediately, before optional developer-panel controls.
     // A missing admin-only element must never leave the public sign-in buttons inert.
-    const signInButton = $('wlSignIn');
-    const signUpButton = $('wlSignUp');
-    if (signInButton) signInButton.onclick = () => authenticate(false);
-    if (signUpButton) signUpButton.onclick = () => authenticate(true);
     if (box.classList.contains('wl-auth-shell') && $('wlCloudAuth') && $('wlCloudWork')) {
       // Keep the premium login markup from index.html; only hydrate the authenticated workspace.
       $('wlCloudWork').innerHTML = `
@@ -302,18 +306,23 @@
     $('wlCloudStatus').textContent = 'Not signed in. Create an account or sign in to continue.';
   }
   async function authenticate(signUp) {
-    const email = $('wlCloudEmail').value.trim();
-    const password = $('wlCloudPassword').value;
-    if (!email || password.length < 8) return say('Enter a valid email and a password of at least 8 characters.');
+    const email = $('wlCloudEmail')?.value.trim() || '';
+    const password = $('wlCloudPassword')?.value || '';
+    if (!email || password.length < 8) return say('Enter your email and a password of at least 8 characters.');
+    if (!client) return say('Secure sign-in is still connecting. Please wait a moment and try again.');
     say(signUp ? 'Creating your account…' : 'Signing in…');
-    const result = signUp
-      ? await client.auth.signUp({ email, password })
-      : await client.auth.signInWithPassword({ email, password });
-    if (result.error) return say(result.error.message);
-    if (signUp && !result.data.session) return say('Account created. Check your email to confirm it, then sign in.');
-    session = result.data.session;
-    if (session) await loadBusinesses();
-    else say('Account created. Check your email for the confirmation link.');
+    try {
+      const result = signUp
+        ? await client.auth.signUp({ email, password })
+        : await client.auth.signInWithPassword({ email, password });
+      if (result.error) return say(result.error.message);
+      if (signUp && !result.data.session) return say('Account created. Check your email to confirm it, then sign in.');
+      session = result.data.session;
+      if (session) await loadBusinesses();
+      else say('Account created. Check your email for the confirmation link.');
+    } catch (error) {
+      say(error?.message || 'Sign-in could not be completed. Check your connection and try again.');
+    }
   }
   async function loadBusinesses() {
     // Show the private developer console independently of workspace membership loading.
