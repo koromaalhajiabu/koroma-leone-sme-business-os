@@ -68,6 +68,14 @@
         <div id="wluStatus" class="wlu-status" role="status" aria-live="polite">Waiting for a business workspace…</div>
         <div class="wlu-provider-tools"><strong>Multi-provider connection hub</strong><span id="wluProviderResult" class="wlu-muted" role="status">Legacy Mobile-Unlock API retired. Use the provider selector below.</span><button id="wluVerifyServiceCoded" type="button" class="secondary">Test ServiceCoded secret</button></div>
         <div id="wluEnableArea" hidden><p>This specialist module is not enabled for this business.</p><button id="wluEnable" type="button">Enable Phone Unlocking</button></div>
+          <details open class="wlu-catalogue">
+            <summary><strong>Live provider catalogue synchronisation</strong></summary>
+            <p class="wlu-muted">Select a provider and sync its current service catalogue. This control is shown in the Developer Panel even while the independent Device Services workspace is loading. A valid platform workspace is still required to save the catalogue.</p>
+            <label>Selected provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label>
+            <button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
+            <span id="wluCatalogueStatus" class="wlu-muted" role="status">Choose a provider. Sign-in and platform workspace verification are required before syncing.</span>
+            <div id="wluLiveServices"></div>
+          </details>
         <div id="wluApp" hidden>
           <div class="wlu-kpis" id="wluKpis"></div>
           <details open id="wluOpsInbox"><summary><strong>Live operations inbox &amp; payment verification</strong></summary><p class="wlu-muted">Review customer-submitted claims against your actual account. A submitted reference alone is not proof of payment.</p><h4>Pending payment claims</h4><div id="wluPaymentClaims" class="wlu-scroll">Loading…</div><h4>Recent operational activity</h4><div id="wluOperationalEvents" class="wlu-scroll">Loading…</div><button type="button" id="wluRefreshOperations" class="secondary">Refresh operations inbox</button></details>
@@ -83,19 +91,6 @@
               <button type="submit">Add service</button>
             </form>
             <div id="wluServices"></div>
-            <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e8eee9">
-              <h4>Live multi-provider catalogue</h4>
-              <p class="wlu-muted">Sync the provider's current IMEI and server services. Provider costs are stored in the provider's own unit (DeviceDecoded uses raw credits; USD conversion is unconfirmed). Customer selling prices are set separately. Adding a service does not place an order.</p>
-              <label>Provider<select id="wluProviderChoice"><option value="devicedecoded">DeviceDecoded</option><option value="imei_org">IMEI.org</option><option value="imei_info">IMEI.info</option><option value="gsma">GSMA Device Check</option></select></label><button id="wluSyncCatalogue" type="button" class="secondary">Sync selected provider catalogue</button>
-              <span id="wluCatalogueStatus" class="wlu-muted" role="status">No live catalogue sync yet.</span>
-              <div class="wlu-grid" style="margin:10px 0;padding:10px;border:1px solid #e2eee5;border-radius:9px">
-                <label class="wlu-full">USD to SLE exchange rate
-                  <input id="wluUsdSleRate" type="number" min="0.01" max="1000" step="0.01" value="22.98" inputmode="decimal" aria-label="SLE per one US dollar">
-                </label>
-                <div class="wlu-full wlu-muted">Current estimate: US$1 = SLE <strong id="wluRateDisplay">22.98</strong>. One DeviceDecoded credit = US$0.01. Change this rate to match the rate you actually pay. This setting is saved on this device for the selected business.</div>
-              </div>
-              <div id="wluLiveServices"></div>
-            </div>
           </details>
           <details open class="wlu-checker">
             <summary><strong>Phone Compatibility &amp; Repair Checker</strong></summary>
@@ -266,7 +261,8 @@
   async function syncProviderCatalogue() {
     const button=$('wluSyncCatalogue'), status=$('wluCatalogueStatus');
     if(!client||!business?.id) return say('Select a business workspace first.',true);
-    if(!canManage()) return say('Only an owner, administrator or manager can sync provider catalogues.',true);
+    if(!canManage()) return say('Only the registered platform developer can sync provider catalogues.',true);
+    if(!client||!business?.id) { status.textContent='Cannot sync yet: the independent Device Services platform workspace is not ready. Sign in and refresh the Developer Panel.'; return; }
     const provider=$('wluProviderChoice')?.value||'devicedecoded';
     if(provider==='imei_info'||provider==='gsma') {
       status.textContent=provider==='imei_info'?'IMEI.info requires funded API access and confirmed API credentials.':'GSMA Device Check requires commercial onboarding and private API documentation.';
