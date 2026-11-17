@@ -3,6 +3,7 @@
   const SUPABASE_URL = 'https://nclncqlgnxnijlumznnt.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
   const $ = (id) => document.getElementById(id);
+  window.__wlCloudScriptLoaded = true;
   // Use document-level delegation so authentication remains clickable even if
   // optional workspace/developer UI mounting fails or replaces button elements.
   document.addEventListener('click', (event) => {
