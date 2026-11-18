@@ -220,59 +220,43 @@ begin
     into v_subjects
     from (
       select
-        e.subject_id,
-        coalesce(s.name, 'Unassigned subject') as subject_name,
-        round(
-          (
-            coalesce(sum(r.score), 0)
-            / nullif(sum(e.max_score), 0)
-          ) * 100,
-          2
-        ) as percentage,
-        (
-          select gb.grade_code
-          from public.school_grade_bands gb
-          where gb.business_id = v_business_id
-            and (
-              coalesce(
-                (
-                  coalesce(sum(r.score), 0)
-                  / nullif(sum(e.max_score), 0)
-                ) * 100,
-                -1
-              )
-            ) between gb.min_percentage and gb.max_percentage
-          order by gb.sort_order
-          limit 1
-        ) as grade_code,
-        (
-          select gb.remark
-          from public.school_grade_bands gb
-          where gb.business_id = v_business_id
-            and (
-              coalesce(
-                (
-                  coalesce(sum(r.score), 0)
-                  / nullif(sum(e.max_score), 0)
-                ) * 100,
-                -1
-              )
-            ) between gb.min_percentage and gb.max_percentage
-          order by gb.sort_order
-          limit 1
-        ) as grade_remark
-      from public.school_exams e
-      left join public.school_exam_results r
-        on r.exam_id = e.id
-        and r.business_id = e.business_id
-        and r.student_id = v_student.id
-      left join public.school_subjects s
-        on s.id = e.subject_id
-        and s.business_id = e.business_id
-      where e.business_id = v_business_id
-        and e.class_id = p_class_id
-        and e.term_id = p_term_id
-      group by e.subject_id, s.name
+        q.subject_id,
+        q.subject_name,
+        q.percentage,
+        grade_band.grade_code,
+        grade_band.remark as grade_remark
+      from (
+        select
+          e.subject_id,
+          coalesce(s.name, 'Unassigned subject') as subject_name,
+          round(
+            (
+              coalesce(sum(r.score), 0)
+              / nullif(sum(e.max_score), 0)
+            ) * 100,
+            2
+          ) as percentage
+        from public.school_exams e
+        left join public.school_exam_results r
+          on r.exam_id = e.id
+          and r.business_id = e.business_id
+          and r.student_id = v_student.id
+        left join public.school_subjects s
+          on s.id = e.subject_id
+          and s.business_id = e.business_id
+        where e.business_id = v_business_id
+          and e.class_id = p_class_id
+          and e.term_id = p_term_id
+        group by e.subject_id, s.name
+      ) q
+      left join lateral (
+        select gb.grade_code, gb.remark
+        from public.school_grade_bands gb
+        where gb.business_id = v_business_id
+          and q.percentage between gb.min_percentage and gb.max_percentage
+        order by gb.sort_order
+        limit 1
+      ) grade_band on true
     ) as subject_rows;
 
     -- Attendance summary for the selected term.
