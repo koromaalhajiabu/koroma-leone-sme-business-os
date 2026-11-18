@@ -44,7 +44,7 @@ function updateResultStudents(){
  $('resultStudent').innerHTML=students.map(s=>'<option value="'+esc(s.id)+'">'+esc(s.first_name+' '+s.last_name+' · '+s.admission_number)+'</option>').join('');
  $('resultScore').max=exam?.max_score||100;
 }
-$('loginForm').addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter;b.disabled=true;hide('loginMessage');const fd=new FormData(e.currentTarget);const {error}=await client.auth.signInWithPassword({email:fd.get('email'),password:fd.get('password')});b.disabled=false;if(error){message('loginMessage',error.message,true);return}try{await load()}catch(err){await client.auth.signOut();showLogin();message('loginMessage',err.message||'Unable to load teacher account',true)}});
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter||e.currentTarget.querySelector('button[type=submit]');b.disabled=true;hide('loginMessage');const fd=new FormData(e.currentTarget);const {error}=await client.auth.signInWithPassword({email:fd.get('email'),password:fd.get('password')});b.disabled=false;if(error){message('loginMessage',error.message,true);return}try{await load()}catch(err){await client.auth.signOut();showLogin();message('loginMessage',err.message||'Unable to load teacher account',true)}});
 $('attendanceClass').addEventListener('change',updateAttendanceStudents);
 $('attendanceDate').addEventListener('change',updateAttendanceStudents);
 $('resultExam').addEventListener('change',updateResultSubjects);
