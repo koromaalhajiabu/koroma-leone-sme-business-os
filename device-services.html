@@ -4,74 +4,68 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#075b35">
-<meta name="description" content="White Lion Device Services — authorised device diagnostics, support and repair coordination.">
-<title>White Lion Device Services</title>
+<meta name="description" content="White Lion Device Services — phone unlocking and device repair, order online.">
+<title>Device Services | White Lion</title>
 <style>
-:root{color-scheme:light;--green:#075b35;--green2:#087a43;--blue:#0072c6;--ink:#173326;--muted:#64766c;--line:#e1ebe4;--bg:#f4f8f5}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 8% 0,rgba(30,181,58,.12),transparent 32%),linear-gradient(135deg,#f6faf7,#fff 60%,#edf6f0);color:var(--ink);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-a{color:inherit}.wrap{width:min(1080px,calc(100% - 32px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0}.brand{display:flex;align-items:center;gap:11px;text-decoration:none}.mark{width:43px;height:43px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,#1eb53a 0 38%,#fff 38% 66%,#0072c6 66%);border:1px solid var(--line);font-weight:900;color:var(--green)}.brand b{display:block;letter-spacing:1px;color:var(--green);font-size:13px}.brand small{display:block;color:#829187;font-size:9px;letter-spacing:1.5px}.back{padding:10px 14px;border:1px solid var(--line);border-radius:10px;text-decoration:none;background:#fff;font-weight:700;font-size:13px}
-.hero{padding:clamp(30px,6vw,68px) 0 34px;display:grid;grid-template-columns:1.15fr .85fr;gap:35px;align-items:center}.eyebrow{color:var(--green2);font-size:11px;font-weight:850;letter-spacing:2px;text-transform:uppercase}.hero h1{font-size:clamp(35px,6vw,62px);line-height:1.04;letter-spacing:-2px;margin:12px 0 18px}.hero p{color:var(--muted);max-width:620px;margin:0}.hero-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 18px 50px #075b3512}.hero-card strong{display:block;font-size:18px;margin-bottom:8px}.hero-card p{font-size:13px}.pill{display:inline-block;border-radius:99px;background:#eaf6ed;color:var(--green);padding:5px 10px;font-size:10px;font-weight:800;letter-spacing:.5px;margin-bottom:12px}
-.section-title{font-size:23px;margin:25px 0 6px}.sub{color:var(--muted);margin:0 0 18px;font-size:13px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.service{background:#fff;border:1px solid var(--line);border-radius:16px;padding:19px}.service .ico{width:37px;height:37px;border-radius:11px;display:grid;place-items:center;background:#edf7f0;color:var(--green);font-size:18px;font-weight:900}.service h3{font-size:15px;margin:12px 0 5px}.service p{font-size:12px;color:var(--muted);margin:0}
-.notice{margin:22px 0;background:#fff8e8;border:1px solid #f0dfb7;border-radius:14px;padding:15px 17px;color:#6d5520;font-size:12px}.panel{background:#fff;border:1px solid var(--line);border-radius:19px;padding:clamp(18px,3vw,28px);margin:26px 0;box-shadow:0 12px 35px #075b350a}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:11px;font-weight:800;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;border:1px solid #dce7df;border-radius:10px;padding:12px;background:#fff;color:var(--ink);font:inherit;font-size:13px}.field textarea{min-height:92px;resize:vertical}.full{grid-column:1/-1}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--green);color:#fff;font-weight:800;font-size:13px;cursor:pointer}.btn.secondary{background:#eef5f0;color:var(--green);border:1px solid var(--line)}.status{font-size:12px;color:var(--green);min-height:20px;margin-top:10px}.foot{padding:18px 0 30px;color:#819087;font-size:11px;text-align:center}.foot a{color:var(--green)}
-@media(max-width:760px){.hero{grid-template-columns:1fr;gap:20px;padding-top:28px}.grid{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid,.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.top{align-items:flex-start}.back{font-size:11px;padding:8px 10px}.hero h1{letter-spacing:-1.2px}}
+:root{--green:#087a43;--deep:#102b20;--gold:#d4b36b;--bg:#f4f8f5;--line:#e0eae3;--muted:#718078}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#172a22;font:15px/1.5 Inter,system-ui,Arial,sans-serif}
+header{background:linear-gradient(135deg,#075b35,#0d7544);color:#fff;padding:25px 18px 35px}
+.head{max-width:1100px;margin:auto;display:flex;justify-content:space-between;gap:20px;align-items:center}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:2px;font-weight:900}.brand img{width:40px;height:40px;border-radius:10px;background:#fff;object-fit:contain;padding:2px}.brand small{display:block;font-size:10px;letter-spacing:1px;color:#d7e9dc;margin-top:4px}
+.hero{max-width:1100px;margin:28px auto 0}.hero h1{font-size:clamp(26px,5vw,42px);line-height:1.1;margin:0 0 10px}.hero p{margin:0;color:#e0f0e5;max-width:650px}
+.contact-line{color:#cfe9d7;font-size:12px;margin-top:10px}
+main{max-width:1100px;margin:-15px auto 50px;padding:0 16px;position:relative}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:17px;padding:18px;box-shadow:0 10px 28px rgba(7,91,53,.06);margin-bottom:16px}
+.panel h2{font-size:17px;margin:0 0 14px}.muted{color:var(--muted);font-size:12px}
+.services{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.service{border:1px solid #e8eee9;border-radius:14px;padding:14px;background:linear-gradient(145deg,#fff,#fbfdfb);display:flex;flex-direction:column;gap:8px}
+.service h3{font-size:14px;margin:0}.service .desc{font-size:12px;color:var(--muted)}.service .price{font-size:19px;font-weight:850;color:var(--green);margin-top:auto}
+.badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.4px;padding:3px 8px;border-radius:99px;background:#eaf6ed;color:var(--green)}
+.badge.warn{background:#fff3da;color:#8a6116}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:10px 13px;font-weight:750}
+.primary{background:var(--green);color:#fff}.primary:disabled{opacity:.5;cursor:not-allowed}
+input,textarea,select{width:100%;border:1px solid #dce7df;border-radius:10px;padding:11px;background:#fff;font:inherit}
+.field{display:grid;gap:6px;margin:10px 0}.field label{font-size:11px;font-weight:750;color:#53665a}
+.notice{padding:12px;border-radius:11px;background:#f0f8f2;color:#45634f;font-size:11px;margin:12px 0}
+.notice.warn{background:#fff8e8;color:#6d5520}
+#message{margin:10px 0;font-size:12px;overflow-wrap:anywhere}.success{color:#087a43}.error{color:#b33d45}
+.foot{padding:10px 0 30px;color:#819087;font-size:11px;text-align:center}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.order-panel{order:-1}.services{grid-template-columns:repeat(2,minmax(0,1fr))}.service{padding:11px}.hero{margin-top:22px}}
+@media(max-width:390px){.services{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header class="wrap top">
-<a class="brand" href="./" aria-label="White Lion SME home"><span class="mark">WL</span><span><b>WHITE LION</b><small>TECH SOLUTIONS</small></span></a>
-<a class="back" href="./">← Back to SME Business OS</a>
+<header><div class="head"><div class="brand"><img src="icons/white-lion-official.webp" alt="White Lion logo"><span>WHITE LION <small>DEVICE SERVICES</small></span></div><a href="./" style="color:#fff;font-size:11px">← Back to SME Business OS</a></div>
+<div class="hero"><h1 id="storeName">Device Services</h1><p id="storeDescription">Browse available services and request an order. The team will confirm and contact you to complete it.</p><p class="contact-line" id="storeContact"></p></div>
 </header>
-<main class="wrap">
-<section class="hero">
-<div><div class="eyebrow">Device care · support · repair coordination</div><h1>Device Services,<br>handled responsibly.</h1><p>Practical help for phones, tablets and business devices — from fault diagnosis and software support to authorised account recovery and repair coordination.</p></div>
-<aside class="hero-card"><span class="pill">WHITE LION DEVICE SERVICES</span><strong>Clear advice. Authorised solutions.</strong><p>We help customers understand the issue, identify the legitimate service route and prepare the information a repair technician or official provider needs.</p><p><b>Store:</b> <span id="storeName">White Lion Device Services</span></p></aside>
-</section>
-<section>
-<h2 class="section-title">What we can help with</h2><p class="sub">Service availability, pricing and turnaround are confirmed after device assessment.</p>
-<div class="grid">
-<article class="service"><div class="ico">⌕</div><h3>Device diagnostics</h3><p>Startup faults, charging issues, battery concerns, connectivity problems and general troubleshooting.</p></article>
-<article class="service"><div class="ico">↻</div><h3>Software support</h3><p>Supported operating-system updates, backup guidance, app troubleshooting and performance checks.</p></article>
-<article class="service"><div class="ico">✓</div><h3>Official account recovery</h3><p>Guidance through the manufacturer's verified recovery process for accounts and device ownership.</p></article>
-<article class="service"><div class="ico">⇄</div><h3>Carrier and SIM support</h3><p>Check eligibility and guide requests through the original network operator or authorised provider.</p></article>
-<article class="service"><div class="ico">▣</div><h3>Business device support</h3><p>Coordinate authorised MDM or organisation-management changes with the organisation's administrator.</p></article>
-<article class="service"><div class="ico">⚙</div><h3>Repair coordination</h3><p>Initial assessment and referral for screen, port, battery and other hardware repairs where available.</p></article>
+<main>
+<div id="message" role="status"></div>
+<div class="layout">
+<section class="panel"><h2>Available services</h2><div id="services" class="services"><p class="muted">Loading services…</p></div></section>
+<aside class="panel order-panel"><h2>Request this service</h2>
+<form id="orderForm">
+<div class="field"><label>Service *</label><select name="service_id" id="serviceSelect" required><option value="">Choose a service</option></select></div>
+<div class="field"><label>Your name *</label><input name="customer_name" required minlength="2" autocomplete="name"></div>
+<div class="field"><label>Phone number *</label><input name="customer_phone" required minlength="5" autocomplete="tel"></div>
+<div class="field"><label>Email (optional)</label><input name="customer_email" type="email" autocomplete="email"></div>
+<div class="field"><label>Device brand</label><input name="device_brand" placeholder="e.g. Samsung, Apple"></div>
+<div class="field"><label>Device model</label><input name="device_model" placeholder="e.g. Galaxy A14"></div>
+<div class="field" id="imeiField" hidden><label>IMEI (required for this service) *</label><input name="imei" placeholder="15-digit IMEI — dial *#06#"></div>
+<div class="field"><label>Network / carrier (optional)</label><input name="network_name"></div>
+<div class="field"><label>Notes (optional)</label><textarea name="notes" rows="2"></textarea></div>
+<div class="field" id="ownershipField" hidden>
+  <label style="display:flex;align-items:center;gap:8px"><input type="checkbox" name="ownership_confirmed" style="width:auto"> I have proof of ownership (receipt/ID) and will sign a liability waiver confirming this device is legitimately mine *</label>
+  <input name="ownership_reference" placeholder="Receipt / ID reference" style="margin-top:8px">
 </div>
-</section>
-<div class="notice"><b>Important security notice:</b> White Lion does not bypass Google FRP, Apple Activation Lock, screen passcodes, or organisation security controls. We do not remove MDM supervision without the responsible organisation's authorisation. Bring proof of ownership where required. Never share passwords, one-time codes or account recovery codes with anyone.</div>
-<section class="panel" aria-labelledby="requestTitle">
-<h2 class="section-title" id="requestTitle" style="margin-top:0">Prepare a service request</h2><p class="sub">Fill in the details to create a request summary. This page does not submit or store your information; copy the summary and share it with the White Lion service team through your agreed contact channel.</p>
-<div class="formgrid">
-<div class="field"><label for="customer">Your name</label><input id="customer" autocomplete="name" placeholder="Full name"></div>
-<div class="field"><label for="contact">Contact number or email</label><input id="contact" autocomplete="tel" placeholder="How we can reach you"></div>
-<div class="field"><label for="device">Device make and model</label><input id="device" placeholder="e.g. Samsung Galaxy A14"></div>
-<div class="field"><label for="service">Service required</label><select id="service"><option value="">Choose a service</option><option>Device diagnostics</option><option>Software support</option><option>Official account recovery guidance</option><option>Carrier / SIM support</option><option>Business device / authorised MDM support</option><option>Hardware repair coordination</option><option>Other technical support</option></select></div>
-<div class="field full"><label for="issue">Describe the problem (do not include passwords or security codes)</label><textarea id="issue" placeholder="Tell us what is happening and when it started."></textarea></div>
+<div class="notice">Submitting a request does not take payment. The team will contact you to confirm pricing, requirements and next steps.</div>
+<div class="notice warn" id="ownershipNotice" hidden><b>This service requires proof of ownership.</b> Services like FRP, iCloud, MDM or passcode removal are only carried out once you've shown a receipt/ID and signed a liability waiver — this protects you and the business against stolen-device fraud.</div>
+<button class="primary" id="submitOrder" type="submit" style="width:100%">Request service</button>
+</form>
+</aside>
 </div>
-<div class="actions"><button class="btn" id="makeRequest" type="button">Create request summary</button><button class="btn secondary" id="copyRequest" type="button" disabled>Copy summary</button></div>
-<div class="status" id="status" role="status" aria-live="polite"></div>
-</section>
 </main>
-<footer class="wrap foot">White Lion Tech Solutions · Designed by Alhaji Abu Koroma · <a href="./">Return to White Lion SME Business OS</a></footer>
-<script>
-(function(){
- const params=new URLSearchParams(location.search);
- const store=params.get('store');
- if(store){const clean=store.replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());document.getElementById('storeName').textContent=clean;}
- let summary='';
- const get=id=>document.getElementById(id).value.trim();
- document.getElementById('makeRequest').addEventListener('click',()=>{
-  const customer=get('customer'),contact=get('contact'),device=get('device'),service=get('service'),issue=get('issue');
-  if(!customer||!contact||!device||!service||!issue){document.getElementById('status').textContent='Please complete all fields before creating the summary.';return;}
-  summary=['WHITE LION DEVICE SERVICE REQUEST','Store: '+document.getElementById('storeName').textContent,'Name: '+customer,'Contact: '+contact,'Device: '+device,'Service: '+service,'Issue: '+issue,'','No passwords or security codes supplied.'].join('\n');
-  document.getElementById('copyRequest').disabled=false;
-  document.getElementById('status').textContent='Request summary is ready. Copy it to share with the service team.';
- });
- document.getElementById('copyRequest').addEventListener('click',async()=>{
-  if(!summary)return;
-  try{await navigator.clipboard.writeText(summary);document.getElementById('status').textContent='Request summary copied.';}
-  catch(e){const area=document.createElement('textarea');area.value=summary;document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();document.getElementById('status').textContent=ok?'Request summary copied.':'Copy was blocked by this browser. Please select and copy the request manually.';}
- });
-})();
-</script>
-</body>
-</html>
+<footer class="foot">White Lion Tech Solutions · Designed by Alhaji Abu Koroma</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./device-services-public.js?v=1"></script>
+</body></html>
