@@ -154,16 +154,16 @@ begin
   loop
     select
       case when sum(ex.max_score) > 0
-        then round((sum(er.score) / sum(ex.max_score)) * 100,2)
+        then round((sum(coalesce(er.score,0)) / sum(ex.max_score)) * 100,2)
         else null end
     into v_score
-    from public.school_exam_results er
-    join public.school_exams ex
-      on ex.id = er.exam_id and ex.business_id = er.business_id
-    where er.business_id = v_business_id
-      and er.student_id = v_student.id
-      and ex.class_id = p_class_id
-      and ex.term_id = p_term_id;
+    from public.school_exams ex
+    left join public.school_exam_results er
+      on er.exam_id=ex.id and er.business_id=ex.business_id
+      and er.student_id=v_student.id
+    where ex.business_id=v_business_id
+      and ex.class_id=p_class_id
+      and ex.term_id=p_term_id;
 
     select coalesce(jsonb_agg(jsonb_build_object(
       'subject_id',q.subject_id,
@@ -176,14 +176,14 @@ begin
     from (
       select ex.subject_id,
         coalesce(su.name,'Unassigned subject') as subject_name,
-        round((sum(er.score)/nullif(sum(ex.max_score),0))*100,2) as percentage
-      from public.school_exam_results er
-      join public.school_exams ex
-        on ex.id=er.exam_id and ex.business_id=er.business_id
+        round((sum(coalesce(er.score,0))/nullif(sum(ex.max_score),0))*100,2) as percentage
+      from public.school_exams ex
+      left join public.school_exam_results er
+        on er.exam_id=ex.id and er.business_id=ex.business_id
+        and er.student_id=v_student.id
       left join public.school_subjects su
         on su.id=ex.subject_id and su.business_id=ex.business_id
-      where er.business_id=v_business_id
-        and er.student_id=v_student.id
+      where ex.business_id=v_business_id
         and ex.class_id=p_class_id
         and ex.term_id=p_term_id
       group by ex.subject_id,su.name
@@ -219,18 +219,15 @@ begin
 
     select ranked.student_rank into v_position
     from (
-      select z.id, rank() over (order by z.score desc nulls last)::integer as student_rank
-      from (
-        select st2.id,
-          case when sum(ex2.max_score)>0 then sum(er2.score)/sum(ex2.max_score)*100 else null end as score
-        from public.school_students st2
-        left join public.school_exam_results er2
-          on er2.student_id=st2.id and er2.business_id=st2.business_id
-        left join public.school_exams ex2
-          on ex2.id=er2.exam_id and ex2.business_id=er2.business_id
-          and ex2.class_id=p_class_id and ex2.term_id=p_term_id
-        where st2.business_id=v_business_id and st2.class_id=p_class_id and st2.status='active'
-        group by st2.id
+      select st2.id,
+        case when sum(ex2.max_score)>0 then sum(coalesce(er2.score,0))/sum(ex2.max_score)*100 else null end as score
+      from public.school_students st2
+      left join public.school_exams ex2
+        on ex2.business_id=st2.business_id
+        and ex2.class_id=p_class_id and ex2.term_id=p_term_id
+      left join public.school_exam_results er2
+        on er2.exam_id=ex2.id and er2.business_id=ex2.business_id
+        and er2.student_id=st2.id
       ) z
     ) ranked
     where ranked.id=v_student.id;
