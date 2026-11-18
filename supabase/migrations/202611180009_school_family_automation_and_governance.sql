@@ -3,6 +3,10 @@
 
 begin;
 
+-- Remove the one-off repair trigger created during portal provisioning checks;
+-- keep the canonical trigger from migration 008 to avoid duplicate provisioning.
+drop trigger if exists trg_provision_school_parent_portal on public.business_industry_modules;
+
 create table if not exists public.school_parent_invitations (
   id uuid primary key default gen_random_uuid(),
   business_id uuid not null references public.businesses(id) on delete cascade,
