@@ -54,7 +54,7 @@ create or replace function public.school_check_grade_band_overlap()
 returns trigger
 language plpgsql
 set search_path = public
-as $
+as $wls$
 begin
   if exists (
     select 1 from public.school_grade_bands gb
@@ -67,7 +67,7 @@ begin
   end if;
   return new;
 end;
-$;
+$wls$;
 
 drop trigger if exists school_grade_band_no_overlap on public.school_grade_bands;
 create trigger school_grade_band_no_overlap
@@ -84,7 +84,7 @@ create or replace function public.school_generate_term_report_cards(
 language plpgsql
 security definer
 set search_path = public, auth
-as $$
+as $wls$$
 declare
   v_business_id uuid;
   v_term public.school_terms%rowtype;
