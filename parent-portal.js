@@ -4,7 +4,8 @@ const SUPABASE_URL='https://nclncqlgnxnijlumznnt.supabase.co';
 const SUPABASE_KEY='sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const params=new URLSearchParams(location.search),portalCode=params.get('school');
+const params=new URLSearchParams(location.search);
+let portalCode=params.get('school')||localStorage.getItem('wl_parent_portal_school');
 const client=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let profile=null,session=null,inviteRedeemed=false;
 const inviteCode=params.get('invite');
@@ -16,6 +17,7 @@ async function init(){
  const p=await client.rpc('school_get_public_portal_profile',{p_portal_code:portalCode});
  if(p.error||!p.data||!p.data.length){$('authCard').innerHTML='<h2>School portal not found or disabled</h2><p class="muted">Check the link provided by your school administration.</p>';return}
  profile=p.data[0];
+ try{localStorage.setItem('wl_parent_portal_school',portalCode)}catch(e){}
  $('schoolName').textContent=profile.school_name||'Parent & Guardian Portal';
  if(profile.crest_url)$('schoolCrest').innerHTML='<img src="'+esc(profile.crest_url)+'" alt="School crest">';
  const s=await client.auth.getSession();session=s.data.session;
@@ -58,5 +60,26 @@ async function showDashboard(){
  $('children').innerHTML=(notifications.length?'<section class="section"><h3>School notifications</h3>'+notifications.map(x=>'<div class="status"><b>'+esc(x.title)+'</b><br>'+esc(x.message)+'<br><small>'+esc(new Date(x.created_at).toLocaleString())+'</small></div>').join('')+'</section>':'')+cards.join('');
 }
 function table(head,rows){return '<div class="table-wrap"><table><thead><tr>'+head.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+(rows.length?rows.map(row=>'<tr>'+row.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+head.length+'">No records available.</td></tr>')+'</tbody></table></div>'}
+function setupInstall(){
+ const box=$('pwaInstallBox'),button=$('pwaInstallBtn'),help=$('pwaInstallHelp');
+ if(!box||!button)return;
+ const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+ if(standalone){box.style.display='none';return}
+ box.style.display='block';
+ let installPrompt=null;
+ const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent||'');
+ help.textContent=isIOS?'On iPhone/iPad: tap Share in Safari, then choose “Add to Home Screen”.':'Install this portal on your phone for an app-style experience.';
+ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;});
+ button.addEventListener('click',async()=>{
+  if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;return}
+  if(isIOS){alert('Open this page in Safari, tap Share, then choose “Add to Home Screen”.');return}
+  alert('In Chrome, open the browser menu (⋮) and choose “Install app” or “Add to Home screen”.');
+ });
+ window.addEventListener('appinstalled',()=>{box.style.display='none'});
+}
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=107',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));
+}
+setupInstall();
 init().catch(e=>status(e.message||'The portal could not load. Please refresh.'));
 })();
