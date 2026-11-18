@@ -45,6 +45,7 @@ function updateResultStudents(){
  $('resultScore').max=exam?.max_score||100;
 }
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter||e.currentTarget.querySelector('button[type=submit]');b.disabled=true;hide('loginMessage');const fd=new FormData(e.currentTarget);const {error}=await client.auth.signInWithPassword({email:fd.get('email'),password:fd.get('password')});b.disabled=false;if(error){message('loginMessage',error.message,true);return}try{await load()}catch(err){await client.auth.signOut();showLogin();message('loginMessage',err.message||'Unable to load teacher account',true)}});
+$('registerTeacher').addEventListener('click',async()=>{const email=$('loginForm').elements.email.value.trim(),password=$('loginForm').elements.password.value;if(!email||password.length<8){message('loginMessage','Enter your staff email and a password of at least 8 characters, then create your account.',true);return}const b=$('registerTeacher');b.disabled=true;const {data:created,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.href}});b.disabled=false;if(error){message('loginMessage',error.message,true);return}message('loginMessage',created.session?'Account created. You can now sign in.':'Account created. Check your email to verify it, then return here to sign in.');});
 $('attendanceClass').addEventListener('change',updateAttendanceStudents);
 $('attendanceDate').addEventListener('change',updateAttendanceStudents);
 $('resultExam').addEventListener('change',updateResultSubjects);
