@@ -82,7 +82,12 @@ self.addEventListener('fetch', event => {
         }
         if (fresh) return fresh;
       } catch (_) {}
-      // Keep the parent portal on its own entry page, including offline app launches.\n      if (request.mode === 'navigate' && /\\/parent-portal\\.html$/i.test(url.pathname)) {\n        const parentPage = await cache.match('./parent-portal.html', {ignoreSearch:true});\n        return parentPage || Response.error();\n      }\n      // Keep the public leagues app on its own entry page, including offline launches.
+      // Keep the parent portal on its own entry page, including offline app launches.
+      if (request.mode === 'navigate' && /\/parent-portal\.html$/i.test(url.pathname)) {
+        const parentPage = await cache.match('./parent-portal.html', {ignoreSearch:true});
+        return parentPage || Response.error();
+      }
+      // Keep the public leagues app on its own entry page, including offline launches.
       if (request.mode === 'navigate' && /\/public-leagues\.html$/i.test(url.pathname)) {
         const publicPage = await cache.match('./public-leagues.html', {ignoreSearch:true});
         return publicPage || Response.error();
