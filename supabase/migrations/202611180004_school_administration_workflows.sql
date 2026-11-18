@@ -28,7 +28,7 @@ create table if not exists public.school_admissions (
   updated_at timestamptz not null default now(),
   unique (business_id, application_number),
   unique (id,business_id),
-  foreign key (enrolled_student_id,business_id) references public.school_students(id,business_id) on delete set null
+  foreign key (enrolled_student_id,business_id) references public.school_students(id,business_id) on delete restrict
 );
 
 create table if not exists public.school_guardian_links (
@@ -68,8 +68,8 @@ create table if not exists public.school_report_cards (
   created_at timestamptz not null default now(),
   unique (id,business_id),
   foreign key (student_id,business_id) references public.school_students(id,business_id) on delete cascade,
-  foreign key (academic_year_id,business_id) references public.school_academic_years(id,business_id) on delete set null,
-  foreign key (term_id,business_id) references public.school_terms(id,business_id) on delete set null
+  foreign key (academic_year_id,business_id) references public.school_academic_years(id,business_id) on delete restrict,
+  foreign key (term_id,business_id) references public.school_terms(id,business_id) on delete restrict
 );
 
 create table if not exists public.school_safeguarding_cases (
@@ -91,7 +91,7 @@ create table if not exists public.school_safeguarding_cases (
   updated_at timestamptz not null default now(),
   unique (business_id,case_reference),
   unique (id,business_id),
-  foreign key (student_id,business_id) references public.school_students(id,business_id) on delete set null
+  foreign key (student_id,business_id) references public.school_students(id,business_id) on delete restrict
 );
 
 create table if not exists public.school_parent_messages (
@@ -194,13 +194,17 @@ declare
   v_total numeric(18,2);
   v_paid numeric(18,2);
 begin
-  v_invoice_id := coalesce(new.invoice_id, old.invoice_id);
+  if tg_op = 'DELETE' then
+    v_invoice_id := old.invoice_id;
+  else
+    v_invoice_id := new.invoice_id;
+  end if;
   select amount into v_total
   from public.school_fee_invoices
   where id = v_invoice_id;
 
   if v_total is null then
-    return coalesce(new,old);
+    if tg_op = 'DELETE' then return old; else return new; end if;
   end if;
 
   select coalesce(sum(amount),0) into v_paid
