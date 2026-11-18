@@ -219,18 +219,33 @@ begin
 
     select ranked.student_rank into v_position
     from (
-      select st2.id,
-        case when sum(ex2.max_score)>0 then sum(coalesce(er2.score,0))/sum(ex2.max_score)*100 else null end as score
-      from public.school_students st2
-      left join public.school_exams ex2
-        on ex2.business_id=st2.business_id
-        and ex2.class_id=p_class_id and ex2.term_id=p_term_id
-      left join public.school_exam_results er2
-        on er2.exam_id=ex2.id and er2.business_id=ex2.business_id
-        and er2.student_id=st2.id
+      select
+        z.id,
+        rank() over (order by z.score desc nulls last)::integer as student_rank
+      from (
+        select
+          st2.id,
+          case
+            when sum(ex2.max_score) > 0
+              then round((sum(coalesce(er2.score,0)) / sum(ex2.max_score)) * 100, 2)
+            else null
+          end as score
+        from public.school_students st2
+        left join public.school_exams ex2
+          on ex2.business_id = st2.business_id
+          and ex2.class_id = p_class_id
+          and ex2.term_id = p_term_id
+        left join public.school_exam_results er2
+          on er2.exam_id = ex2.id
+          and er2.business_id = ex2.business_id
+          and er2.student_id = st2.id
+        where st2.business_id = v_business_id
+          and st2.class_id = p_class_id
+          and st2.status = 'active'
+        group by st2.id
       ) z
     ) ranked
-    where ranked.id=v_student.id;
+    where ranked.id = v_student.id;
 
     select id,published into v_report_id, v_existing_published
     from public.school_report_cards
