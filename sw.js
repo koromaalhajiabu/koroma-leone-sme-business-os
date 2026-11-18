@@ -7,7 +7,7 @@ const APP_SHELL=[
   './workspace-polish.css?v=3',
   './school-management.js?v=16',
   './parent-portal.html',
-  './parent-portal.js?v=1',
+  './parent-portal.js?v=2',
   './storefront-admin.js?v=2',
   './delivery-admin.js?v=2',
   './delivery-tracking.html',
