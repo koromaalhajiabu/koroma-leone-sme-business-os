@@ -476,21 +476,45 @@
     populateDeveloperInviteBusinesses();
     populateDeveloperRoleForm();
     const maintenance = data.maintenance || {enabled:false};
-    $('wlDevStats').textContent = 'Businesses: ' + data.business_count + ' · Suspended: ' + data.suspended_count + ' · Registered accounts: ' + data.user_count + ' · Platform mode: ' + (maintenance.enabled ? 'MAINTENANCE' : 'LIVE');
+    $('wlDevStats').textContent = 'Businesses: ' + data.business_count + ' · Suspended: ' + data.suspended_count + ' · Frozen: ' + Number(data.frozen_count || 0) + ' · Registered accounts: ' + data.user_count + ' · Platform mode: ' + (maintenance.enabled ? 'MAINTENANCE' : 'LIVE');
     $('wlDevFreeze').textContent = maintenance.enabled ? 'Unfreeze platform' : 'Freeze platform';
     $('wlDevFreeze').className = maintenance.enabled ? '' : 'danger';
-    $('wlDevBusinesses').innerHTML = (data.businesses || []).map(b => `
+    $('wlDevBusinesses').innerHTML = (data.businesses || []).map(b => {
+      const ownerWorkspace = b.id === '50b69fb6-688c-4f28-8755-12cb5c34dc77';
+      const subscription = [b.subscription_plan, b.subscription_status].filter(Boolean).join(' · ') || 'No subscription record';
+      return `
       <div class="dev-row">
-        <div><strong>${esc(b.name)}</strong><div class="dev-meta">${esc(b.industry)} · Owner: ${esc(b.owner_email || 'Unknown')} · ${b.member_count} members</div><div class="dev-meta">${b.is_suspended ? 'SUSPENDED' : 'ACTIVE'} · ${esc(b.id)}</div></div>
-        <div class="dev-actions"><button data-dev-business="${b.id}" data-suspended="${b.is_suspended ? 'true':'false'}">${b.is_suspended ? 'Restore':'Suspend'}</button></div>
-      </div>`).join('') || '<div class="dev-meta">No business workspaces have been created.</div>';
+        <div style="min-width:0"><strong>${esc(b.name)}${ownerWorkspace ? ' · PLATFORM OWNER' : ''}</strong><div class="dev-meta">${esc(b.industry)} · Owner: ${esc(b.owner_email || 'Unknown')} · ${b.member_count} members</div><div class="dev-meta">${ownerWorkspace ? 'PROTECTED OWNER WORKSPACE' : (b.is_suspended ? 'SUSPENDED' : 'ACTIVE') + ' · ' + (b.is_frozen ? 'FROZEN' : 'UNFROZEN')} · ${esc(subscription)} · ${esc(b.id)}</div>${b.is_frozen && b.freeze_note ? '<div class="dev-meta">Freeze note: ' + esc(b.freeze_note) + '</div>' : ''}</div>
+        <div class="dev-actions">${ownerWorkspace ? '<button disabled title="The platform owner workspace is protected">Protected</button>' : '<button data-dev-business="' + b.id + '" data-suspended="' + (b.is_suspended ? 'true':'false') + '">' + (b.is_suspended ? 'Restore' : 'Suspend') + '</button><button data-dev-freeze-business="' + b.id + '" data-frozen="' + (b.is_frozen ? 'true':'false') + '" class="' + (b.is_frozen ? '' : 'danger') + '">' + (b.is_frozen ? 'Unfreeze' : 'Freeze') + '</button>'}</div>
+      </div>`;
+    }).join('') || '<div class="dev-meta">No business workspaces have been created.</div>';
     $('wlDevBusinesses').querySelectorAll('[data-dev-business]').forEach(button => {
       button.onclick = async () => {
         const suspend = button.dataset.suspended !== 'true';
-        if (!confirm((suspend ? 'Suspend' : 'Restore') + ' this business workspace?')) return;
+        if (!confirm((suspend ? 'Suspend' : 'Restore') + ' this customer business workspace?')) return;
+        button.disabled = true;
         const result = await client.rpc('set_platform_business_suspension', {p_business_id:button.dataset.devBusiness,p_is_suspended:suspend});
-        if (result.error) { status.textContent = result.error.message; return; }
+        if (result.error) { status.textContent = result.error.message; button.disabled = false; return; }
         await loadDeveloperDashboard();
+      };
+    });
+    $('wlDevBusinesses').querySelectorAll('[data-dev-freeze-business]').forEach(button => {
+      button.onclick = async () => {
+        const freeze = button.dataset.frozen !== 'true';
+        let note = '';
+        if (freeze) {
+          note = prompt('Optional reason for freezing this customer workspace:', 'Temporary account review') || '';
+          if (!confirm('Freeze this customer workspace? The customer will lose workspace access until you unfreeze it.')) return;
+        } else if (!confirm('Unfreeze this customer workspace and restore normal workspace access?')) return;
+        button.disabled = true;
+        const result = await client.rpc('set_platform_business_freeze', {
+          p_business_id:button.dataset.devFreezeBusiness,
+          p_is_frozen:freeze,
+          p_note:note
+        });
+        if (result.error) { status.textContent = result.error.message; button.disabled = false; return; }
+        await loadDeveloperDashboard();
+        await loadDeveloperActivity();
       };
     });
     status.textContent = 'Developer authorization verified by Supabase. Platform controls are available.';
