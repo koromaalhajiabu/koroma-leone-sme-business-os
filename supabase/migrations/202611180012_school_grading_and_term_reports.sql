@@ -272,7 +272,7 @@ begin
     'message','Draft term reports generated. Review each report before publishing.'
   );
 end;
-$$;
+$wls$;
 
 revoke all on function public.school_generate_term_report_cards(uuid,uuid,uuid,text) from public,anon;
 grant execute on function public.school_generate_term_report_cards(uuid,uuid,uuid,text) to authenticated;
