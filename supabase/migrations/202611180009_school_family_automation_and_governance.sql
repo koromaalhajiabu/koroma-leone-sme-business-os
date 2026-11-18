@@ -217,7 +217,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_student_name text;
 begin
@@ -241,8 +241,7 @@ begin
 
   return new;
 end;
-$;
-
+$$;
 drop trigger if exists school_fee_invoice_guardian_notification on public.school_fee_invoices;
 create trigger school_fee_invoice_guardian_notification
 after insert on public.school_fee_invoices
@@ -254,7 +253,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_student_id uuid;
   v_student_name text;
@@ -286,8 +285,7 @@ begin
 
   return new;
 end;
-$;
-
+$$;
 drop trigger if exists school_fee_payment_guardian_notification on public.school_fee_payments;
 create trigger school_fee_payment_guardian_notification
 after insert on public.school_fee_payments
@@ -299,7 +297,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_exam_title text;
   v_student_name text;
@@ -327,8 +325,7 @@ begin
 
   return new;
 end;
-$;
-
+$$;
 drop trigger if exists school_exam_result_guardian_notification on public.school_exam_results;
 create trigger school_exam_result_guardian_notification
 after insert or update of score, remarks on public.school_exam_results
