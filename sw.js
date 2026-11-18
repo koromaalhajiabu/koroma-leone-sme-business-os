@@ -1,5 +1,5 @@
 /* White Lion SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='white-lion-sme-v205';
+const CACHE_NAME='white-lion-sme-v206';
 const APP_SHELL=[
   './',
   './index.html',
@@ -7,7 +7,8 @@ const APP_SHELL=[
   './workspace-polish.css?v=3',
   './school-management.js?v=19',
   './parent-portal.html',
-  './parent-portal.js?v=3',
+  './parent-portal.webmanifest?v=1',
+  './parent-portal.js?v=4',
   './storefront-admin.js?v=2',
   './delivery-admin.js?v=2',
   './delivery-tracking.html',
