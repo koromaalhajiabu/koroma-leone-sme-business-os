@@ -122,26 +122,26 @@ alter table public.school_safeguarding_cases enable row level security;
 alter table public.school_parent_messages enable row level security;
 
 -- Admissions and safeguarding are restricted to school management roles.
-create policy school_admissions_management on public.school_admissions
+drop policy if exists school_admissions_management on public.school_admissions
   for all to authenticated
   using (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]))
   with check (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]));
 
-create policy school_guardian_links_management on public.school_guardian_links
+drop policy if exists school_guardian_links_management on public.school_guardian_links
   for all to authenticated
   using (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]))
   with check (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]));
 
-create policy school_guardian_links_self_read on public.school_guardian_links
+drop policy if exists school_guardian_links_self_read on public.school_guardian_links
   for select to authenticated
   using (guardian_user_id = auth.uid() and is_active);
 
-create policy school_report_cards_management on public.school_report_cards
+drop policy if exists school_report_cards_management on public.school_report_cards
   for all to authenticated
   using (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]))
   with check (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]));
 
-create policy school_report_cards_guardian_read on public.school_report_cards
+drop policy if exists school_report_cards_guardian_read on public.school_report_cards
   for select to authenticated
   using (
     published = true and exists (
@@ -153,18 +153,18 @@ create policy school_report_cards_guardian_read on public.school_report_cards
     )
   );
 
-create policy school_safeguarding_management on public.school_safeguarding_cases
+drop policy if exists school_safeguarding_management on public.school_safeguarding_cases
   for all to authenticated
   using (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]))
   with check (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]));
 
-create policy school_parent_messages_participant_read on public.school_parent_messages
+drop policy if exists school_parent_messages_participant_read on public.school_parent_messages
   for select to authenticated
   using (
     sender_user_id = auth.uid() or recipient_user_id = auth.uid()
   );
 
-create policy school_parent_messages_management_insert on public.school_parent_messages
+drop policy if exists school_parent_messages_management_insert on public.school_parent_messages
   for insert to authenticated
   with check (
     sender_user_id = auth.uid()
