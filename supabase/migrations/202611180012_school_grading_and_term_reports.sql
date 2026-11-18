@@ -84,7 +84,7 @@ create or replace function public.school_generate_term_report_cards(
 language plpgsql
 security definer
 set search_path = public, auth
-as $wls$$
+as $wls$
 declare
   v_business_id uuid;
   v_term public.school_terms%rowtype;
