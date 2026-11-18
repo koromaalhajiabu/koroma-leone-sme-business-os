@@ -26,6 +26,24 @@
   let services = [], providerServices = [], orders = [], connection = null, storefront = null;
   let showNewOrder = false, showAddManual = false, providerFilter = '';
 
+  // supabase-js resolves functions.invoke() with {data:null, error:FunctionsHttpError} on any
+  // non-2xx response, and error.message is just "Edge Function returned a non-2xx status code" —
+  // the function's own JSON {ok:false, error:"..."} body is on error.context (a Response). Read it.
+  async function invokeFn(name, body) {
+    const c = client();
+    const result = await c.functions.invoke(name, { body });
+    if (result.error && !result.data) {
+      let detail = null;
+      try {
+        const ctx = result.error.context;
+        if (ctx && typeof ctx.clone === 'function') detail = (await ctx.clone().json())?.error;
+      } catch (_) {}
+      return { data: null, error: detail || result.error.message || 'Request failed.' };
+    }
+    if (result.data && result.data.ok === false) return { data: result.data, error: result.data.error || 'Request failed.' };
+    return { data: result.data, error: null };
+  }
+
   function notify(msg, bad) {
     const t = document.getElementById('toast');
     if (t) { t.textContent = msg; t.style.color = bad ? '#b42332' : ''; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3400); }
@@ -80,13 +98,11 @@
   }
 
   async function testConnection() {
-    const c = client();
     notify('Testing connection to Mobile-Unlock.com…');
-    const { data, error } = await c.functions.invoke('mobile-unlock-provider', { body: { action: 'test_connection', business_id: BUSINESS_ID } });
-    if (error || data?.ok === false) {
-      const msg = data?.error || error?.message || 'Connection test failed.';
-      try { await setConnection({ connection_status: 'error', last_error: msg }); } catch (_) {}
-      notify(msg, true);
+    const { data, error } = await invokeFn('mobile-unlock-provider', { action: 'test_connection', business_id: BUSINESS_ID });
+    if (error) {
+      try { await setConnection({ connection_status: 'error', last_error: error }); } catch (_) {}
+      notify(error, true);
     } else {
       try { await setConnection({ connection_status: 'connected', last_error: null }); } catch (_) {}
       notify('Connected. Balance: ' + (data.balance ?? 'unknown') + ' ' + (data.currency || '') + ' · ' + (data.service_count ?? 0) + ' services reported by provider.');
@@ -95,13 +111,11 @@
   }
 
   async function syncCatalogue() {
-    const c = client();
     notify('Syncing live service catalogue from Mobile-Unlock.com…');
-    const { data, error } = await c.functions.invoke('mobile-unlock-provider', { body: { action: 'sync_catalogue', business_id: BUSINESS_ID } });
-    if (error || data?.ok === false) {
-      const msg = data?.error || error?.message || 'Catalogue sync failed.';
-      try { await setConnection({ connection_status: 'error', last_error: msg }); } catch (_) {}
-      notify(msg, true);
+    const { data, error } = await invokeFn('mobile-unlock-provider', { action: 'sync_catalogue', business_id: BUSINESS_ID });
+    if (error) {
+      try { await setConnection({ connection_status: 'error', last_error: error }); } catch (_) {}
+      notify(error, true);
     } else {
       try { await setConnection({ connection_status: 'connected', last_synced_at: data.synced_at || new Date().toISOString(), last_error: null }); } catch (_) {}
       notify('Synced ' + data.synced_count + ' live services from Mobile-Unlock.com.');
@@ -234,11 +248,10 @@
   }
   async function submitToProvider(o) {
     if (!confirm('Submit this order to Mobile-Unlock.com now? This spends real provider credit and cannot be undone.')) return;
-    const c = client();
     notify('Submitting to Mobile-Unlock.com…');
-    const { data, error } = await c.functions.invoke('mobile-unlock-provider', { body: { action: 'submit_approved_order', business_id: BUSINESS_ID, order_id: o.id } });
-    if (error || data?.ok === false) {
-      notify(data?.error || error?.message || 'Submission failed. Check the order status before retrying.', true);
+    const { data, error } = await invokeFn('mobile-unlock-provider', { action: 'submit_approved_order', business_id: BUSINESS_ID, order_id: o.id });
+    if (error) {
+      notify(error, true);
     } else {
       notify('Submitted. Provider reference: ' + data.provider_reference);
     }
