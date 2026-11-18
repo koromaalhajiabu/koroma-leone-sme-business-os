@@ -6,7 +6,8 @@ const $=id=>document.getElementById(id);
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const params=new URLSearchParams(location.search),portalCode=params.get('school');
 const client=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let profile=null,session=null;
+let profile=null,session=null,inviteRedeemed=false;
+const inviteCode=params.get('invite');
 function status(message){$('authStatus').textContent=message}
 function money(v){return new Intl.NumberFormat('en-SL',{style:'currency',currency:'SLE',maximumFractionDigits:2}).format(Number(v||0))}
 async function init(){
@@ -26,12 +27,17 @@ async function init(){
 }
 async function showDashboard(){
  $('authCard').classList.add('hidden');$('portalContent').classList.remove('hidden');
+ if(inviteCode&&!inviteRedeemed){const accepted=await client.rpc('school_redeem_parent_invitation',{p_invite_code:inviteCode});if(accepted.error){$('children').innerHTML='<div class="status">Invitation could not be accepted: '+esc(accepted.error.message)+'</div>';return}inviteRedeemed=true;status('Parent invitation accepted. Your child has been linked securely.');}
  $('parentIdentity').textContent='Signed in as '+session.user.email+' · Account ID: '+session.user.id;
  $('children').innerHTML='<p class="muted">Loading your linked children…</p>';
  const links=await client.from('school_guardian_links').select('student_id,relationship,can_view_attendance,can_view_results,can_view_fees').eq('business_id',profile.business_id).eq('guardian_user_id',session.user.id).eq('is_active',true);
  if(links.error){$('children').innerHTML='<div class="status">Unable to load linked children: '+esc(links.error.message)+'</div>';return}
  if(!links.data.length){$('children').innerHTML='<div class="status">Your account is not linked to a student at this school yet. Copy your Account ID shown above and provide it to the school administration. They can then link your account to your child.</div>';return}
  const ids=links.data.map(x=>x.student_id);
+ const nr=await client.from('school_notifications').select('id,title,message,created_at,read_at').eq('business_id',profile.business_id).eq('recipient_user_id',session.user.id).order('created_at',{ascending:false}).limit(30);
+ const notifications=nr.error?[]:(nr.data||[]);
+ const unread=notifications.filter(x=>!x.read_at).map(x=>x.id);
+ if(unread.length)await client.from('school_notifications').update({read_at:new Date().toISOString()}).in('id',unread).eq('recipient_user_id',session.user.id);
  const sr=await client.rpc('school_get_linked_students',{p_business_id:profile.business_id});
  if(sr.error){$('children').innerHTML='<div class="status">Unable to load student details: '+esc(sr.error.message)+'</div>';return}
  const cards=[];
@@ -49,7 +55,7 @@ async function showDashboard(){
  (link.can_view_fees?'<div class="section"><h4>School fee invoices</h4>'+table(['Invoice','Description','Term','Amount','Status'],invoices.map(x=>[esc(x.invoice_number),esc(x.description),esc(x.academic_term||'—'),money(x.amount),esc(x.status)]))+'</div><div class="section"><h4>Payment receipts</h4>'+table(['Receipt','Date','Amount','Method'],payments.map(x=>[esc(x.receipt_number),esc(x.paid_at),money(x.amount),esc(x.payment_method)]))+'</div>':'')+
  '<div class="section"><h4>Messages from school</h4>'+(messages.length?messages.map(x=>'<div class="status"><b>'+esc(x.subject)+'</b><br>'+esc(x.message)+'<br><small>'+esc(new Date(x.sent_at).toLocaleString())+'</small></div>').join(''):'<p class="muted">No messages from the school yet.</p>')+'</div></article>');
  }
- $('children').innerHTML=cards.join('');
+ $('children').innerHTML=(notifications.length?'<section class="section"><h3>School notifications</h3>'+notifications.map(x=>'<div class="status"><b>'+esc(x.title)+'</b><br>'+esc(x.message)+'<br><small>'+esc(new Date(x.created_at).toLocaleString())+'</small></div>').join('')+'</section>':'')+cards.join('');
 }
 function table(head,rows){return '<div class="table-wrap"><table><thead><tr>'+head.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+(rows.length?rows.map(row=>'<tr>'+row.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+head.length+'">No records available.</td></tr>')+'</tbody></table></div>'}
 init().catch(e=>status(e.message||'The portal could not load. Please refresh.'));
