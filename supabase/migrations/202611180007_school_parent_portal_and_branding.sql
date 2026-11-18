@@ -18,11 +18,6 @@ create table if not exists public.school_profiles (
 
 alter table public.school_profiles enable row level security;
 
-drop policy if exists school_profiles_public_portal_read on public.school_profiles;
-create policy school_profiles_public_portal_read
-on public.school_profiles for select to anon, authenticated
-using (portal_enabled = true);
-
 drop policy if exists school_profiles_management on public.school_profiles;
 create policy school_profiles_management
 on public.school_profiles for all to authenticated
@@ -30,7 +25,23 @@ using (public.has_business_role(business_id,array['owner','admin','manager']::pu
 with check (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]));
 
 grant select, insert, update, delete on public.school_profiles to authenticated;
-grant select on public.school_profiles to anon;
+
+-- Expose only the requested school's public name and crest, never a directory of tenant IDs.
+create or replace function public.school_get_public_portal_profile(p_portal_code uuid)
+returns table (business_id uuid, school_name text, crest_url text, portal_enabled boolean)
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select sp.business_id, sp.school_name, sp.crest_url, sp.portal_enabled
+  from public.school_profiles sp
+  where sp.portal_code = p_portal_code
+    and sp.portal_enabled = true
+  limit 1;
+$;
+revoke all on function public.school_get_public_portal_profile(uuid) from public;
+grant execute on function public.school_get_public_portal_profile(uuid) to anon, authenticated;
 
 -- Allow linked guardians to read only their children's core records.
 drop policy if exists school_students_guardian_read on public.school_students;
