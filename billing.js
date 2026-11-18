@@ -115,6 +115,43 @@
       if(invoiceResult.error)throw invoiceResult.error;
       const plans=planResult.data?.length?planResult.data:plansFallback;
       const sub=subResult.data, invoices=invoiceResult.data||[];
+      // The permanent owner exemption is recognized only for the designated
+      // platform workspace AND its verified database exemption flag.
+      const ownerExempt = active.id === '50b69fb6-688c-4f28-8755-12cb5c34dc77' && sub?.subscription_exempt === true;
+      if(ownerExempt) {
+        view.innerHTML=`
+          <div class="wl-billing-hero">
+            <h1>Plans & Billing</h1>
+            <p>Billing status for <b>${esc(active.name)}</b>.</p>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h3>Platform owner subscription</h3>
+                <div class="panel-sub">Permanent owner entitlement verified from your workspace subscription record</div>
+              </div>
+              <span class="wl-billing-status active">Lifetime exempt</span>
+            </div>
+            <div class="report-cards">
+              <div class="report-box"><small>Workspace classification</small><b>Platform Owner</b></div>
+              <div class="report-box"><small>Subscription entitlement</small><b>Lifetime Exempt</b></div>
+              <div class="report-box"><small>Payment required</small><b>No</b></div>
+              <div class="report-box"><small>Subscription expiry</small><b>Never</b></div>
+              <div class="report-box"><small>Current plan</small><b>${esc(plans.find(p=>p.code===sub.plan_code)?.name||sub.plan_code||'Professional')}</b></div>
+              <div class="report-box"><small>Access status</small><b>Always active</b></div>
+            </div>
+            <div class="wl-billing-note" style="background:#eaf7ef;border-color:#ccebd8;color:#17633c">
+              White lion Tech Solutions is the White Lion platform owner's workspace. No subscription purchase, renewal, invoice or payment is required. This exemption does not apply to customer workspaces.
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Customer subscription operations</h3>
+            <p class="panel-sub">Your platform's customer billing controls remain available through the developer billing console. Other businesses continue to follow their assigned plans, trials, payment verification and expiry rules.</p>
+          </div>
+          <div id="wlBillingDeveloper"></div>`;
+        await renderDeveloperOverview(sb);
+        return;
+      }
       const currency=selectedCurrency,cycle=selectedCycle;
       const trialEndsAt=sub?.status==='trial'&&sub.trial_ends_at?new Date(sub.trial_ends_at):null;
       const trialDaysLeft=trialEndsAt?Math.max(0,Math.ceil((trialEndsAt.getTime()-Date.now())/86400000)):0;
@@ -189,6 +226,7 @@
     }
   }
   async function requestPlan(code,businessId) {
+    if(businessId === '50b69fb6-688c-4f28-8755-12cb5c34dc77'){toast('White lion Tech Solutions has a permanent platform owner exemption. No payment is required.');return;}
     const sb=client();if(!sb)return;
     const button=document.querySelector('[data-request-plan="'+CSS.escape(code)+'"]');
     if(button){button.disabled=true;button.textContent='Creating invoice…'}
