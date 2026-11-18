@@ -44,33 +44,42 @@ revoke all on function public.school_get_public_portal_profile(uuid) from public
 grant execute on function public.school_get_public_portal_profile(uuid) to anon, authenticated;
 
 -- Allow linked guardians to read only their children's core records.
+-- Student profile data is returned through a narrowly scoped RPC so guardians
+-- cannot query private student columns such as internal notes or contact details.
 drop policy if exists school_students_guardian_read on public.school_students;
-create policy school_students_guardian_read
-on public.school_students for select to authenticated
-using (
-  exists (
-    select 1 from public.school_guardian_links gl
-    where gl.business_id = school_students.business_id
-      and gl.student_id = school_students.id
-      and gl.guardian_user_id = auth.uid()
-      and gl.is_active = true
-  )
-);
-
 drop policy if exists school_classes_guardian_read on public.school_classes;
-create policy school_classes_guardian_read
-on public.school_classes for select to authenticated
-using (
-  exists (
-    select 1 from public.school_students st
-    join public.school_guardian_links gl
-      on gl.business_id = st.business_id and gl.student_id = st.id
-    where st.business_id = school_classes.business_id
-      and st.class_id = school_classes.id
-      and gl.guardian_user_id = auth.uid()
-      and gl.is_active = true
-  )
-);
+
+create or replace function public.school_get_linked_students(p_business_id uuid)
+returns table (
+  id uuid,
+  admission_number text,
+  first_name text,
+  last_name text,
+  status text,
+  class_name text,
+  relationship text,
+  can_view_attendance boolean,
+  can_view_results boolean,
+  can_view_fees boolean
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select st.id, st.admission_number, st.first_name, st.last_name, st.status,
+         cl.name, gl.relationship, gl.can_view_attendance, gl.can_view_results, gl.can_view_fees
+  from public.school_guardian_links gl
+  join public.school_students st
+    on st.id = gl.student_id and st.business_id = gl.business_id
+  left join public.school_classes cl
+    on cl.id = st.class_id and cl.business_id = st.business_id
+  where gl.business_id = p_business_id
+    and gl.guardian_user_id = auth.uid()
+    and gl.is_active = true;
+$$;
+revoke all on function public.school_get_linked_students(uuid) from public;
+grant execute on function public.school_get_linked_students(uuid) to authenticated;
 
 drop policy if exists school_attendance_guardian_read on public.school_attendance;
 create policy school_attendance_guardian_read
