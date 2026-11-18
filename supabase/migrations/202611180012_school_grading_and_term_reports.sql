@@ -73,6 +73,7 @@ declare
   v_score numeric(8,2);
   v_position integer;
   v_report_id uuid;
+  v_existing_published boolean;
   v_default_count integer;
 begin
   if auth.uid() is null then raise exception 'Sign in required'; end if;
@@ -184,28 +185,31 @@ begin
     where gb.business_id=v_business_id and v_score between gb.min_percentage and gb.max_percentage
     order by gb.sort_order limit 1;
 
-    select rank() over (order by z.score desc nulls last)::integer into v_position
+    select ranked.student_rank into v_position
     from (
-      select st2.id,
-        case when sum(ex2.max_score)>0 then sum(er2.score)/sum(ex2.max_score)*100 else null end as score
-      from public.school_students st2
-      left join public.school_exam_results er2
-        on er2.student_id=st2.id and er2.business_id=st2.business_id
-      left join public.school_exams ex2
-        on ex2.id=er2.exam_id and ex2.business_id=er2.business_id
-        and ex2.class_id=p_class_id and ex2.term_id=p_term_id
-      where st2.business_id=v_business_id and st2.class_id=p_class_id and st2.status='active'
-      group by st2.id
-    ) z
-    where z.id=v_student.id;
+      select z.id, rank() over (order by z.score desc nulls last)::integer as student_rank
+      from (
+        select st2.id,
+          case when sum(ex2.max_score)>0 then sum(er2.score)/sum(ex2.max_score)*100 else null end as score
+        from public.school_students st2
+        left join public.school_exam_results er2
+          on er2.student_id=st2.id and er2.business_id=st2.business_id
+        left join public.school_exams ex2
+          on ex2.id=er2.exam_id and ex2.business_id=er2.business_id
+          and ex2.class_id=p_class_id and ex2.term_id=p_term_id
+        where st2.business_id=v_business_id and st2.class_id=p_class_id and st2.status='active'
+        group by st2.id
+      ) z
+    ) ranked
+    where ranked.id=v_student.id;
 
-    select id,published into v_report_id, v_student.published
+    select id,published into v_report_id, v_existing_published
     from public.school_report_cards
     where business_id=v_business_id and student_id=v_student.id
       and academic_year_id=p_academic_year_id and term_id=p_term_id
     order by created_at desc limit 1;
 
-    if v_report_id is not null and v_student.published then
+    if v_report_id is not null and v_existing_published then
       v_skipped := v_skipped + 1;
       continue;
     end if;
