@@ -3,6 +3,7 @@
   const SUPABASE_URL = 'https://nclncqlgnxnijlumznnt.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
   const $ = (id) => document.getElementById(id);
+  const sortBusinessesByName = (items) => [...(items || [])].sort((a,b) => String(a?.name || '').localeCompare(String(b?.name || ''), undefined, {sensitivity:'base', numeric:true}));
   window.__wlCloudScriptLoaded = true;
   // Use document-level delegation so authentication remains clickable even if
   // optional workspace/developer UI mounting fails or replaces button elements.
@@ -340,12 +341,13 @@
       .eq('user_id', session.user.id).eq('is_active', true);
     if (error) return say('Could not load workspaces: ' + error.message);
     document.querySelector('.app')?.classList.remove('wl-public-mode');
-    const businesses = (memberships || []).map(m => ({...m.businesses, role:m.role})).filter(b => b.id);
+    const businesses = sortBusinessesByName((memberships || []).map(m => ({...m.businesses, role:m.role})).filter(b => b.id));
+    const previouslySelectedId = activeBusiness?.id;
     window.__wlBusinesses = businesses;
     $('wlBusinessSelect').innerHTML = businesses.length
       ? businesses.map(b => `<option value="${b.id}">${esc(b.name)} — ${esc(b.role)}</option>`).join('')
       : '<option value="">No business workspace yet</option>';
-    if (businesses.length) await selectBusiness(businesses[0]);
+    if (businesses.length) await selectBusiness(businesses.find(b => b.id === previouslySelectedId) || businesses[0]);
     else say('Signed in. Create your first business workspace.');
   }
   async function createBranch() {
@@ -470,7 +472,7 @@
     status.textContent = 'Checking developer authorization and loading platform data…';
     const { data, error } = await client.rpc('get_platform_dashboard');
     if (error) { status.textContent = 'Developer database setup required: ' + error.message; return; }
-    window.__wlPlatformBusinesses = Array.isArray(data.businesses) ? data.businesses : [];
+    window.__wlPlatformBusinesses = sortBusinessesByName(Array.isArray(data.businesses) ? data.businesses : []);
     populateDeveloperInviteBusinesses();
     populateDeveloperRoleForm();
     const maintenance = data.maintenance || {enabled:false};
@@ -818,7 +820,7 @@
     const select = $('wlDevInviteBusiness');
     if (!select) return;
     const current = select.value;
-    const businesses = window.__wlPlatformBusinesses || [];
+    const businesses = sortBusinessesByName(window.__wlPlatformBusinesses || []);
     select.innerHTML = '<option value="">Choose a business workspace…</option>' + businesses.map(b => '<option value="' + esc(b.id) + '">' + esc(b.name) + ' · ' + esc(b.owner_email || 'Owner unknown') + '</option>').join('');
     if (businesses.some(b => b.id === current)) select.value = current;
   }
