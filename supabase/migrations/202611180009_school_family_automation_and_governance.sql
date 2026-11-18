@@ -210,6 +210,130 @@ for each row
 when (new.published = true)
 execute function public.school_notify_guardians_report_card();
 
+
+-- Notify linked guardians when a fee invoice is issued.
+create or replace function public.school_notify_guardians_fee_invoice()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  v_student_name text;
+begin
+  select concat_ws(' ',first_name,last_name) into v_student_name
+  from public.school_students
+  where id = new.student_id and business_id = new.business_id;
+
+  insert into public.school_notifications (
+    business_id, recipient_user_id, title, message, channel, sent_at
+  )
+  select
+    gl.business_id, gl.guardian_user_id, 'New school fee invoice',
+    'A fee invoice (' || new.invoice_number || ') for ' ||
+      coalesce(v_student_name,'your child') || ' has been issued. Amount: SLE ' ||
+      to_char(new.amount,'FM999,999,990.00') || '.',
+    'in_app', now()
+  from public.school_guardian_links gl
+  where gl.business_id = new.business_id
+    and gl.student_id = new.student_id
+    and gl.is_active and gl.can_view_fees;
+
+  return new;
+end;
+$;
+
+drop trigger if exists school_fee_invoice_guardian_notification on public.school_fee_invoices;
+create trigger school_fee_invoice_guardian_notification
+after insert on public.school_fee_invoices
+for each row execute function public.school_notify_guardians_fee_invoice();
+
+-- Notify linked guardians when a fee payment is recorded.
+create or replace function public.school_notify_guardians_fee_payment()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  v_student_id uuid;
+  v_student_name text;
+  v_invoice_number text;
+begin
+  select inv.student_id, inv.invoice_number,
+         concat_ws(' ',st.first_name,st.last_name)
+  into v_student_id, v_invoice_number, v_student_name
+  from public.school_fee_invoices inv
+  join public.school_students st
+    on st.id = inv.student_id and st.business_id = inv.business_id
+  where inv.id = new.invoice_id and inv.business_id = new.business_id;
+
+  if v_student_id is null then return new; end if;
+
+  insert into public.school_notifications (
+    business_id, recipient_user_id, title, message, channel, sent_at
+  )
+  select
+    gl.business_id, gl.guardian_user_id, 'School fee payment received',
+    'A payment of SLE ' || to_char(new.amount,'FM999,999,990.00') ||
+      ' has been recorded for ' || coalesce(v_student_name,'your child') ||
+      ' (invoice ' || coalesce(v_invoice_number,'') || '). Receipt: ' || new.receipt_number || '.',
+    'in_app', now()
+  from public.school_guardian_links gl
+  where gl.business_id = new.business_id
+    and gl.student_id = v_student_id
+    and gl.is_active and gl.can_view_fees;
+
+  return new;
+end;
+$;
+
+drop trigger if exists school_fee_payment_guardian_notification on public.school_fee_payments;
+create trigger school_fee_payment_guardian_notification
+after insert on public.school_fee_payments
+for each row execute function public.school_notify_guardians_fee_payment();
+
+-- Notify linked guardians when a new examination result is entered.
+create or replace function public.school_notify_guardians_exam_result()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  v_exam_title text;
+  v_student_name text;
+begin
+  select ex.title, concat_ws(' ',st.first_name,st.last_name)
+  into v_exam_title, v_student_name
+  from public.school_exams ex
+  join public.school_students st
+    on st.id = new.student_id and st.business_id = new.business_id
+  where ex.id = new.exam_id and ex.business_id = new.business_id;
+
+  insert into public.school_notifications (
+    business_id, recipient_user_id, title, message, channel, sent_at
+  )
+  select
+    gl.business_id, gl.guardian_user_id, 'Examination result updated',
+    'A result for ' || coalesce(v_student_name,'your child') ||
+      ' in ' || coalesce(v_exam_title,'an examination') ||
+      ' has been recorded. Sign in to the parent portal to view it.',
+    'in_app', now()
+  from public.school_guardian_links gl
+  where gl.business_id = new.business_id
+    and gl.student_id = new.student_id
+    and gl.is_active and gl.can_view_results;
+
+  return new;
+end;
+$;
+
+drop trigger if exists school_exam_result_guardian_notification on public.school_exam_results;
+create trigger school_exam_result_guardian_notification
+after insert or update of score, remarks on public.school_exam_results
+for each row execute function public.school_notify_guardians_exam_result();
+
 -- School managers can inspect the school-specific audit trail.
 alter table public.school_audit_events enable row level security;
 drop policy if exists school_audit_events_management_read on public.school_audit_events;
