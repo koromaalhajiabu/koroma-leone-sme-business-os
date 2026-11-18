@@ -15,7 +15,7 @@ begin
       add constraint school_exams_subject_business_fk
       foreign key (subject_id,business_id)
       references public.school_subjects(id,business_id)
-      on delete set null;
+      on delete set null (subject_id);
   end if;
 end $$;
 
