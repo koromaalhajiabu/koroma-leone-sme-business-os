@@ -1,12 +1,14 @@
 /* White Lion SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='white-lion-sme-v207';
+const CACHE_NAME='white-lion-sme-v208';
 const APP_SHELL=[
   './',
   './index.html',
   './login-premium.css?v=3',
   './workspace-polish.css?v=3',
-  './school-management.js?v=20',
+  './school-management.js?v=21',
   './parent-portal.html',
+  './teacher-portal.html',
+  './teacher-portal.js?v=1',
   './parent-portal.webmanifest?v=1',
   './parent-portal.js?v=4',
   './storefront-admin.js?v=2',
@@ -86,6 +88,10 @@ self.addEventListener('fetch', event => {
       if (request.mode === 'navigate' && /\/parent-portal\.html$/i.test(url.pathname)) {
         const parentPage = await cache.match('./parent-portal.html', {ignoreSearch:true});
         return parentPage || Response.error();
+      }
+      if (request.mode === 'navigate' && /\/teacher-portal\.html$/i.test(url.pathname)) {
+        const teacherPage = await cache.match('./teacher-portal.html', {ignoreSearch:true});
+        return teacherPage || Response.error();
       }
       // Keep the public leagues app on its own entry page, including offline launches.
       if (request.mode === 'navigate' && /\/public-leagues\.html$/i.test(url.pathname)) {
