@@ -50,6 +50,31 @@ create policy school_grade_bands_management_write
   with check (public.has_business_role(business_id,array['owner','admin','manager']::public.business_role[]));
 grant select,insert,update,delete on public.school_grade_bands to authenticated;
 
+create or replace function public.school_check_grade_band_overlap()
+returns trigger
+language plpgsql
+set search_path = public
+as $
+begin
+  if exists (
+    select 1 from public.school_grade_bands gb
+    where gb.business_id=new.business_id
+      and gb.id is distinct from new.id
+      and numrange(gb.min_percentage,gb.max_percentage,'[]')
+          && numrange(new.min_percentage,new.max_percentage,'[]')
+  ) then
+    raise exception 'Grade percentage ranges cannot overlap within the same school';
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists school_grade_band_no_overlap on public.school_grade_bands;
+create trigger school_grade_band_no_overlap
+before insert or update of business_id,min_percentage,max_percentage
+on public.school_grade_bands
+for each row execute function public.school_check_grade_band_overlap();
+
 create or replace function public.school_generate_term_report_cards(
   p_class_id uuid,
   p_academic_year_id uuid,
@@ -92,6 +117,13 @@ begin
   where id = p_term_id and business_id = v_business_id
     and academic_year_id = p_academic_year_id;
   if not found then raise exception 'Selected term does not belong to the selected academic year'; end if;
+
+  if not exists (
+    select 1 from public.school_exams
+    where business_id=v_business_id and class_id=p_class_id and term_id=p_term_id
+  ) then
+    raise exception 'No examinations are linked to this class and term. Add or edit examinations and select the correct academic term first.';
+  end if;
 
   if not exists (
     select 1 from public.school_academic_years
