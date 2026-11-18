@@ -33,13 +33,13 @@ language sql
 stable
 security definer
 set search_path = public
-as $
+as $$
   select sp.business_id, sp.school_name, sp.crest_url, sp.portal_enabled
   from public.school_profiles sp
   where sp.portal_code = p_portal_code
     and sp.portal_enabled = true
   limit 1;
-$;
+$$;
 revoke all on function public.school_get_public_portal_profile(uuid) from public;
 grant execute on function public.school_get_public_portal_profile(uuid) to anon, authenticated;
 
