@@ -12,10 +12,9 @@ function money(v){return new Intl.NumberFormat('en-SL',{style:'currency',currenc
 async function init(){
  if(!client){status('Secure connection could not start. Please refresh this page.');return}
  if(!portalCode){$('authCard').innerHTML='<h2>School portal link incomplete</h2><p class="muted">Please request the official parent portal link from your school administration.</p>';return}
- const p=await client.from('school_profiles').select('business_id,school_name,crest_url,portal_enabled').eq('portal_code',portalCode).maybeSingle();
- if(p.error||!p.data){$('authCard').innerHTML='<h2>School portal not found</h2><p class="muted">Check the link provided by your school administration.</p>';return}
- profile=p.data;
- if(!profile.portal_enabled){$('authCard').innerHTML='<h2>Parent portal temporarily unavailable</h2><p class="muted">Please contact the school administration.</p>';return}
+ const p=await client.rpc('school_get_public_portal_profile',{p_portal_code:portalCode});
+ if(p.error||!p.data||!p.data.length){$('authCard').innerHTML='<h2>School portal not found or disabled</h2><p class="muted">Check the link provided by your school administration.</p>';return}
+ profile=p.data[0];
  $('schoolName').textContent=profile.school_name||'Parent & Guardian Portal';
  if(profile.crest_url)$('schoolCrest').innerHTML='<img src="'+esc(profile.crest_url)+'" alt="School crest">';
  const s=await client.auth.getSession();session=s.data.session;
