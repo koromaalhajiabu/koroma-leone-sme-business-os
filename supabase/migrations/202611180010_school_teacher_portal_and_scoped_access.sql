@@ -46,6 +46,9 @@ begin
   if v_staff.staff_category <> 'teaching' then
     raise exception 'Only teaching staff can be linked to the teacher portal';
   end if;
+  if v_staff.employment_status <> 'active' then
+    raise exception 'Only active staff can be linked to the teacher portal';
+  end if;
   if coalesce(trim(v_staff.email),'') = '' then
     raise exception 'Add the teacher email address to the staff record first';
   end if;
@@ -61,6 +64,14 @@ begin
   end if;
   if v_staff.user_id is not null and v_staff.user_id <> v_user_id then
     raise exception 'This staff record is already linked to a different account. Contact the school administrator.';
+  end if;
+
+  if exists (
+    select 1 from public.school_memberships sm
+    where sm.business_id=v_staff.business_id and sm.user_id=v_user_id
+      and sm.school_role not in ('teacher','support')
+  ) then
+    raise exception 'This account already has another school role. Use a separate verified teacher account.';
   end if;
 
   update public.school_staff set user_id = v_user_id where id = p_staff_id;
