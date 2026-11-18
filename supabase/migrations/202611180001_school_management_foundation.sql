@@ -39,7 +39,7 @@ create table if not exists public.school_students (
  updated_at timestamptz not null default now(),
  unique(id,business_id),
  unique(business_id,admission_number),
- foreign key(class_id,business_id) references public.school_classes(id,business_id) on delete set null
+ foreign key(class_id,business_id) references public.school_classes(id,business_id) on delete restrict
 );
 
 create table if not exists public.school_subjects (
