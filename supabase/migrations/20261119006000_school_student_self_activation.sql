@@ -8,6 +8,26 @@ create index if not exists school_students_business_student_email_lookup
   on public.school_students (business_id, lower(student_email))
   where student_email is not null;
 
+create or replace function public.school_student_portal_enabled(p_portal_code text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select exists (
+    select 1
+    from public.school_profiles sp
+    join public.school_classes sc on sc.business_id = sp.business_id
+    where sp.portal_code = p_portal_code
+      and coalesce(sp.portal_enabled,true) = true
+      and lower(coalesce(sc.education_level::text,'')) in ('junior_secondary','senior_secondary')
+  );
+$;
+
+revoke all on function public.school_student_portal_enabled(text) from public;
+grant execute on function public.school_student_portal_enabled(text) to anon, authenticated;
+
 create or replace function public.school_set_student_portal_email(
   p_student_id uuid,
   p_student_email text
@@ -19,6 +39,7 @@ as $$
 declare
   v_student public.school_students%rowtype;
   v_email text;
+  v_education_level text;
 begin
   if auth.uid() is null then raise exception 'Sign in required'; end if;
   v_email := lower(trim(coalesce(p_student_email,'')));
@@ -30,6 +51,11 @@ begin
   where id = p_student_id
   for update;
   if not found then raise exception 'Student record not found'; end if;
+  select lower(coalesce(sc.education_level::text,'')) into v_education_level
+  from public.school_classes sc where sc.id = v_student.class_id;
+  if coalesce(v_education_level,'') not in ('junior_secondary','senior_secondary') then
+    raise exception 'Student Portal email registration is only available for Junior and Senior Secondary students';
+  end if;
   if not public.has_business_role(v_student.business_id,array['owner','admin','manager']::public.business_role[]) then
     raise exception 'Only authorised school administrators can update student portal emails';
   end if;
