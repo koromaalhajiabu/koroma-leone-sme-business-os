@@ -28,26 +28,45 @@ async function load(){
  const user=(await client.auth.getUser()).data.user;
  if(user?.user_metadata?.must_change_password){$('dashboard').classList.add('hidden');$('passwordCard').classList.remove('hidden')}
 }
+async function activateStudent(admissionNumber){
+ if(!admissionNumber)throw new Error('Enter your Student ID to link your verified account.');
+ const {data,error}=await client.rpc('school_activate_student_account',{p_portal_code:portalCode,p_admission_number:admissionNumber.trim()});
+ if(error)throw error;
+ return data;
+}
 async function init(){
  if(!portalCode){msg('loginStatus','Your school portal link is incomplete. Ask the school for its official Student Portal link.');$('loginForm').querySelector('button').disabled=true;$('signUpBtn').disabled=true;return}
  const p=await client.rpc('school_get_public_portal_profile',{p_portal_code:portalCode});
  if(p.error||!p.data?.length){msg('loginStatus','This school portal could not be found or is disabled.');$('loginForm').querySelector('button').disabled=true;$('signUpBtn').disabled=true;return}
  profile=p.data[0];$('schoolName').textContent=profile.school_name||'Student Portal';
- const session=await client.auth.getSession();if(session.data.session){try{await load()}catch(e){msg('loginStatus','Your account is not linked to a student record yet. Please give your verified sign-up email to the school administrator. Details: '+e.message)}}
+ const session=await client.auth.getSession();
+ if(session.data.session){
+   const admission=params.get('student');
+   if(admission){await activateStudent(admission);params.delete('student');history.replaceState({},'',location.pathname+'?'+params.toString())}
+   try{await load()}catch(e){msg('loginStatus','Your account is not linked to an active student record. Sign in with your school Student ID and registered email, or contact the school administration. Details: '+e.message)}
+ }
 }
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();const b=$('loginBtn');b.disabled=true;msg('loginStatus','Signing in securely…');
- try{const r=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(r.error)throw r.error;await load();msg('loginStatus','Signed in successfully.')}
- catch(err){msg('loginStatus',err.message||'Sign-in failed.')}
+ try{
+  const admission=$('studentId').value.trim(),email=$('email').value.trim(),password=$('password').value;
+  if(!admission)throw new Error('Enter your Student ID.');
+  const r=await client.auth.signInWithPassword({email,password});if(r.error)throw r.error;
+  await activateStudent(admission);await load();msg('loginStatus','Signed in successfully.');
+ }catch(err){msg('loginStatus',err.message||'Sign-in failed.')}
  finally{b.disabled=false}
 });
 $('signUpBtn').addEventListener('click',async()=>{
- const email=$('email').value.trim(),password=$('password').value;
- if(!email||password.length<8){msg('loginStatus','Enter your email address and a password of at least 8 characters, then tap Create account.');return}
+ const admission=$('studentId').value.trim(),email=$('email').value.trim(),password=$('password').value;
+ if(!admission||!email||password.length<8){msg('loginStatus','Enter your Student ID, your own email address, and a password of at least 8 characters.');return}
  const b=$('signUpBtn');b.disabled=true;msg('loginStatus','Creating your student account…');
- try{const r=await client.auth.signUp({email,password,options:{emailRedirectTo:location.href}});if(r.error)throw r.error;
- if(r.data.session){try{await load()}catch(e){msg('loginStatus','Account created. Your email is registered; verify it if requested, then give this exact email address to the school administrator to link your student record.')}}else msg('loginStatus','Account created. Check your email and verify it, then give this exact email address to the school administrator to link your student record.')}
- catch(err){msg('loginStatus',err.message||'Account creation failed.')}
+ try{
+  const callback=new URL(location.href);callback.searchParams.set('student',admission);
+  const r=await client.auth.signUp({email,password,options:{emailRedirectTo:callback.href}});
+  if(r.error)throw r.error;
+  if(r.data.session){await activateStudent(admission);await load();msg('loginStatus','Your student account is active.')}
+  else msg('loginStatus','Account created. Open the verification email sent to your own email address. When you tap its link, your Student ID will be linked automatically. If the verification link opens on another device, sign in there using your Student ID, email and password.');
+ }catch(err){msg('loginStatus',err.message||'Account creation failed.')}
  finally{b.disabled=false}
 });
 $('passwordForm').addEventListener('submit',async e=>{
