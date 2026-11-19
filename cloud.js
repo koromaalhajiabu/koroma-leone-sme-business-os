@@ -541,7 +541,7 @@
     $('wlDevStats').textContent = 'Businesses: ' + data.business_count + ' · Suspended: ' + data.suspended_count + ' · Frozen: ' + Number(data.frozen_count || 0) + ' · Registered accounts: ' + data.user_count + ' · Platform mode: ' + (maintenance.enabled ? 'MAINTENANCE' : 'LIVE');
     $('wlDevFreeze').textContent = maintenance.enabled ? 'Unfreeze platform' : 'Freeze platform';
     $('wlDevFreeze').className = maintenance.enabled ? '' : 'danger';
-    $('wlDevBusinesses').innerHTML = (data.businesses || []).map(b => {
+    $('wlDevBusinesses').innerHTML = (window.__wlPlatformBusinesses || []).map(b => {
       const ownerWorkspace = b.id === '50b69fb6-688c-4f28-8755-12cb5c34dc77';
       const subscription = [b.subscription_plan, b.subscription_status].filter(Boolean).join(' · ') || 'No subscription record';
       return `
@@ -1125,7 +1125,7 @@
     {label:"Automotive and transport", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","accounting","transport","fleet","services"], items:["Fuel station","Car dealership","Vehicle spare-parts dealer","Auto repair workshop","Tyre shop","Car wash business","Vehicle rental company","Transport and logistics company","Delivery business"]},
     {label:"Construction and industrial", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","accounting","manufacturing","projects"], items:["Construction company","Building contractor","Hardware wholesaler","Cement distributor","Sand and gravel supplier","Steel and iron merchant","Furniture manufacturer","Manufacturing company","Industrial equipment supplier","Welding and fabrication workshop"]},
     {label:"Professional and personal services", modules:["sales_pos","customers","suppliers","expenses","employees","accounting","services","appointments","projects"], items:["Hair salon","Barbershop","Beauty salon","Spa","Laundry and dry-cleaning business","Cleaning company","Security service company","Repair and maintenance company","Computer repair shop","Printing business","Photography studio","Consultancy firm","Marketing and advertising agency"]},
-    {label:"Education and training", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","employees","accounting","school"], items:["Private school","Training centre","Vocational institution","Computer training centre","Driving school","Educational supply shop","Bookshop and learning-material distributor"]},
+    {label:"Education and training", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","employees","accounting","school"], items:["Private school","School (School Management System)","Training centre","Vocational institution","Computer training centre","Driving school","Educational supply shop","Bookshop and learning-material distributor"]},
     {label:"Agriculture and fisheries", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","accounting","manufacturing"], items:["Farm business","Poultry farm","Livestock business","Fish farm","Fishing supply business","Agricultural produce wholesaler","Food processing business"]},
     {label:"Property and rental", modules:["customers","suppliers","expenses","accounting","property","projects","services"], items:["Real estate agency","Property management company","Equipment rental business","Vehicle hire business","Event equipment rental company","Property maintenance company"]},
     {label:"Financial and administrative services", modules:["customers","expenses","employees","accounting","compliance","services"], items:["Accounting and bookkeeping firm","Insurance agency","Microfinance business","Cooperative society","Business administration service provider"]},
@@ -1140,11 +1140,14 @@
       const modal = document.createElement('div');
       modal.id = 'wlIndustrySetupModal';
       modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(7,17,32,.72);display:flex;align-items:center;justify-content:center;padding:14px;font-family:inherit';
-      const groups = WL_INDUSTRY_GROUPS.map(group =>
-        '<optgroup label="' + esc(group.label) + '">' +
-        group.items.map(item => '<option value="' + esc(item) + '">' + esc(item) + '</option>').join('') +
-        '</optgroup>'
-      ).join('');
+      const groups = [...WL_INDUSTRY_GROUPS]
+        .sort((a,b) => a.label.localeCompare(b.label, undefined, {sensitivity:'base'}))
+        .map(group =>
+          '<optgroup label="' + esc(group.label) + '">' +
+          [...group.items].sort((a,b) => a.localeCompare(b, undefined, {sensitivity:'base', numeric:true}))
+            .map(item => '<option value="' + esc(item) + '">' + esc(item) + '</option>').join('') +
+          '</optgroup>'
+        ).join('');
       modal.innerHTML = '<form id="wlIndustrySetupForm" style="width:min(520px,100%);max-height:92vh;overflow:auto;background:#fff;color:#17243a;border-radius:18px;padding:22px;box-shadow:0 25px 80px #0005">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:5px"><h2 style="margin:0;font-size:19px">Register a business</h2><button type="button" id="wlIndustrySetupClose" aria-label="Close" style="border:0;border-radius:8px;padding:7px 11px;background:#eef1f5;font-size:18px">×</button></div>' +
         '<p style="margin:0 0 16px;color:#748197;font-size:12px">Choose the business type. White Lion SME will activate the recommended modules for this workspace.</p>' +
