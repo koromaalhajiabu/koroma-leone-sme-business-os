@@ -23,14 +23,16 @@ Deno.serve(async(req)=>{
    if(!p?.portal_enabled)return reply({error:"School portal unavailable."},404);
    const {data:s,error:se}=await admin.from("school_students").select("id,first_name,last_name,admission_number,status,user_id,portal_activation_code").eq("business_id",p.business_id).eq("admission_number",admission).maybeSingle();
    const norm=(v:any)=>String(v||"").trim().replace(/\\s+/g," ").toLowerCase();
-   if(se||!s||s.status!=="active"||s.user_id||!s.portal_activation_code||String(s.portal_activation_code).toUpperCase()!==activation||norm(s.first_name+" "+s.last_name)!==norm(fullName))return reply({error:"Student ID, name or activation code is incorrect, or the code has already been used."},401);
+   if(se||!s||s.status!=="active"||s.user_id||norm(s.first_name+" "+s.last_name)!==norm(fullName))return reply({error:"Student ID, name or activation code is incorrect, or the code has already been used."},401);
+   const {data:codeRow,error:codeError}=await admin.from("school_student_portal_activation_codes").select("activation_code").eq("business_id",p.business_id).eq("student_id",s.id).maybeSingle();
+   if(codeError||!codeRow||String(codeRow.activation_code).toUpperCase()!==activation)return reply({error:"The one-time activation code is incorrect or has already been used."},401);
    const email="student-"+s.id+"@student-login.whitelion.invalid";
    const {data:created,error:ce}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:s.first_name+" "+s.last_name,account_type:"school_student",student_id:s.id,must_change_password:false}});
    if(ce||!created.user)return reply({error:ce?.message||"Could not create student account."},409);
-   const {data:linked,error:le}=await admin.from("school_students").update({user_id:created.user.id,portal_activation_code:null}).eq("id",s.id).is("user_id",null).eq("portal_activation_code",s.portal_activation_code).select("id").maybeSingle();
+   const {data:linked,error:le}=await admin.from("school_students").update({user_id:created.user.id}).eq("id",s.id).is("user_id",null).select("id").maybeSingle();
    if(le||!linked){await admin.auth.admin.deleteUser(created.user.id);return reply({error:"Activation code already used. Please sign in instead."},409);}
-   const {error:me}=await admin.from("school_memberships").upsert({business_id:p.business_id,user_id:created.user.id,school_role:"student",is_active:true},{onConflict:"business_id,user_id"});
-   if(me){await admin.from("school_students").update({user_id:null,portal_activation_code:s.portal_activation_code}).eq("id",s.id).eq("user_id",created.user.id);await admin.auth.admin.deleteUser(created.user.id);return reply({error:"Account setup failed: "+me.message},500);}
+   const {error:consumeError}=await admin.from("school_student_portal_activation_codes").delete().eq("student_id",s.id).eq("activation_code",codeRow.activation_code);\n   if(consumeError){await admin.from("school_students").update({user_id:null}).eq("id",s.id).eq("user_id",created.user.id);await admin.auth.admin.deleteUser(created.user.id);return reply({error:"Could not consume the activation code. Please try again."},500);}\n   const {error:me}=await admin.from("school_memberships").upsert({business_id:p.business_id,user_id:created.user.id,school_role:"student",is_active:true},{onConflict:"business_id,user_id"});
+   if(me){await admin.from("school_students").update({user_id:null}).eq("id",s.id).eq("user_id",created.user.id);await admin.auth.admin.deleteUser(created.user.id);return reply({error:"Account setup failed: "+me.message},500);}
    return reply({ok:true,email,student_name:s.first_name+" "+s.last_name});
   }
   const token=(req.headers.get("Authorization")||"").replace("Bearer ","");
