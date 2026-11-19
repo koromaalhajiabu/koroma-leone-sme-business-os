@@ -998,6 +998,7 @@ function showModal(title,fields,onSave){document.getElementById('modalTitle').te
 function pageHeader(title,sub,action=''){return `<div class="page-title"><div><h1>${title}</h1><p>${sub}</p></div>${action}</div>`}
 function table(headers,rows){return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows||`<tr><td colspan="${headers.length}" class="empty">No records yet. Add your first record to get started.</td></tr>`}</tbody></table></div>`}
 async function render(){
+ if(state.page==='affiliates'){if(window.WhiteLionAffiliateMarketing?.render)await window.WhiteLionAffiliateMarketing.render();else document.getElementById('view').innerHTML='<div class="panel"><h2>Affiliate Marketing is loading</h2><p class="panel-sub">The affiliate module has not finished loading. Please refresh and try again.</p></div>';return;}
  const v=document.getElementById('view');applyIndustryWording();document.getElementById('sideBusiness').textContent=state.business.name;document.getElementById('sideIndustry').textContent=state.business.industry;const ownerBadge=document.getElementById('sideOwnerBadge');const activeCloudBusiness=window.whiteLionCloud?.getActiveBusiness?.();if(ownerBadge)ownerBadge.style.display=activeCloudBusiness?.id==='50b69fb6-688c-4f28-8755-12cb5c34dc77'?'block':'none';
  // Subscription gate: keep Plans & Billing and Settings available so an expired workspace can renew.
  // If offline or the billing service is temporarily unreachable, preserve local-first operation.
