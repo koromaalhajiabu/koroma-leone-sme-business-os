@@ -10,8 +10,20 @@
   const business = () => cloud()?.getActiveBusiness?.() || null;
   const session = () => cloud()?.getSession?.() || null;
   const role = () => String(business()?.role || '').toLowerCase();
-  const canManage = () => ['owner','admin'].includes(role());
-  const isDeveloper = () => !!(session()?.user && business()?.id === '50b69fb6-688c-4f28-8755-12cb5c34dc77');
+  const canManage = () => ['owner','admin','business_owner','business_admin'].includes(role());
+  // Use the same server-side access decision as the main cloud workspace loader.
+  // Never infer platform-developer status from a business ID or browser-supplied email.
+  let developerAccess = { userId: null, value: false, checkedAt: 0 };
+  async function isDeveloper() {
+    const user = session()?.user;
+    if (!user) return false;
+    if (developerAccess.userId === user.id && Date.now() - developerAccess.checkedAt < 30000) return developerAccess.value;
+    const { data, error } = await client().rpc('get_my_platform_access_status');
+    if (error) { developerAccess = { userId: user.id, value: false, checkedAt: Date.now() }; return false; }
+    const value = data?.can_access === true && data?.is_developer === true;
+    developerAccess = { userId: user.id, value, checkedAt: Date.now() };
+    return value;
+  }
   const host = () => document.getElementById('view');
   const toast = msg => typeof window.toast === 'function' ? window.toast(msg) : alert(msg);
   const baseUrl = () => location.origin + location.pathname;
@@ -52,15 +64,15 @@
   }
   function renderOverview(data) {
     const {programs,affiliates,referrals,commissions,payouts,business:b}=data;
+    const isPlatform=await isDeveloper();
     const active=programs.filter(x=>x.status==='active').length;
     const pending=commissions.filter(x=>['pending','approved','payable'].includes(x.status)).reduce((n,x)=>n+Number(x.commission_amount||0),0);
     const paid=commissions.filter(x=>x.status==='paid').reduce((n,x)=>n+Number(x.commission_amount||0),0);
-    const isPlatform=isDeveloper();
     const my=affiliates.find(x=>x.user_id===session()?.user?.id);
     const action=canManage()||isPlatform?'<button class="btn primary" id="affiliateCreateProgram">＋ Create programme</button>':'';
-    const stats='<div class="report-kpis"><div class="report-kpi"><span>Programmes</span><b>'+programs.length+'</b><small>'+active+' active</small></div><div class="report-kpi"><span>Affiliates</span><b>'+affiliates.length+'</b><small>'+affiliates.filter(x=>x.status==='active').length+' active</small></div><div class="report-kpi"><span>Tracked referrals</span><b>'+referrals.length+'</b><small>Clicks and tracked visits</small></div><div class="report-kpi"><span>Paid commissions</span><b>'+money(paid,b?.currency||'SLE')+'</b><small>Pending / approved: '+money(pending,b?.currency||'SLE')+'</small></div></div>';
+    const stats='<div class="report-kpis"><div class="report-kpi"><span>Programmes</span><b>'+programs.length+'</b><small>'+active+' active</small></div><div class="report-kpi"><span>Affiliates</span><b>'+affiliates.length+'</b><small>'+affiliates.filter(x=>x.status==='active').length+' active</small></div><div class="report-kpi"><span>Tracked referrals</span><b>'+referrals.length+'</b><small>Clicks and tracked visits</small></div><div class="report-kpi"><span>Paid commissions</span><b>'+money(paid,b?.currency_code||'SLE')+'</b><small>Pending / approved: '+money(pending,b?.currency_code||'SLE')+'</small></div></div>';
     const programRows=programs.map(p=>'<tr><td><b>'+esc(p.program_name)+'</b><div class="panel-sub">'+(p.business_id?'Business programme':'White Lion platform programme')+'</div></td><td>'+(p.commission_type==='percentage'?Number(p.commission_value)+'%':money(p.commission_value,p.currency))+'</td><td>'+esc(p.currency)+'</td><td><span class="pill '+(p.status==='active'?'':'neutral')+'">'+esc(p.status)+'</span></td><td>'+p.cookie_days+' days</td><td><button class="btn small" data-aff-program-status="'+p.id+'" data-next="'+(p.status==='active'?'paused':'active')+'">'+(p.status==='active'?'Pause':'Activate')+'</button></td></tr>').join('');
-    const affiliateRows=affiliates.map(a=>'<tr><td><b>'+esc(a.display_name)+'</b><div class="panel-sub">'+esc(a.contact_email)+'</div></td><td><code>'+esc(a.referral_code)+'</code></td><td><span class="pill '+(a.status==='active'?'':'warn')+'">'+esc(a.status)+'</span></td><td><button class="btn small" data-aff-copy="'+esc(a.referral_code)+'">Copy link</button></td><td>'+(canManage()||isDeveloper()?'<button class="btn small" data-affiliate-status="'+a.id+'" data-next="'+(a.status==='active'?'suspended':'active')+'">'+(a.status==='pending'?'Approve':a.status==='active'?'Suspend':'Activate')+'</button>':'—')+'</td></tr>').join('');
+    const affiliateRows=affiliates.map(a=>'<tr><td><b>'+esc(a.display_name)+'</b><div class="panel-sub">'+esc(a.contact_email)+'</div></td><td><code>'+esc(a.referral_code)+'</code></td><td><span class="pill '+(a.status==='active'?'':'warn')+'">'+esc(a.status)+'</span></td><td><button class="btn small" data-aff-copy="'+esc(a.referral_code)+'">Copy link</button></td><td>'+(canManage()||isPlatform?'<button class="btn small" data-affiliate-status="'+a.id+'" data-next="'+(a.status==='active'?'suspended':'active')+'">'+(a.status==='pending'?'Approve':a.status==='active'?'Suspend':'Activate')+'</button>':'—')+'</td></tr>').join('');
     host().innerHTML=shell('Affiliate Marketing','Grow through trusted referrals. Track performance and commissions for '+esc(b?.name||'your workspace')+'.',stats+
       '<div class="panel"><div class="panel-head"><div><h3>Affiliate programmes</h3><div class="panel-sub">Each programme belongs to one business or to the White Lion platform.</div></div>'+action+'</div>'+ (programRows?'<div class="table-wrap"><table><thead><tr><th>Programme</th><th>Commission</th><th>Currency</th><th>Status</th><th>Attribution</th><th>Manage</th></tr></thead><tbody>'+programRows+'</tbody></table></div>':'<div class="empty">No affiliate programme exists yet. Create one to get started.</div>')+'</div>'+
       '<div class="panel"><div class="panel-head"><div><h3>Affiliate partners</h3><div class="panel-sub">Approved partners can share their unique referral links.</div></div><button class="btn" id="affiliateJoin">＋ Join a programme</button></div>'+(affiliateRows?'<div class="table-wrap"><table><thead><tr><th>Affiliate</th><th>Referral code</th><th>Status</th><th>Referral</th><th>Manage</th></tr></thead><tbody>'+affiliateRows+'</tbody></table></div>':'<div class="empty">No affiliate partners registered yet.</div>')+'</div>'+
@@ -81,7 +93,8 @@
   }
   async function createProgram() {
     const b=business(),sb=client();if(!sb)return;
-    const name=prompt('Programme name');if(!name?.trim())return;const platformProgram=isDeveloper()&&confirm('Create this as a White Lion platform-wide programme? Choose Cancel for the selected business only.');
+    const developer=await isDeveloper();
+    const name=prompt('Programme name');if(!name?.trim())return;const platformProgram=developer&&confirm('Create this as a White Lion platform-wide programme? Choose Cancel for the selected business only.');
     const type=prompt('Commission type: percentage or fixed','percentage');if(!['percentage','fixed'].includes((type||'').toLowerCase())){toast('Choose percentage or fixed');return}
     const value=Number(prompt(type==='percentage'?'Commission percentage (e.g. 10)':'Fixed commission amount','10'));
     if(!Number.isFinite(value)||value<0||(type==='percentage'&&value>100)){toast('Enter a valid commission');return}
@@ -109,8 +122,9 @@
     document.getElementById('affiliateBack').onclick=render;
   }
   async function render() {
-    if(!client()||!session()?.user){noCloud();return}
-    try{const data=await query();renderOverview(data)}
+    if(!client()||!session()?.user){developerAccess={userId:null,value:false,checkedAt:0};noCloud();return}
+    if (developerAccess.userId !== session().user.id) developerAccess={userId:null,value:false,checkedAt:0};
+    try{const data=await query();await renderOverview(data)}
     catch(error){host().innerHTML=shell('Affiliate Marketing','The affiliate database is not ready yet.','<div class="panel"><h3>Database migration required</h3><p class="panel-sub">'+esc(error?.message||String(error))+'</p><p>Apply <b>055_affiliate_marketing_foundation.sql</b> in the Supabase SQL Editor, then reopen this section. Existing business records are not changed by this module.</p></div>')}
   }
   function open() {current='affiliates';setActive();render()}
