@@ -252,6 +252,7 @@
         <button id="wlDevResetData" class="danger">Reset all business data</button>
       </div>
       <div id="wlDevBusinesses"></div>
+<section style="margin-top:16px;padding:13px;border:1px solid #d6ad57;border-radius:12px;background:#192a43"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0;color:#f0d28b">Customer approval queue</h3><button id="wlDevApprovalRefresh" type="button">Refresh queue</button></div><div id="wlDevApprovals" class="dev-meta" style="margin-top:9px">Loading verified customer registrations…</div></section>
 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px"><h3 style="margin:0">New business registrations</h3><button id="wlDevBusinessRegistrationsRefresh" type="button">Refresh businesses</button></div><div id="wlDevBusinessRegistrations" class="dev-meta">Business registration notifications load after developer verification.</div><section class="dev-role-manager" id="wlDevAccountInvitePanel"><h3 style="margin:0 0 6px;color:#f0d28b">Invite administrator account</h3><div class="dev-role-help">Send a secure email invitation and grant access to one selected business workspace. The invited person sets their own password.</div><div class="dev-role-grid"><div><label for="wlDevInviteName">Full name</label><input id="wlDevInviteName" type="text" autocomplete="name" placeholder="Administrator full name"></div><div><label for="wlDevInviteEmail">Email address</label><input id="wlDevInviteEmail" type="email" autocomplete="email" placeholder="admin@example.com"></div><div><label for="wlDevInviteBusiness">Business workspace</label><select id="wlDevInviteBusiness"><option value="">Loading workspaces…</option></select></div><div><label for="wlDevInviteRole">Business role</label><select id="wlDevInviteRole"><option value="admin" selected>Administrator</option><option value="manager">Manager</option><option value="accountant">Accountant</option><option value="storekeeper">Storekeeper</option><option value="cashier">Cashier</option><option value="viewer">Viewer</option></select></div></div><button id="wlDevInviteSubmit" type="button">Send administrator invitation</button><div id="wlDevInviteStatus" class="dev-role-help">Invitation is sent through Supabase Auth. No password is created or displayed here.</div></section><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px"><h3 style="margin:0">Registered accounts</h3><button id="wlDevAccountsRefresh">Refresh accounts</button></div>
       <div id="wlDevAccounts" class="dev-meta">Account directory loads after developer verification.</div>
       <div class="dev-meta" style="margin-top:10px">Deletion requests suspend access immediately. Accounts remain recoverable for 30 days. Business owners and developer accounts are protected. Permanent deletion is only available after the recovery period through the secure server-side function.</div>
@@ -265,6 +266,7 @@
     box.insertAdjacentElement('afterend', dev);
     // Notify modules whose mount slots are created dynamically with the developer panel.
     window.dispatchEvent(new Event('whiteLionDeveloperPanelReady'));
+    $('wlDevApprovalRefresh').onclick = loadDeveloperApprovals;
     $('wlDevRefresh').onclick = loadDeveloperDashboard;
     $('wlDevFreeze').onclick = toggleMaintenance;
     $('wlDevAssign').onclick = () => $('wlDevRoleManager')?.scrollIntoView({behavior:'smooth',block:'center'});
@@ -326,29 +328,65 @@
       say(error?.message || 'Sign-in could not be completed. Check your connection and try again.');
     }
   }
+  function showAwaitingDeveloperApproval(status) {
+    document.querySelector('.app')?.classList.add('wl-public-mode');
+    $('wlCloudAuth').hidden = true;
+    $('wlCloudWork').hidden = true;
+    let panel = $('wlCloudApproval');
+    if (!panel) {
+      panel = document.createElement('section');
+      panel.id = 'wlCloudApproval';
+      panel.style.cssText = 'max-width:620px;margin:24px auto;padding:28px;border:1px solid #dcebe1;border-radius:18px;background:#fff;box-shadow:0 18px 55px rgba(7,91,53,.09);text-align:center;color:#203b2b';
+      $('wlCloudBox').appendChild(panel);
+    }
+    panel.hidden = false;
+    const verified = !!status?.email_confirmed;
+    const workspacePending = !!status?.workspace_pending;
+    const heading = workspacePending ? 'Approved — Awaiting Workspace Assignment' : 'Awaiting Developer Approval';
+    const explanation = workspacePending ? 'Your account has been approved. The White Lion platform developer is preparing and assigning your business workspace. Business operations will appear here once your workspace is assigned.' : (verified ? 'Your registration is awaiting review by the White Lion platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.');
+    panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">WHITE LION CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">' + heading + '</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + explanation + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button id="wlApprovalCheck" style="border:0;border-radius:9px;padding:11px 18px;background:#087a43;color:#fff;font-weight:800">Check approval status</button><button id="wlApprovalSignOut" style="border:1px solid #b9cfc0;border-radius:9px;padding:11px 18px;background:#fff;color:#075b35;font-weight:800">Sign out</button></div>';
+    $('wlApprovalCheck').onclick = async () => { $('wlApprovalCheck').disabled=true; $('wlApprovalCheck').textContent='Checking…'; await loadBusinesses(); if ($('wlApprovalCheck')) { $('wlApprovalCheck').disabled=false; $('wlApprovalCheck').textContent='Check approval status'; } };
+    $('wlApprovalSignOut').onclick = async () => { await client.auth.signOut(); session=null; activeBusiness=null; panel.hidden=true; showSignedOut(); };
+    $('wlCloudStatus').textContent = verified ? 'Email verified. Awaiting developer approval.' : 'Email confirmation required.';
+  }
   async function loadBusinesses() {
-    // Show the private developer console independently of workspace membership loading.
-    // A developer account may not belong to a business workspace, and membership RLS errors
-    // must not prevent the developer dashboard from appearing.
+    // Developer authorization and customer approval are checked by Supabase before
+    // any workspace query or operational screen is exposed.
     void checkDeveloperAccess();
-    // Once we know there is a session, the sign-in form must not stay visible —
-    // even if the workspace query below fails or returns nothing — otherwise a
-    // genuinely signed-in person (e.g. a developer account with no business
-    // membership) is stuck looking "not signed in".
-    $('wlCloudAuth').hidden = true; $('wlCloudWork').hidden = false;
+    const access = await client.rpc('get_my_platform_access_status');
+    if (access.error) {
+      $('wlCloudAuth').hidden = true; $('wlCloudWork').hidden = true;
+      say('Access verification is temporarily unavailable. No workspace data has been opened. Please retry shortly.');
+      return;
+    }
+    if (!access.data?.can_access) {
+      showAwaitingDeveloperApproval(access.data || {});
+      return;
+    }
+    const approvalPanel = $('wlCloudApproval');
+    if (approvalPanel) approvalPanel.hidden = true;
+    // Only approved, email-verified users can proceed into workspace loading.
+    const isDeveloper = !!access.data?.is_developer;
+    $('wlCreateBusiness').hidden = !isDeveloper;
     const { data: memberships, error } = await client.from('business_members')
       .select('business_id,role,is_active,businesses(id,name,industry,currency_code)')
       .eq('user_id', session.user.id).eq('is_active', true);
     if (error) return say('Could not load workspaces: ' + error.message);
     document.querySelector('.app')?.classList.remove('wl-public-mode');
     const businesses = sortBusinessesByName((memberships || []).map(m => ({...m.businesses, role:m.role})).filter(b => b.id));
+    if (!isDeveloper && !businesses.length) {
+      showAwaitingDeveloperApproval({...access.data,workspace_pending:true});
+      return;
+    }
+    $('wlCloudAuth').hidden = true; $('wlCloudWork').hidden = false;
     const previouslySelectedId = activeBusiness?.id;
     window.__wlBusinesses = businesses;
     $('wlBusinessSelect').innerHTML = businesses.length
       ? businesses.map(b => `<option value="${b.id}">${esc(b.name)} — ${esc(b.role)}</option>`).join('')
       : '<option value="">No business workspace yet</option>';
     if (businesses.length) await selectBusiness(businesses.find(b => b.id === previouslySelectedId) || businesses[0]);
-    else say('Signed in. Create your first business workspace.');
+    else if (isDeveloper) say('Developer account verified. Create or manage customer workspaces from the Developer Console.');
+    else say('Your account is approved. Your business workspace is being prepared by the White Lion platform developer.');
   }
   async function createBranch() {
     if (!activeBusiness) return say('Select a business workspace first.');
@@ -457,15 +495,39 @@
     if (panel.hidden) return;
     $('wlDevIdentity').textContent = 'Authenticated: ' + session.user.email + ' · Private developer';
     await loadDeveloperDashboard();
+    await loadDeveloperApprovals();
     if (!window.__wlRegistrationRefreshTimer) {
       window.__wlRegistrationRefreshTimer = setInterval(() => {
         if (session && session.user.email?.toLowerCase() === 'koromaalhajiabu0@gmail.com' && !document.hidden) {
           loadDeveloperRegistrations();
           loadDeveloperBusinessRegistrations();
+          loadDeveloperApprovals();
         }
       }, 60000);
     }
   }
+  async function loadDeveloperApprovals() {
+    const host = $('wlDevApprovals');
+    if (!host || !session || session.user.email?.toLowerCase() !== 'koromaalhajiabu0@gmail.com') return;
+    host.textContent = 'Loading customer approval queue…';
+    const {data,error} = await client.rpc('get_platform_pending_customers');
+    if (error) { host.textContent = 'Could not load approval queue: ' + error.message; return; }
+    const rows = Array.isArray(data) ? data : [];
+    host.innerHTML = rows.length ? rows.map(u => '<div class="dev-row"><div><strong>' + esc(u.full_name || 'New customer') + '</strong><div class="dev-meta">' + esc(u.email || '') + ' · Registered ' + esc(new Date(u.created_at).toLocaleString()) + '</div><div class="dev-meta">' + (u.email_confirmed ? 'EMAIL VERIFIED · READY FOR REVIEW' : 'EMAIL NOT YET VERIFIED') + '</div></div><div class="dev-actions">' + (u.email_confirmed ? '<button data-approve-customer="' + esc(u.user_id) + '">Approve</button><button class="danger" data-reject-customer="' + esc(u.user_id) + '">Reject</button>' : '<button disabled>Awaiting email verification</button>') + '</div></div>').join('') : '<div class="dev-meta">No customer accounts are awaiting approval.</div>';
+    host.querySelectorAll('[data-approve-customer],[data-reject-customer]').forEach(button => {
+      button.onclick = async () => {
+        const approved = button.hasAttribute('data-approve-customer');
+        const userId = button.getAttribute(approved ? 'data-approve-customer' : 'data-reject-customer');
+        if (!confirm((approved ? 'Approve' : 'Reject') + ' this verified customer registration?')) return;
+        button.disabled = true;
+        const result = await client.rpc('set_platform_customer_approval',{p_user_id:userId,p_approved:approved,p_note:''});
+        if (result.error) { host.textContent = 'Approval update failed: ' + result.error.message; return; }
+        await loadDeveloperApprovals();
+        say(approved ? 'Customer approved. Create or assign their workspace from the developer controls.' : 'Customer registration rejected.');
+      };
+    });
+  }
+
   async function loadDeveloperDashboard() {
     const status = $('wlDevStatus');
     if (!session || session.user.email?.toLowerCase() !== 'koromaalhajiabu0@gmail.com') return;
@@ -476,24 +538,49 @@
     populateDeveloperInviteBusinesses();
     populateDeveloperRoleForm();
     const maintenance = data.maintenance || {enabled:false};
-    $('wlDevStats').textContent = 'Businesses: ' + data.business_count + ' · Suspended: ' + data.suspended_count + ' · Registered accounts: ' + data.user_count + ' · Platform mode: ' + (maintenance.enabled ? 'MAINTENANCE' : 'LIVE');
+    $('wlDevStats').textContent = 'Businesses: ' + data.business_count + ' · Suspended: ' + data.suspended_count + ' · Frozen: ' + Number(data.frozen_count || 0) + ' · Registered accounts: ' + data.user_count + ' · Platform mode: ' + (maintenance.enabled ? 'MAINTENANCE' : 'LIVE');
     $('wlDevFreeze').textContent = maintenance.enabled ? 'Unfreeze platform' : 'Freeze platform';
     $('wlDevFreeze').className = maintenance.enabled ? '' : 'danger';
-    $('wlDevBusinesses').innerHTML = (data.businesses || []).map(b => `
+    $('wlDevBusinesses').innerHTML = (window.__wlPlatformBusinesses || []).map(b => {
+      const ownerWorkspace = b.id === '50b69fb6-688c-4f28-8755-12cb5c34dc77';
+      const subscription = [b.subscription_plan, b.subscription_status].filter(Boolean).join(' · ') || 'No subscription record';
+      return `
       <div class="dev-row">
-        <div><strong>${esc(b.name)}</strong><div class="dev-meta">${esc(b.industry)} · Owner: ${esc(b.owner_email || 'Unknown')} · ${b.member_count} members</div><div class="dev-meta">${b.is_suspended ? 'SUSPENDED' : 'ACTIVE'} · ${esc(b.id)}</div></div>
-        <div class="dev-actions"><button data-dev-business="${b.id}" data-suspended="${b.is_suspended ? 'true':'false'}">${b.is_suspended ? 'Restore':'Suspend'}</button></div>
-      </div>`).join('') || '<div class="dev-meta">No business workspaces have been created.</div>';
+        <div style="min-width:0"><strong>${esc(b.name)}${ownerWorkspace ? ' · PLATFORM OWNER' : ''}</strong><div class="dev-meta">${esc(b.industry)} · Owner: ${esc(b.owner_email || 'Unknown')} · ${b.member_count} members</div><div class="dev-meta">${ownerWorkspace ? 'PROTECTED OWNER WORKSPACE' : (b.is_suspended ? 'SUSPENDED' : 'ACTIVE') + ' · ' + (b.is_frozen ? 'FROZEN' : 'UNFROZEN')} · ${esc(subscription)} · ${esc(b.id)}</div>${b.is_frozen && b.freeze_note ? '<div class="dev-meta">Freeze note: ' + esc(b.freeze_note) + '</div>' : ''}</div>
+        <div class="dev-actions">${ownerWorkspace ? '<button disabled title="The platform owner workspace is protected">Protected</button>' : '<button data-dev-business="' + b.id + '" data-suspended="' + (b.is_suspended ? 'true':'false') + '">' + (b.is_suspended ? 'Restore' : 'Suspend') + '</button><button data-dev-freeze-business="' + b.id + '" data-frozen="' + (b.is_frozen ? 'true':'false') + '" class="' + (b.is_frozen ? '' : 'danger') + '">' + (b.is_frozen ? 'Unfreeze' : 'Freeze') + '</button>'}</div>
+      </div>`;
+    }).join('') || '<div class="dev-meta">No business workspaces have been created.</div>';
     $('wlDevBusinesses').querySelectorAll('[data-dev-business]').forEach(button => {
       button.onclick = async () => {
         const suspend = button.dataset.suspended !== 'true';
-        if (!confirm((suspend ? 'Suspend' : 'Restore') + ' this business workspace?')) return;
+        if (!confirm((suspend ? 'Suspend' : 'Restore') + ' this customer business workspace?')) return;
+        button.disabled = true;
         const result = await client.rpc('set_platform_business_suspension', {p_business_id:button.dataset.devBusiness,p_is_suspended:suspend});
-        if (result.error) { status.textContent = result.error.message; return; }
+        if (result.error) { status.textContent = result.error.message; button.disabled = false; return; }
         await loadDeveloperDashboard();
       };
     });
+    $('wlDevBusinesses').querySelectorAll('[data-dev-freeze-business]').forEach(button => {
+      button.onclick = async () => {
+        const freeze = button.dataset.frozen !== 'true';
+        let note = '';
+        if (freeze) {
+          note = prompt('Optional reason for freezing this customer workspace:', 'Temporary account review') || '';
+          if (!confirm('Freeze this customer workspace? The customer will lose workspace access until you unfreeze it.')) return;
+        } else if (!confirm('Unfreeze this customer workspace and restore normal workspace access?')) return;
+        button.disabled = true;
+        const result = await client.rpc('set_platform_business_freeze', {
+          p_business_id:button.dataset.devFreezeBusiness,
+          p_is_frozen:freeze,
+          p_note:note
+        });
+        if (result.error) { status.textContent = result.error.message; button.disabled = false; return; }
+        await loadDeveloperDashboard();
+        await loadDeveloperActivity();
+      };
+    });
     status.textContent = 'Developer authorization verified by Supabase. Platform controls are available.';
+    await loadDeveloperApprovals();
     await loadDeveloperAlertSettings();
     await loadDeveloperRegistrations();
     await loadDeveloperBusinessRegistrations();
@@ -1038,7 +1125,7 @@
     {label:"Automotive and transport", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","accounting","transport","fleet","services"], items:["Fuel station","Car dealership","Vehicle spare-parts dealer","Auto repair workshop","Tyre shop","Car wash business","Vehicle rental company","Transport and logistics company","Delivery business"]},
     {label:"Construction and industrial", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","accounting","manufacturing","projects"], items:["Construction company","Building contractor","Hardware wholesaler","Cement distributor","Sand and gravel supplier","Steel and iron merchant","Furniture manufacturer","Manufacturing company","Industrial equipment supplier","Welding and fabrication workshop"]},
     {label:"Professional and personal services", modules:["sales_pos","customers","suppliers","expenses","employees","accounting","services","appointments","projects"], items:["Hair salon","Barbershop","Beauty salon","Spa","Laundry and dry-cleaning business","Cleaning company","Security service company","Repair and maintenance company","Computer repair shop","Printing business","Photography studio","Consultancy firm","Marketing and advertising agency"]},
-    {label:"Education and training", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","employees","accounting","school"], items:["Private school","Training centre","Vocational institution","Computer training centre","Driving school","Educational supply shop","Bookshop and learning-material distributor"]},
+    {label:"Education and training", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","employees","accounting","school"], items:["School management system","Training centre","Vocational institution","Computer training centre","Driving school","Educational supply shop","Bookshop and learning-material distributor"]},
     {label:"Agriculture and fisheries", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","accounting","manufacturing"], items:["Farm business","Poultry farm","Livestock business","Fish farm","Fishing supply business","Agricultural produce wholesaler","Food processing business"]},
     {label:"Property and rental", modules:["customers","suppliers","expenses","accounting","property","projects","services"], items:["Real estate agency","Property management company","Equipment rental business","Vehicle hire business","Event equipment rental company","Property maintenance company"]},
     {label:"Financial and administrative services", modules:["customers","expenses","employees","accounting","compliance","services"], items:["Accounting and bookkeeping firm","Insurance agency","Microfinance business","Cooperative society","Business administration service provider"]},
@@ -1053,11 +1140,11 @@
       const modal = document.createElement('div');
       modal.id = 'wlIndustrySetupModal';
       modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(7,17,32,.72);display:flex;align-items:center;justify-content:center;padding:14px;font-family:inherit';
-      const groups = WL_INDUSTRY_GROUPS.map(group =>
-        '<optgroup label="' + esc(group.label) + '">' +
-        group.items.map(item => '<option value="' + esc(item) + '">' + esc(item) + '</option>').join('') +
-        '</optgroup>'
-      ).join('');
+      const allBusinessTypes = [...new Set(WL_INDUSTRY_GROUPS.flatMap(group => group.items))]
+        .sort((a,b) => a.localeCompare(b, undefined, {sensitivity:'base', numeric:true}));
+      const groups = '<optgroup label="All business types — A to Z">' +
+        allBusinessTypes.map(item => '<option value="' + esc(item) + '">' + esc(item) + '</option>').join('') +
+        '</optgroup>';
       modal.innerHTML = '<form id="wlIndustrySetupForm" style="width:min(520px,100%);max-height:92vh;overflow:auto;background:#fff;color:#17243a;border-radius:18px;padding:22px;box-shadow:0 25px 80px #0005">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:5px"><h2 style="margin:0;font-size:19px">Register a business</h2><button type="button" id="wlIndustrySetupClose" aria-label="Close" style="border:0;border-radius:8px;padding:7px 11px;background:#eef1f5;font-size:18px">×</button></div>' +
         '<p style="margin:0 0 16px;color:#748197;font-size:12px">Choose the business type. White Lion SME will activate the recommended modules for this workspace.</p>' +
