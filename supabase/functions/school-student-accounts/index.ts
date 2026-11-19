@@ -21,7 +21,7 @@ Deno.serve(async(req)=>{
    if(password.length<8)return reply({error:"Choose a password with at least 8 characters."},400);
    const {data:p}=await admin.from("school_profiles").select("business_id,portal_enabled").eq("portal_code",portalCode).maybeSingle();
    if(!p?.portal_enabled)return reply({error:"School portal unavailable."},404);
-   const {data:s,error:se}=await admin.from("school_students").select("id,first_name,last_name,admission_number,status,user_id,portal_activation_code").eq("business_id",p.business_id).eq("admission_number",admission).maybeSingle();
+   const {data:s,error:se}=await admin.from("school_students").select("id,first_name,last_name,admission_number,status,user_id").eq("business_id",p.business_id).eq("admission_number",admission).maybeSingle();
    const norm=(v:any)=>String(v||"").trim().replace(/\\s+/g," ").toLowerCase();
    if(se||!s||s.status!=="active"||s.user_id||norm(s.first_name+" "+s.last_name)!==norm(fullName))return reply({error:"Student ID, name or activation code is incorrect, or the code has already been used."},401);
    const {data:codeRow,error:codeError}=await admin.from("school_student_portal_activation_codes").select("activation_code").eq("business_id",p.business_id).eq("student_id",s.id).maybeSingle();
