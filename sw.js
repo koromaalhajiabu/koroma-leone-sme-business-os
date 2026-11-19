@@ -26,6 +26,7 @@ const APP_SHELL=[
   './storefront-public.js?v=1',
   './manifest.webmanifest?v=46',
   './shared.js?v=2',
+  './affiliate-marketing.js?v=1',
   './i18n.js?v=11',
   './cloud.js?v=61',
   './operations.js?v=22',
