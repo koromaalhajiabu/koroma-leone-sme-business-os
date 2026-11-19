@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Portal · White Lion Campus</title>
+<link rel="icon" href="icons/white-lion-icon.svg">
+<style>
+:root{--green:#14583d;--gold:#d8bd79;--ink:#20372d;--muted:#718078;--line:#e3ece5}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f4f8f5;color:var(--ink)}
+.wrap{max-width:960px;margin:0 auto;padding:22px 16px 60px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
+.top h1{font-size:18px;margin:0;letter-spacing:-.3px}
+.top span{font-size:11px;color:var(--muted)}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 7px 22px #193b280b;margin-bottom:16px}
+.hidden{display:none!important}
+h2{font-size:15px;margin:0 0 4px;color:#1b4932}
+.muted{color:var(--muted);font-size:11px}
+label{display:block;font-size:11px;font-weight:700;color:#4c5e52;margin:10px 0 5px}
+input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff;color:var(--ink)}
+button{border:none;border-radius:10px;padding:11px 16px;font-weight:800;font-size:12px;cursor:pointer}
+.btn{background:linear-gradient(135deg,#ead69c,#c9a65a);color:#263a2e}
+.btn.alt{background:#fff;color:#28533e;border:1px solid #dce9df}
+.actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.message{margin-top:12px;font-size:12px;padding:10px 12px;border-radius:9px;background:#eaf5ed;color:#24734e}
+.message.error{background:#fdeeee;color:#9c2e2e}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px}
+.stat small{display:block;color:var(--muted);font-size:10px;font-weight:700}
+.stat strong{display:block;font-size:22px;margin-top:6px;color:#183c2c}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:9px;letter-spacing:.6px;text-transform:uppercase;color:#78877e;padding:10px;background:#f7faf7;border-bottom:1px solid #e7eee8}
+td{padding:10px;border-bottom:1px solid #edf1ed;font-size:12px}
+.pill{display:inline-block;border-radius:30px;padding:4px 9px;background:#eaf5ed;color:#24734e;font-size:9px;font-weight:800}
+.tablewrap{overflow:auto;border:1px solid #edf1ed;border-radius:11px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1 id="campusTitle">Student Portal</h1>
+      <span id="studentWelcome"></span>
+    </div>
+    <div id="dashButtons" class="hidden" style="display:flex;gap:8px">
+      <button class="btn alt" id="exportTranscript">Export transcript (PDF)</button>
+      <button class="btn alt" id="refreshBtn">Refresh</button>
+      <button class="btn alt" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <section id="loginPanel" class="card">
+    <h2>Sign in to your student account</h2>
+    <p class="muted">Use the email your campus has on file for your student record. If you don't have a White Lion account yet, create one below, then ask your campus administrator to link it to your student record.</p>
+    <form id="loginForm">
+      <label>Email</label>
+      <input name="email" type="email" required autocomplete="username">
+      <label>Password</label>
+      <input name="password" type="password" required minlength="8" autocomplete="current-password">
+      <div class="actions">
+        <button class="btn" type="submit">Sign in securely</button>
+        <button class="btn alt" type="button" id="registerStudent">Create student account</button>
+      </div>
+    </form>
+    <div id="loginMessage" class="message hidden"></div>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="stats">
+      <div class="stat"><small>Cumulative GPA</small><strong id="gpaStat">—</strong></div>
+      <div class="stat"><small>Courses on record</small><strong id="courseCountStat">0</strong></div>
+      <div class="stat"><small>Outstanding fees</small><strong id="feesStat">—</strong></div>
+    </div>
+
+    <div class="card">
+      <h2>My results by module / course</h2>
+      <p class="muted">Letter grade and GPA points are applied automatically from the campus grading scale.</p>
+      <div id="enrollments"></div>
+    </div>
+
+    <div class="card">
+      <h2>My invoices & fees</h2>
+      <div id="invoices"></div>
+    </div>
+
+    <div id="pageMessage" class="message hidden"></div>
+  </section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="./campus-student-portal.js?v=1"></script>
+</body>
+</html>
