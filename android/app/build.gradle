@@ -5,11 +5,11 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId 'com.whitelion.sme'
+        applicationId 'com.whitelion.sme.v2'
         minSdk 23
         targetSdk 34
-        versionCode 4
-        versionName '1.0.3'
+        versionCode 1
+        versionName '1.0.4'
     }
 }
 dependencies {

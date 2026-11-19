@@ -238,18 +238,85 @@
   }
   async function renderDeveloperOverview(sb) {
     const host=document.getElementById('wlBillingDeveloper');if(!host)return;
-    const {data,error}=await sb.rpc('get_platform_billing_overview');
-    if(error)return;
-    const d=data||{};
-    host.innerHTML=`<div class="panel"><div class="panel-head"><div><h3>White Lion developer billing console</h3><div class="panel-sub">Platform-wide subscription and payment monitoring</div></div><span class="wl-billing-status active">Developer</span></div>
-      <div class="wl-billing-metrics"><div class="wl-billing-metric"><small>Active subscriptions</small><strong>${Number(d.active_subscriptions||0)}</strong></div><div class="wl-billing-metric"><small>Pending payments</small><strong>${Number(d.pending_payments||0)}</strong></div><div class="wl-billing-metric"><small>Pending invoices</small><strong>${Number(d.pending_invoices||0)}</strong></div><div class="wl-billing-metric"><small>Verified SLE revenue</small><strong>${money(d.paid_sle,'SLE')}</strong></div><div class="wl-billing-metric"><small>Verified USD revenue</small><strong>${money(d.paid_usd,'USD')}</strong></div></div>
-      <h3 style="margin:15px 0 5px">Pending payment verification</h3>
+    host.innerHTML='<div class="panel"><p class="panel-sub">Loading developer billing and customer workspace directory…</p></div>';
+    const [billingResult,directoryResult]=await Promise.all([
+      sb.rpc('get_platform_billing_overview'),
+      sb.rpc('get_platform_dashboard')
+    ]);
+    if(billingResult.error){
+      host.innerHTML='<div class="panel"><h3>Developer billing console</h3><p class="panel-sub">Billing overview could not be loaded: '+esc(billingResult.error.message)+'</p></div>';
+      return;
+    }
+    const d=billingResult.data||{};
+    const directory=directoryResult.data||{};
+    const allWorkspaces=Array.isArray(directory.businesses)?directory.businesses:[];
+    const customers=allWorkspaces.filter(b=>b.id!=='50b69fb6-688c-4f28-8755-12cb5c34dc77');
+    const suspended=customers.filter(b=>b.is_suspended===true).length;
+    const frozen=customers.filter(b=>b.is_frozen===true).length;
+    const active=customers.length-suspended;
+    const workspaceRows=customers.map(b=>{
+      const status=b.is_suspended?'Suspended':b.is_frozen?'Frozen':(b.subscription_status||'No subscription').replaceAll('_',' ');
+      const plan=b.subscription_plan?String(b.subscription_plan).replaceAll('_',' '):'—';
+      const created=b.created_at?new Date(b.created_at).toLocaleDateString():'—';
+      const search=[b.name,b.owner_email,b.industry,plan,status].join(' ').toLowerCase();
+      return '<tr data-customer-row data-search="'+esc(search)+'" data-status="'+esc(status.toLowerCase())+'">'+
+        '<td><b>'+esc(b.name||'Unnamed workspace')+'</b><small style="display:block;color:#778397;margin-top:3px">'+esc(b.owner_email||'Owner email unavailable')+'</small></td>'+
+        '<td>'+esc(b.industry||'—')+'</td>'+
+        '<td>'+esc(plan)+'</td>'+
+        '<td>'+statusPill(b.is_suspended?'suspended':b.is_frozen?'frozen':b.subscription_status||'no subscription')+'</td>'+
+        '<td>'+Number(b.member_count||0)+'</td>'+
+        '<td>'+esc(created)+'</td>'+
+      '</tr>';
+    }).join('');
+    host.innerHTML=`<div class="panel">
+      <div class="panel-head"><div><h3>White Lion developer billing console</h3><div class="panel-sub">Customer subscription monitoring and payment verification</div></div><span class="wl-billing-status active">Developer</span></div>
+      <div class="wl-billing-metrics">
+        <div class="wl-billing-metric"><small>Customer workspaces</small><strong>${customers.length}</strong></div>
+        <div class="wl-billing-metric"><small>Not suspended</small><strong>${active}</strong></div>
+        <div class="wl-billing-metric"><small>Suspended</small><strong>${suspended}</strong></div>
+        <div class="wl-billing-metric"><small>Frozen</small><strong>${frozen}</strong></div>
+        <div class="wl-billing-metric"><small>Active subscriptions</small><strong>${Number(d.active_subscriptions||0)}</strong></div>
+      </div>
+      <div class="wl-billing-metrics">
+        <div class="wl-billing-metric"><small>Pending payments</small><strong>${Number(d.pending_payments||0)}</strong></div>
+        <div class="wl-billing-metric"><small>Pending invoices</small><strong>${Number(d.pending_invoices||0)}</strong></div>
+        <div class="wl-billing-metric"><small>Verified SLE revenue</small><strong>${money(d.paid_sle,'SLE')}</strong></div>
+        <div class="wl-billing-metric"><small>Verified USD revenue</small><strong>${money(d.paid_usd,'USD')}</strong></div>
+      </div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:18px 0 12px">
+        <div style="flex:1;min-width:190px"><input id="wlCustomerSearch" type="search" placeholder="Search business, owner email or industry…" style="width:100%;padding:11px 12px;border:1px solid #dfe5ee;border-radius:9px"></div>
+        <select id="wlCustomerStatus" style="padding:11px 12px;border:1px solid #dfe5ee;border-radius:9px;background:#fff">
+          <option value="all">All customer accounts</option><option value="active">Not suspended</option><option value="suspended">Suspended</option><option value="frozen">Frozen</option>
+        </select>
+        <button class="btn small" type="button" id="wlCustomerRefresh">Refresh list</button>
+      </div>
+      <h3 style="margin:10px 0 8px">Customer workspaces <span class="panel-sub">(${customers.length})</span></h3>
+      <div class="table-wrap"><table><thead><tr><th>Business / owner</th><th>Industry</th><th>Plan</th><th>Account status</th><th>Members</th><th>Registered</th></tr></thead><tbody id="wlCustomerRows">${workspaceRows||'<tr><td colspan="6" class="empty">No customer workspaces have been registered yet.</td></tr>'}</tbody></table></div>
+      <p id="wlCustomerEmpty" class="panel-sub" style="display:none;margin-top:10px">No customer workspaces match your search.</p>
+      ${directoryResult.error?'<div class="wl-billing-note">Customer directory could not be loaded: '+esc(directoryResult.error.message)+'. The billing totals above are still available.</div>':''}
+      <h3 style="margin:20px 0 5px">Pending payment verification</h3>
       ${(d.pending||[]).length?(d.pending||[]).map(p=>`<div class="wl-review-row"><div><b>${esc(p.business_name)}</b><small>${esc(p.invoice_number)} · ${esc(p.plan_code)} · ${esc(p.provider)} · Ref: ${esc(p.reference)}</small><small>${money(p.amount,p.currency_code)} · submitted ${new Date(p.submitted_at).toLocaleString()}</small></div><div><button class="btn primary small" data-review-payment="${esc(p.payment_id)}" data-approve="true">Verify & activate</button> <button class="btn danger small" data-review-payment="${esc(p.payment_id)}" data-approve="false">Reject</button></div></div>`).join(''):'<div class="empty">No payment references are awaiting verification.</div>'}
-      <p class="panel-sub">Revenue totals include only payments marked verified. Payment-provider APIs are not connected in this release; verification is manual.</p>
+      <p class="panel-sub">Revenue totals include only verified customer payments. White Lion's permanently exempt owner workspace is excluded. Payment-provider APIs are not connected; payment verification remains manual.</p>
     </div>`;
+    const filterRows=()=>{
+      const q=(document.getElementById('wlCustomerSearch')?.value||'').trim().toLowerCase();
+      const status=document.getElementById('wlCustomerStatus')?.value||'all';
+      let visible=0;
+      host.querySelectorAll('[data-customer-row]').forEach(row=>{
+        const matchText=!q||row.dataset.search.includes(q);
+        const rowStatus=row.dataset.status;
+        const matchStatus=status==='all'||(status==='active'&&!['suspended','frozen'].includes(rowStatus))||rowStatus===status;
+        row.style.display=matchText&&matchStatus?'':'none';
+        if(matchText&&matchStatus)visible++;
+      });
+      const empty=document.getElementById('wlCustomerEmpty');if(empty)empty.style.display=visible?'none':'block';
+    };
+    document.getElementById('wlCustomerSearch')?.addEventListener('input',filterRows);
+    document.getElementById('wlCustomerStatus')?.addEventListener('change',filterRows);
+    document.getElementById('wlCustomerRefresh')?.addEventListener('click',()=>render());
     host.querySelectorAll('[data-review-payment]').forEach(button=>button.onclick=async()=>{
       const approve=button.dataset.approve==='true';
-      const notes=prompt(approve?'Optional verification note:':'Reason for rejecting this payment:','') ;
+      const notes=prompt(approve?'Optional verification note:':'Reason for rejecting this payment:','');
       if(notes===null)return;
       const {data:result,error:reviewError}=await sb.rpc('review_subscription_payment',{
         p_payment_id:button.dataset.reviewPayment,p_approve:approve,p_notes:notes

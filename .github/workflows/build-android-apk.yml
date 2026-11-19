@@ -61,6 +61,14 @@ jobs:
             --exclude='*.apk' \
             --exclude='*.aab'
 
+      # Keep the debug signing key stable between builds so future APK updates
+      # can install over the previous White Lion SME v2 app without data loss.
+      - name: Restore or create persistent Android signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: white-lion-sme-android-debug-signing-v2
+
       - name: Build installable Android APK
         working-directory: android
         run: gradle --no-daemon :app:assembleDebug
