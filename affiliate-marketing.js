@@ -83,7 +83,7 @@
     document.getElementById('affiliateJoin')?.addEventListener('click',()=>joinProgram(programs));
     host().querySelectorAll('[data-aff-copy]').forEach(btn=>btn.addEventListener('click',()=>{const url=baseUrl()+'?ref='+encodeURIComponent(btn.dataset.affCopy);navigator.clipboard?.writeText(url).then(()=>toast('Referral link copied')).catch(()=>prompt('Copy your referral link',url))}));
     document.getElementById('affiliateViewCommissions')?.addEventListener('click',()=>renderLedger('commissions',commissions,b?.currency_code||'SLE'));
-    document.getElementById('affiliateViewPayouts')?.addEventListener('click',()=>renderLedger('payouts',payouts,b?.currency||'SLE'));
+    document.getElementById('affiliateViewPayouts')?.addEventListener('click',()=>renderLedger('payouts',payouts,b?.currency_code||'SLE'));
     if(my?.status==='active') {
       const link=baseUrl()+'?ref='+encodeURIComponent(my.referral_code);
       const box=document.createElement('div');box.className='panel';box.innerHTML='<h3>Your referral link</h3><p class="panel-sub">Share this link. A click is tracked, but a commission is not earned until a qualifying transaction is verified.</p><input class="search" readonly style="width:100%" value="'+esc(link)+'"><button class="btn primary" id="myAffiliateCopy" style="margin-top:10px">Copy my referral link</button>';
@@ -98,7 +98,7 @@
     const type=prompt('Commission type: percentage or fixed','percentage');if(!['percentage','fixed'].includes((type||'').toLowerCase())){toast('Choose percentage or fixed');return}
     const value=Number(prompt(type==='percentage'?'Commission percentage (e.g. 10)':'Fixed commission amount','10'));
     if(!Number.isFinite(value)||value<0||(type==='percentage'&&value>100)){toast('Enter a valid commission');return}
-    const currency=(prompt('Commission currency (SLE, USD, etc.)',b?.currency||'SLE')||'SLE').toUpperCase();
+    const currency=(prompt('Commission currency (SLE, USD, etc.)',b?.currency_code||'SLE')||'SLE').toUpperCase();
     const {error}=await sb.from('affiliate_programs').insert({business_id:platformProgram?null:(b?.id||null),program_name:name.trim(),commission_type:type.toLowerCase(),commission_value:value,currency,status:'active',created_by:session()?.user?.id});
     if(error){toast('Could not create programme: '+error.message);return}
     toast('Affiliate programme created and activated. Applications follow its approval setting.');await render();
