@@ -81,12 +81,12 @@
   }
   async function createProgram() {
     const b=business(),sb=client();if(!sb)return;
-    const name=prompt('Programme name');if(!name?.trim())return;
+    const name=prompt('Programme name');if(!name?.trim())return;const platformProgram=isDeveloper()&&confirm('Create this as a White Lion platform-wide programme? Choose Cancel for the selected business only.');
     const type=prompt('Commission type: percentage or fixed','percentage');if(!['percentage','fixed'].includes((type||'').toLowerCase())){toast('Choose percentage or fixed');return}
     const value=Number(prompt(type==='percentage'?'Commission percentage (e.g. 10)':'Fixed commission amount','10'));
     if(!Number.isFinite(value)||value<0||(type==='percentage'&&value>100)){toast('Enter a valid commission');return}
     const currency=(prompt('Commission currency (SLE, USD, etc.)',b?.currency||'SLE')||'SLE').toUpperCase();
-    const {error}=await sb.from('affiliate_programs').insert({business_id:b?.id||null,program_name:name.trim(),commission_type:type.toLowerCase(),commission_value:value,currency,status:'active',created_by:session()?.user?.id});
+    const {error}=await sb.from('affiliate_programs').insert({business_id:platformProgram?null:(b?.id||null),program_name:name.trim(),commission_type:type.toLowerCase(),commission_value:value,currency,status:'active',created_by:session()?.user?.id});
     if(error){toast('Could not create programme: '+error.message);return}
     toast('Affiliate programme created and activated. Applications follow its approval setting.');await render();
   }
