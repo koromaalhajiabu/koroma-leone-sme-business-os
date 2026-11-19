@@ -38,11 +38,22 @@ async function init(){
 $('loginForm').addEventListener('submit',async e=>{
  e.preventDefault();const b=$('loginBtn');b.disabled=true;msg('loginStatus','Checking student account…');
  try{
-  const resolved=await client.functions.invoke('school-student-accounts',{body:{action:'resolve_login',portal_code:portalCode,admission_number:$('studentId').value.trim()}});
+  const resolved=await client.functions.invoke('school-student-accounts',{body:{action:'resolve_login',portal_code:portalCode,admission_number:$('studentId').value.trim(),full_name:$('studentFullName').value.trim()}});
   if(resolved.error||resolved.data?.error)throw new Error(resolved.data?.error||resolved.error?.message||'Student account lookup failed.');
   const signed=await client.auth.signInWithPassword({email:resolved.data.email,password:$('password').value});
   if(signed.error)throw signed.error;await load();msg('loginStatus','Signed in successfully.');
  }catch(err){msg('loginStatus',err.message||'Sign-in failed.');}finally{b.disabled=false}
+});
+
+$('activateForm').addEventListener('submit',async e=>{
+ e.preventDefault();const b=$('activateBtn');b.disabled=true;msg('activationStatus','Activating your account…');
+ try{
+  const body={action:'activate',portal_code:portalCode,admission_number:$('activateStudentId').value.trim(),full_name:$('activateFullName').value.trim(),activation_code:$('activationCode').value.trim(),password:$('activatePassword').value};
+  const r=await client.functions.invoke('school-student-accounts',{body});
+  if(r.error||r.data?.error)throw new Error(r.data?.error||r.error?.message||'Activation failed');
+  const signed=await client.auth.signInWithPassword({email:r.data.email,password:body.password});
+  if(signed.error)throw signed.error;await load();msg('activationStatus','Account activated successfully.');
+ }catch(err){msg('activationStatus',err.message||'Activation failed')}finally{b.disabled=false}
 });
 $('passwordForm').addEventListener('submit',async e=>{
  e.preventDefault();const a=$('newPassword').value,b=$('confirmPassword').value;
