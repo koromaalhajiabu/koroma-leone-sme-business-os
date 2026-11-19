@@ -1140,14 +1140,11 @@
       const modal = document.createElement('div');
       modal.id = 'wlIndustrySetupModal';
       modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(7,17,32,.72);display:flex;align-items:center;justify-content:center;padding:14px;font-family:inherit';
-      const groups = [...WL_INDUSTRY_GROUPS]
-        .sort((a,b) => a.label.localeCompare(b.label, undefined, {sensitivity:'base'}))
-        .map(group =>
-          '<optgroup label="' + esc(group.label) + '">' +
-          [...group.items].sort((a,b) => a.localeCompare(b, undefined, {sensitivity:'base', numeric:true}))
-            .map(item => '<option value="' + esc(item) + '">' + esc(item) + '</option>').join('') +
-          '</optgroup>'
-        ).join('');
+      const allBusinessTypes = [...new Set(WL_INDUSTRY_GROUPS.flatMap(group => group.items))]
+        .sort((a,b) => a.localeCompare(b, undefined, {sensitivity:'base', numeric:true}));
+      const groups = '<optgroup label="All business types — A to Z">' +
+        allBusinessTypes.map(item => '<option value="' + esc(item) + '">' + esc(item) + '</option>').join('') +
+        '</optgroup>';
       modal.innerHTML = '<form id="wlIndustrySetupForm" style="width:min(520px,100%);max-height:92vh;overflow:auto;background:#fff;color:#17243a;border-radius:18px;padding:22px;box-shadow:0 25px 80px #0005">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:5px"><h2 style="margin:0;font-size:19px">Register a business</h2><button type="button" id="wlIndustrySetupClose" aria-label="Close" style="border:0;border-radius:8px;padding:7px 11px;background:#eef1f5;font-size:18px">×</button></div>' +
         '<p style="margin:0 0 16px;color:#748197;font-size:12px">Choose the business type. White Lion SME will activate the recommended modules for this workspace.</p>' +
