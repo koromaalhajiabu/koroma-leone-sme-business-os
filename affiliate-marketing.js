@@ -35,7 +35,7 @@
     const button = document.createElement('button');
     button.id='affiliateMarketingNav'; button.type='button'; button.dataset.page='affiliates';
     button.innerHTML='<span class="ico">↗</span>Affiliate Marketing';
-    button.addEventListener('click', event => { event.preventDefault(); open(); });
+    button.addEventListener('click', event => { event.preventDefault(); if (typeof window.setPage === 'function') window.setPage('affiliates'); else open(); });
     nav.appendChild(button);
   }
   function setActive() {
