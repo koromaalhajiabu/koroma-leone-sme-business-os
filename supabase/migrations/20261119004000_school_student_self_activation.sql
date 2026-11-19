@@ -23,7 +23,7 @@ using (
     where bm.business_id = school_student_portal_activation_codes.business_id
       and bm.user_id = auth.uid()
       and coalesce(bm.is_active,true) = true
-      and lower(bm.role) in ('owner','admin','manager')
+      and lower(bm.role::text) in ('owner','admin','manager')
   )
 );
 
