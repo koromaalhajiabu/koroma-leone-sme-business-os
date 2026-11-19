@@ -16,7 +16,7 @@ using (
     select 1 from public.business_members bm
     where bm.business_id=affiliate_profiles.business_id
       and bm.user_id=auth.uid()
-      and lower(bm.role) in ('owner','admin')
+      and lower(bm.role::text) in ('owner','admin')
   )
 )
 with check (
@@ -25,7 +25,7 @@ with check (
     select 1 from public.business_members bm
     where bm.business_id=affiliate_profiles.business_id
       and bm.user_id=auth.uid()
-      and lower(bm.role) in ('owner','admin')
+      and lower(bm.role::text) in ('owner','admin')
   )
 );
 
@@ -57,7 +57,7 @@ using (
     select 1 from public.business_members bm
     where bm.business_id=affiliate_commissions.business_id
       and bm.user_id=auth.uid()
-      and lower(bm.role) in ('owner','admin')
+      and lower(bm.role::text) in ('owner','admin')
   )
 )
 with check (
@@ -66,7 +66,7 @@ with check (
     select 1 from public.business_members bm
     where bm.business_id=affiliate_commissions.business_id
       and bm.user_id=auth.uid()
-      and lower(bm.role) in ('owner','admin')
+      and lower(bm.role::text) in ('owner','admin')
   )
 );
 
@@ -79,7 +79,7 @@ using (
     select 1 from public.business_members bm
     where bm.business_id=affiliate_payout_requests.business_id
       and bm.user_id=auth.uid()
-      and lower(bm.role) in ('owner','admin')
+      and lower(bm.role::text) in ('owner','admin')
   )
 )
 with check (
@@ -88,7 +88,7 @@ with check (
     select 1 from public.business_members bm
     where bm.business_id=affiliate_payout_requests.business_id
       and bm.user_id=auth.uid()
-      and lower(bm.role) in ('owner','admin')
+      and lower(bm.role::text) in ('owner','admin')
   )
 );
 
