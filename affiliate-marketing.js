@@ -62,7 +62,7 @@
     for(const x of [a,r,c,w])if(x.error)throw x.error;
     return {programs:p.data||[],affiliates:a.data||[],referrals:r.data||[],commissions:c.data||[],payouts:w.data||[],business:b};
   }
-  function renderOverview(data) {
+  async function renderOverview(data) {
     const {programs,affiliates,referrals,commissions,payouts,business:b}=data;
     const isPlatform=await isDeveloper();
     const active=programs.filter(x=>x.status==='active').length;
@@ -82,7 +82,7 @@
     host().querySelectorAll('[data-affiliate-status]').forEach(btn=>btn.addEventListener('click',async()=>{const {error}=await client().from('affiliate_profiles').update({status:btn.dataset.next}).eq('id',btn.dataset.affiliateStatus);if(error){toast('Affiliate review failed: '+error.message);return}toast('Affiliate status updated');await render()}));
     document.getElementById('affiliateJoin')?.addEventListener('click',()=>joinProgram(programs));
     host().querySelectorAll('[data-aff-copy]').forEach(btn=>btn.addEventListener('click',()=>{const url=baseUrl()+'?ref='+encodeURIComponent(btn.dataset.affCopy);navigator.clipboard?.writeText(url).then(()=>toast('Referral link copied')).catch(()=>prompt('Copy your referral link',url))}));
-    document.getElementById('affiliateViewCommissions')?.addEventListener('click',()=>renderLedger('commissions',commissions,b?.currency||'SLE'));
+    document.getElementById('affiliateViewCommissions')?.addEventListener('click',()=>renderLedger('commissions',commissions,b?.currency_code||'SLE'));
     document.getElementById('affiliateViewPayouts')?.addEventListener('click',()=>renderLedger('payouts',payouts,b?.currency||'SLE'));
     if(my?.status==='active') {
       const link=baseUrl()+'?ref='+encodeURIComponent(my.referral_code);
