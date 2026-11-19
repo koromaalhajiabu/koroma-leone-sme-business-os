@@ -3,6 +3,3 @@
 [functions.send-registration-alert]
 verify_jwt = false
 
-# Student ID lookup is public to the school's portal link; account creation validates the administrator JWT in the function.
-[functions.school-student-accounts]
-verify_jwt = false
