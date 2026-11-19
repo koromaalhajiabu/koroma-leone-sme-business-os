@@ -39,6 +39,8 @@ async function init(){
  const p=await client.rpc('school_get_public_portal_profile',{p_portal_code:portalCode});
  if(p.error||!p.data?.length){msg('loginStatus','This school portal could not be found or is disabled.');$('loginForm').querySelector('button').disabled=true;$('signUpBtn').disabled=true;return}
  profile=p.data[0];$('schoolName').textContent=profile.school_name||'Student Portal';
+ const enabled=await client.rpc('school_student_portal_enabled',{p_portal_code:portalCode});
+ if(enabled.error||enabled.data!==true){$('loginCard').classList.add('hidden');$('portalDisabled').classList.remove('hidden');msg('portalDisabledMessage','This school does not offer a Student Portal for nursery or primary students. Please use the Parent/Guardian Portal provided by your school.');return}
  const session=await client.auth.getSession();
  if(session.data.session){
    const admission=params.get('student');
