@@ -35,6 +35,7 @@
     const button = document.createElement('button');
     button.id='affiliateMarketingNav'; button.type='button'; button.dataset.page='affiliates';
     button.innerHTML='<span class="ico">↗</span>Affiliate Marketing';
+    button.addEventListener('click', event => { event.preventDefault(); open(); });
     nav.appendChild(button);
   }
   function setActive() {
@@ -127,12 +128,13 @@
     try{const data=await query();await renderOverview(data)}
     catch(error){host().innerHTML=shell('Affiliate Marketing','The affiliate database is not ready yet.','<div class="panel"><h3>Database migration required</h3><p class="panel-sub">'+esc(error?.message||String(error))+'</p><p>Apply <b>055_affiliate_marketing_foundation.sql</b> in the Supabase SQL Editor, then reopen this section. Existing business records are not changed by this module.</p></div>')}
   }
-  function open() {current='affiliates';setActive();render()}
-  document.addEventListener('click',event=>{
-    const button=event.target?.closest?.('[data-page="affiliates"]');
-    if(!button)return;
-    event.preventDefault();event.stopImmediatePropagation();open();
-  },true);
+  function open() {
+    current='affiliates';
+    setActive();
+    const view=host();
+    if(view) view.innerHTML=shell('Affiliate Marketing','Loading your affiliate workspace…','<div class="panel"><p class="panel-sub">Connecting securely to your White Lion workspace.</p></div>');
+    render();
+  }
   window.addEventListener('whiteLionCloudReady',()=>{if(current==='affiliates')render()});
   window.addEventListener('whiteLionWorkspaceChanged',()=>{if(current==='affiliates')render()});
   window.WhiteLionAffiliateMarketing={render,open};
