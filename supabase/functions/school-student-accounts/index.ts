@@ -12,7 +12,7 @@ Deno.serve(async(req)=>{
    const {data:p}=await admin.from("school_profiles").select("business_id,portal_enabled").eq("portal_code",body.portal_code).maybeSingle();
    if(!p?.portal_enabled)return reply({error:"School portal unavailable."},404);
    const {data:s}=await admin.from("school_students").select("id,user_id,status,first_name,last_name").eq("business_id",p.business_id).eq("admission_number",String(body.admission_number||"").trim()).maybeSingle();
-   if(!s||s.status!=="active"||!s.user_id||String((s.first_name+" "+s.last_name)).trim().toLowerCase().replace(/\\s+/g," ")!==String(body.full_name||"").trim().toLowerCase().replace(/\\s+/g," "))return reply({error:"Student ID and full name do not match an active portal account."},401);
+   if(!s||s.status!=="active"||!s.user_id||String((s.first_name+" "+s.last_name)).trim().toLowerCase().replace(/\s+/g," ")!==String(body.full_name||"").trim().toLowerCase().replace(/\s+/g," "))return reply({error:"Student ID and full name do not match an active portal account."},401);
    return reply({email:"student-"+s.id+"@student-login.whitelion.invalid"});
   }
   if(body.action==="activate"){
@@ -22,7 +22,7 @@ Deno.serve(async(req)=>{
    const {data:p}=await admin.from("school_profiles").select("business_id,portal_enabled").eq("portal_code",portalCode).maybeSingle();
    if(!p?.portal_enabled)return reply({error:"School portal unavailable."},404);
    const {data:s,error:se}=await admin.from("school_students").select("id,first_name,last_name,admission_number,status,user_id").eq("business_id",p.business_id).eq("admission_number",admission).maybeSingle();
-   const norm=(v:any)=>String(v||"").trim().replace(/\\s+/g," ").toLowerCase();
+   const norm=(v:any)=>String(v||"").trim().replace(/\s+/g," ").toLowerCase();
    if(se||!s||s.status!=="active"||s.user_id||norm(s.first_name+" "+s.last_name)!==norm(fullName))return reply({error:"Student ID, name or activation code is incorrect, or the code has already been used."},401);
    const {data:codeRow,error:codeError}=await admin.from("school_student_portal_activation_codes").select("activation_code").eq("business_id",p.business_id).eq("student_id",s.id).maybeSingle();
    if(codeError||!codeRow||String(codeRow.activation_code).toUpperCase()!==activation)return reply({error:"The one-time activation code is incorrect or has already been used."},401);
