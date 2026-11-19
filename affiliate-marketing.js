@@ -144,7 +144,7 @@
   const params=new URLSearchParams(location.search),ref=params.get('ref');
   if(ref&&/^[A-Z0-9]{4,40}$/i.test(ref)){
     let token;try{token=localStorage.getItem('wl-aff-visitor:'+ref);if(!token){token=crypto.randomUUID();localStorage.setItem('wl-aff-visitor:'+ref,token)}}catch(_){token=crypto.randomUUID()}
-    const track=()=>{const sb=client();if(!sb)return;sb.rpc('track_affiliate_referral',{p_referral_code:ref,p_visitor_token:token}).then(()=>{}).catch(()=>{})};
+    const track=()=>{const sb=client();if(!sb)return;sb.rpc('track_affiliate_referral',{p_referral_code:ref,p_visitor_token:token}).then(({data,error})=>{if(!error&&data?.tracked&&data?.referral_id){try{localStorage.setItem('wl-aff-referral-id',data.referral_id);localStorage.setItem('wl-aff-referral-at',String(Date.now()))}catch(_){}}}).catch(()=>{})};
     window.addEventListener('whiteLionCloudReady',track,{once:true});setTimeout(track,2500);
   }
 })();
