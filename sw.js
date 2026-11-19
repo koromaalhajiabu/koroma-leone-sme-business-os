@@ -5,7 +5,7 @@ const APP_SHELL=[
   './index.html',
   './login-premium.css?v=3',
   './workspace-polish.css?v=3',
-  './school-management.js?v=45',
+  './school-management.js?v=47',
   './school-analytics.js?v=2',
   './student-portal.html',
   './student-portal.js?v=5',
