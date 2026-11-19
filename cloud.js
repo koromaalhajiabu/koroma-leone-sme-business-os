@@ -252,6 +252,7 @@
         <button id="wlDevResetData" class="danger">Reset all business data</button>
       </div>
       <div id="wlDevBusinesses"></div>
+<section style="margin-top:16px;padding:13px;border:1px solid #d6ad57;border-radius:12px;background:#192a43"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0;color:#f0d28b">Customer approval queue</h3><button id="wlDevApprovalRefresh" type="button">Refresh queue</button></div><div id="wlDevApprovals" class="dev-meta" style="margin-top:9px">Loading verified customer registrations…</div></section>
 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px"><h3 style="margin:0">New business registrations</h3><button id="wlDevBusinessRegistrationsRefresh" type="button">Refresh businesses</button></div><div id="wlDevBusinessRegistrations" class="dev-meta">Business registration notifications load after developer verification.</div><section class="dev-role-manager" id="wlDevAccountInvitePanel"><h3 style="margin:0 0 6px;color:#f0d28b">Invite administrator account</h3><div class="dev-role-help">Send a secure email invitation and grant access to one selected business workspace. The invited person sets their own password.</div><div class="dev-role-grid"><div><label for="wlDevInviteName">Full name</label><input id="wlDevInviteName" type="text" autocomplete="name" placeholder="Administrator full name"></div><div><label for="wlDevInviteEmail">Email address</label><input id="wlDevInviteEmail" type="email" autocomplete="email" placeholder="admin@example.com"></div><div><label for="wlDevInviteBusiness">Business workspace</label><select id="wlDevInviteBusiness"><option value="">Loading workspaces…</option></select></div><div><label for="wlDevInviteRole">Business role</label><select id="wlDevInviteRole"><option value="admin" selected>Administrator</option><option value="manager">Manager</option><option value="accountant">Accountant</option><option value="storekeeper">Storekeeper</option><option value="cashier">Cashier</option><option value="viewer">Viewer</option></select></div></div><button id="wlDevInviteSubmit" type="button">Send administrator invitation</button><div id="wlDevInviteStatus" class="dev-role-help">Invitation is sent through Supabase Auth. No password is created or displayed here.</div></section><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px"><h3 style="margin:0">Registered accounts</h3><button id="wlDevAccountsRefresh">Refresh accounts</button></div>
       <div id="wlDevAccounts" class="dev-meta">Account directory loads after developer verification.</div>
       <div class="dev-meta" style="margin-top:10px">Deletion requests suspend access immediately. Accounts remain recoverable for 30 days. Business owners and developer accounts are protected. Permanent deletion is only available after the recovery period through the secure server-side function.</div>
@@ -265,6 +266,7 @@
     box.insertAdjacentElement('afterend', dev);
     // Notify modules whose mount slots are created dynamically with the developer panel.
     window.dispatchEvent(new Event('whiteLionDeveloperPanelReady'));
+    $('wlDevApprovalRefresh').onclick = loadDeveloperApprovals;
     $('wlDevRefresh').onclick = loadDeveloperDashboard;
     $('wlDevFreeze').onclick = toggleMaintenance;
     $('wlDevAssign').onclick = () => $('wlDevRoleManager')?.scrollIntoView({behavior:'smooth',block:'center'});
@@ -326,15 +328,40 @@
       say(error?.message || 'Sign-in could not be completed. Check your connection and try again.');
     }
   }
+  function showAwaitingDeveloperApproval(status) {
+    document.querySelector('.app')?.classList.add('wl-public-mode');
+    $('wlCloudAuth').hidden = true;
+    $('wlCloudWork').hidden = true;
+    let panel = $('wlCloudApproval');
+    if (!panel) {
+      panel = document.createElement('section');
+      panel.id = 'wlCloudApproval';
+      panel.style.cssText = 'max-width:620px;margin:24px auto;padding:28px;border:1px solid #dcebe1;border-radius:18px;background:#fff;box-shadow:0 18px 55px rgba(7,91,53,.09);text-align:center;color:#203b2b';
+      $('wlCloudBox').appendChild(panel);
+    }
+    panel.hidden = false;
+    const verified = !!status?.email_confirmed;
+    panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">WHITE LION CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">Awaiting Developer Approval</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + (verified ? 'Your registration is awaiting review by the White Lion platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.') + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><button id="wlApprovalSignOut" style="border:0;border-radius:9px;padding:11px 18px;background:#075b35;color:#fff;font-weight:800">Sign out</button>';
+    $('wlApprovalSignOut').onclick = async () => { await client.auth.signOut(); session=null; activeBusiness=null; panel.hidden=true; showSignedOut(); };
+    $('wlCloudStatus').textContent = verified ? 'Email verified. Awaiting developer approval.' : 'Email confirmation required.';
+  }
   async function loadBusinesses() {
-    // Show the private developer console independently of workspace membership loading.
-    // A developer account may not belong to a business workspace, and membership RLS errors
-    // must not prevent the developer dashboard from appearing.
+    // Developer authorization and customer approval are checked by Supabase before
+    // any workspace query or operational screen is exposed.
     void checkDeveloperAccess();
-    // Once we know there is a session, the sign-in form must not stay visible —
-    // even if the workspace query below fails or returns nothing — otherwise a
-    // genuinely signed-in person (e.g. a developer account with no business
-    // membership) is stuck looking "not signed in".
+    const access = await client.rpc('get_my_platform_access_status');
+    if (access.error) {
+      $('wlCloudAuth').hidden = true; $('wlCloudWork').hidden = true;
+      say('Access verification is temporarily unavailable. No workspace data has been opened. Please retry shortly.');
+      return;
+    }
+    if (!access.data?.can_access) {
+      showAwaitingDeveloperApproval(access.data || {});
+      return;
+    }
+    const approvalPanel = $('wlCloudApproval');
+    if (approvalPanel) approvalPanel.hidden = true;
+    // Only approved, email-verified users can proceed into workspace loading.
     $('wlCloudAuth').hidden = true; $('wlCloudWork').hidden = false;
     const { data: memberships, error } = await client.from('business_members')
       .select('business_id,role,is_active,businesses(id,name,industry,currency_code)')
@@ -466,6 +493,28 @@
       }, 60000);
     }
   }
+  async function loadDeveloperApprovals() {
+    const host = $('wlDevApprovals');
+    if (!host || !session || session.user.email?.toLowerCase() !== 'koromaalhajiabu0@gmail.com') return;
+    host.textContent = 'Loading customer approval queue…';
+    const {data,error} = await client.rpc('get_platform_pending_customers');
+    if (error) { host.textContent = 'Could not load approval queue: ' + error.message; return; }
+    const rows = Array.isArray(data) ? data : [];
+    host.innerHTML = rows.length ? rows.map(u => '<div class="dev-row"><div><strong>' + esc(u.full_name || 'New customer') + '</strong><div class="dev-meta">' + esc(u.email || '') + ' · Registered ' + esc(new Date(u.created_at).toLocaleString()) + '</div><div class="dev-meta">' + (u.email_confirmed ? 'EMAIL VERIFIED · READY FOR REVIEW' : 'EMAIL NOT YET VERIFIED') + '</div></div><div class="dev-actions">' + (u.email_confirmed ? '<button data-approve-customer="' + esc(u.user_id) + '">Approve</button><button class="danger" data-reject-customer="' + esc(u.user_id) + '">Reject</button>' : '<button disabled>Awaiting email verification</button>') + '</div></div>').join('') : '<div class="dev-meta">No customer accounts are awaiting approval.</div>';
+    host.querySelectorAll('[data-approve-customer],[data-reject-customer]').forEach(button => {
+      button.onclick = async () => {
+        const approved = button.hasAttribute('data-approve-customer');
+        const userId = button.getAttribute(approved ? 'data-approve-customer' : 'data-reject-customer');
+        if (!confirm((approved ? 'Approve' : 'Reject') + ' this verified customer registration?')) return;
+        button.disabled = true;
+        const result = await client.rpc('set_platform_customer_approval',{p_user_id:userId,p_approved:approved,p_note:''});
+        if (result.error) { host.textContent = 'Approval update failed: ' + result.error.message; return; }
+        await loadDeveloperApprovals();
+        say(approved ? 'Customer approved. Create or assign their workspace from the developer controls.' : 'Customer registration rejected.');
+      };
+    });
+  }
+
   async function loadDeveloperDashboard() {
     const status = $('wlDevStatus');
     if (!session || session.user.email?.toLowerCase() !== 'koromaalhajiabu0@gmail.com') return;
@@ -518,6 +567,7 @@
       };
     });
     status.textContent = 'Developer authorization verified by Supabase. Platform controls are available.';
+    await loadDeveloperApprovals();
     await loadDeveloperAlertSettings();
     await loadDeveloperRegistrations();
     await loadDeveloperBusinessRegistrations();
