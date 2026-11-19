@@ -1,32 +1,63 @@
--- Automatic student self-activation using one-time admission activation codes.
--- Additive only: existing student records and portal data functions are preserved.
+-- Automatic student self-activation using one-time codes stored separately from student records.
+-- Codes are visible only to authorised school administrators, not parent/guardian or student queries.
 begin;
 
-alter table public.school_students
-  add column if not exists portal_activation_code text;
+create table if not exists public.school_student_portal_activation_codes (
+  id uuid primary key default gen_random_uuid(),
+  business_id uuid not null references public.businesses(id) on delete cascade,
+  student_id uuid not null references public.school_students(id) on delete cascade,
+  activation_code text not null unique,
+  created_at timestamptz not null default now(),
+  unique(student_id)
+);
 
--- Issue a unique code to every existing student who has not yet activated a portal account.
-update public.school_students
-set portal_activation_code = upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 12))
-where user_id is null
-  and (portal_activation_code is null or btrim(portal_activation_code) = '');
+alter table public.school_student_portal_activation_codes enable row level security;
 
--- Every newly enrolled student automatically receives an activation code.
-alter table public.school_students
-  alter column portal_activation_code
-  set default upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 12));
+drop policy if exists school_student_activation_codes_admin_read on public.school_student_portal_activation_codes;
+create policy school_student_activation_codes_admin_read
+on public.school_student_portal_activation_codes
+for select to authenticated
+using (
+  exists (
+    select 1 from public.business_members bm
+    where bm.business_id = school_student_portal_activation_codes.business_id
+      and bm.user_id = auth.uid()
+      and coalesce(bm.is_active,true) = true
+      and lower(bm.role) in ('owner','admin','manager')
+  )
+);
 
--- Activated accounts no longer retain a usable activation code.
-update public.school_students
-set portal_activation_code = null
-where user_id is not null;
+revoke all on public.school_student_portal_activation_codes from anon, authenticated;
+grant select on public.school_student_portal_activation_codes to authenticated;
 
-create unique index if not exists school_students_portal_activation_code_unique
-  on public.school_students(portal_activation_code)
-  where portal_activation_code is not null;
+create or replace function public.school_issue_student_portal_activation_code()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.status = 'active' and new.user_id is null then
+    insert into public.school_student_portal_activation_codes
+      (business_id, student_id, activation_code)
+    values
+      (new.business_id, new.id, upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 12)))
+    on conflict (student_id) do nothing;
+  end if;
+  return new;
+end;
+$$;
 
-create index if not exists school_students_portal_activation_lookup
-  on public.school_students(business_id, admission_number)
-  where status = 'active';
+drop trigger if exists school_students_issue_portal_activation_code on public.school_students;
+create trigger school_students_issue_portal_activation_code
+after insert or update of status on public.school_students
+for each row execute function public.school_issue_student_portal_activation_code();
+
+-- Backfill current active students who have not yet activated.
+insert into public.school_student_portal_activation_codes (business_id,student_id,activation_code)
+select s.business_id,s.id,upper(substr(replace(gen_random_uuid()::text, '-', ''),1,12))
+from public.school_students s
+where s.status='active' and s.user_id is null
+on conflict (student_id) do nothing;
 
 commit;
