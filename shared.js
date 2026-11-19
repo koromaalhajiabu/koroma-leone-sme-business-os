@@ -10,7 +10,7 @@ window.esc = function esc(value) {
     if (window.__wlAffiliateModuleRequested) return;
     window.__wlAffiliateModuleRequested = true;
     var script = document.createElement('script');
-    script.src = './affiliate-marketing.js?v=2';
+    script.src = './affiliate-marketing.js?v=3';
     script.async = false;
     script.onerror = function () { window.__wlScriptFail && window.__wlScriptFail.push('affiliate-marketing.js'); };
     document.body.appendChild(script);
