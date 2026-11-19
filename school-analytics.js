@@ -41,13 +41,20 @@ content.innerHTML='<div class="wls-stats">'+card('Exam results',results.length,'
 });
 }
 function install(){
-var api=window.WhiteLionSchool;if(!api||typeof api.render!=='function')return false;
-if(api.__analyticsWrapped)return true;
-var original=api.render;
-api.render=function(){var result=original.apply(this,arguments);setTimeout(function(){var host=document.getElementById('view');if(host)panel(host)},350);return result};
-api.__analyticsWrapped=true;
-setTimeout(function(){var host=document.getElementById('view');if(host)panel(host)},600);
+var host=document.getElementById('view');
+if(!host)return false;
+if(host.querySelector('.wls-tabs'))panel(host);
 return true;
 }
-if(!install()){var count=0;var wait=setInterval(function(){count++;if(install()||count>40)clearInterval(wait)},250)}
+function start(){
+install();
+var host=document.getElementById('view');
+if(!host)return;
+if(window.__wlSchoolAnalyticsObserver)return;
+window.__wlSchoolAnalyticsObserver=new MutationObserver(function(){
+if(document.getElementById('view'))install();
+});
+window.__wlSchoolAnalyticsObserver.observe(host,{childList:true,subtree:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
