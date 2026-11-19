@@ -1515,6 +1515,22 @@
             .maybeSingle();
           if (receiptError) throw new Error('Could not verify cloud receipt for ' + (row.receipt || row.cloudTransactionId) + ': ' + receiptError.message);
           if (!receipt) throw new Error('The cloud RPC returned but no sync receipt was found for ' + (row.receipt || row.cloudTransactionId) + '. The local transaction is still pending.');
+          if (type === 'sales') {
+            let referralId = null;
+            try {
+              const savedAt = Number(localStorage.getItem('wl-aff-referral-at') || 0);
+              const savedId = localStorage.getItem('wl-aff-referral-id');
+              if (savedId && savedAt && Date.now() - savedAt <= 365 * 24 * 60 * 60 * 1000) referralId = savedId;
+            } catch (_) {}
+            if (referralId) {
+              const { error: affiliateError } = await client.rpc('record_affiliate_sale', {
+                p_business_id: activeBusiness.id,
+                p_client_transaction_id: row.cloudTransactionId,
+                p_referral_id: referralId
+              });
+              if (affiliateError) throw new Error('Sale synced, but affiliate commission recording needs a retry: ' + affiliateError.message);
+            }
+          }
           row.localBusinessId = activeBusiness.id;
           row.cloudSyncedFor = activeBusiness.id;
           row.cloudSyncedAt = new Date().toISOString();
