@@ -378,8 +378,6 @@
       showAwaitingDeveloperApproval({...access.data,workspace_pending:true});
       return;
     }
-    const approvalPanel = $('wlCloudApproval');
-    if (approvalPanel) approvalPanel.hidden = true;
     $('wlCloudAuth').hidden = true; $('wlCloudWork').hidden = false;
     const previouslySelectedId = activeBusiness?.id;
     window.__wlBusinesses = businesses;
