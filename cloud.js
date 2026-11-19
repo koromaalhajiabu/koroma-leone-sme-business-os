@@ -341,7 +341,8 @@
     }
     panel.hidden = false;
     const verified = !!status?.email_confirmed;
-    panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">WHITE LION CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">Awaiting Developer Approval</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + (verified ? 'Your registration is awaiting review by the White Lion platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.') + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><button id="wlApprovalSignOut" style="border:0;border-radius:9px;padding:11px 18px;background:#075b35;color:#fff;font-weight:800">Sign out</button>';
+    panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">WHITE LION CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">Awaiting Developer Approval</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + (verified ? 'Your registration is awaiting review by the White Lion platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.') + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button id="wlApprovalCheck" style="border:0;border-radius:9px;padding:11px 18px;background:#087a43;color:#fff;font-weight:800">Check approval status</button><button id="wlApprovalSignOut" style="border:1px solid #b9cfc0;border-radius:9px;padding:11px 18px;background:#fff;color:#075b35;font-weight:800">Sign out</button></div>';
+    $('wlApprovalCheck').onclick = async () => { $('wlApprovalCheck').disabled=true; $('wlApprovalCheck').textContent='Checking…'; await loadBusinesses(); if ($('wlApprovalCheck')) { $('wlApprovalCheck').disabled=false; $('wlApprovalCheck').textContent='Check approval status'; } };
     $('wlApprovalSignOut').onclick = async () => { await client.auth.signOut(); session=null; activeBusiness=null; panel.hidden=true; showSignedOut(); };
     $('wlCloudStatus').textContent = verified ? 'Email verified. Awaiting developer approval.' : 'Email confirmation required.';
   }
@@ -363,6 +364,8 @@
     if (approvalPanel) approvalPanel.hidden = true;
     // Only approved, email-verified users can proceed into workspace loading.
     $('wlCloudAuth').hidden = true; $('wlCloudWork').hidden = false;
+    const isDeveloper = !!access.data?.is_developer;
+    $('wlCreateBusiness').hidden = !isDeveloper;
     const { data: memberships, error } = await client.from('business_members')
       .select('business_id,role,is_active,businesses(id,name,industry,currency_code)')
       .eq('user_id', session.user.id).eq('is_active', true);
@@ -375,7 +378,8 @@
       ? businesses.map(b => `<option value="${b.id}">${esc(b.name)} — ${esc(b.role)}</option>`).join('')
       : '<option value="">No business workspace yet</option>';
     if (businesses.length) await selectBusiness(businesses.find(b => b.id === previouslySelectedId) || businesses[0]);
-    else say('Signed in. Create your first business workspace.');
+    else if (isDeveloper) say('Developer account verified. Create or manage customer workspaces from the Developer Console.');
+    else say('Your account is approved. Your business workspace is being prepared by the White Lion platform developer.');
   }
   async function createBranch() {
     if (!activeBusiness) return say('Select a business workspace first.');
@@ -484,11 +488,13 @@
     if (panel.hidden) return;
     $('wlDevIdentity').textContent = 'Authenticated: ' + session.user.email + ' · Private developer';
     await loadDeveloperDashboard();
+    await loadDeveloperApprovals();
     if (!window.__wlRegistrationRefreshTimer) {
       window.__wlRegistrationRefreshTimer = setInterval(() => {
         if (session && session.user.email?.toLowerCase() === 'koromaalhajiabu0@gmail.com' && !document.hidden) {
           loadDeveloperRegistrations();
           loadDeveloperBusinessRegistrations();
+          loadDeveloperApprovals();
         }
       }, 60000);
     }
