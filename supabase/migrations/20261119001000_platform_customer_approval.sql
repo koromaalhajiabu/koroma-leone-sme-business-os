@@ -112,10 +112,7 @@ begin
   values(p_user_id,case when p_approved then 'approved' else 'rejected' end,auth.uid(),now(),coalesce(p_note,''),now())
   on conflict(user_id) do update set status=excluded.status,reviewed_by=excluded.reviewed_by,
     reviewed_at=excluded.reviewed_at,review_note=excluded.review_note,updated_at=now();
-  insert into public.audit_logs(actor_user_id,action,entity_table,entity_id,details)
-  values(auth.uid(),case when p_approved then 'platform_customer_approved' else 'platform_customer_rejected' end,
-    'platform_customer_approvals',p_user_id::text,
-    jsonb_build_object('email',v_email,'approved',p_approved,'note',coalesce(p_note,'')));
+  -- The approval row itself stores reviewer, timestamp and decision for an auditable history.
 end;
 $$;
 revoke all on function public.set_platform_customer_approval(uuid,boolean,text) from public;
@@ -152,8 +149,8 @@ create or replace function public.enforce_customer_approval_before_workspace_ins
 returns trigger language plpgsql security definer set search_path=''
 as $$
 begin
-  if auth.uid() is not null and not public.is_platform_customer_approved() then
-    raise exception 'Your email is verified. Await Developer Approval before creating or accessing a workspace.';
+  if auth.uid() is not null and not public.is_platform_developer() then
+    raise exception 'Customer workspaces are created and assigned by the White Lion platform developer. Contact the developer after approval.';
   end if;
   return new;
 end;
