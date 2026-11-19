@@ -1,12 +1,14 @@
 /* White Lion SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='white-lion-sme-v228';
+const CACHE_NAME='white-lion-sme-v229';
 const APP_SHELL=[
   './',
   './index.html',
   './login-premium.css?v=3',
   './workspace-polish.css?v=3',
-  './school-management.js?v=37',
+  './school-management.js?v=38',
   './school-analytics.js?v=2',
+  './student-portal.html',
+  './student-portal.js?v=1',
   './campus-management.js?v=1',
   './parent-portal.html',
   './teacher-portal.html',
@@ -90,6 +92,10 @@ self.addEventListener('fetch', event => {
       if (request.mode === 'navigate' && /\/parent-portal\.html$/i.test(url.pathname)) {
         const parentPage = await cache.match('./parent-portal.html', {ignoreSearch:true});
         return parentPage || Response.error();
+      }
+      if (request.mode === 'navigate' && /\/student-portal\.html$/i.test(url.pathname)) {
+        const studentPage = await cache.match('./student-portal.html', {ignoreSearch:true});
+        return studentPage || Response.error();
       }
       if (request.mode === 'navigate' && /\/teacher-portal\.html$/i.test(url.pathname)) {
         const teacherPage = await cache.match('./teacher-portal.html', {ignoreSearch:true});
