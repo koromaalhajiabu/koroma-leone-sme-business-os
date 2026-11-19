@@ -31,8 +31,9 @@ Deno.serve(async(req)=>{
    if(ce||!created.user)return reply({error:ce?.message||"Could not create student account."},409);
    const {data:linked,error:le}=await admin.from("school_students").update({user_id:created.user.id}).eq("id",s.id).is("user_id",null).select("id").maybeSingle();
    if(le||!linked){await admin.auth.admin.deleteUser(created.user.id);return reply({error:"Activation code already used. Please sign in instead."},409);}
-   const {error:consumeError}=await admin.from("school_student_portal_activation_codes").delete().eq("student_id",s.id).eq("activation_code",codeRow.activation_code);\n   if(consumeError){await admin.from("school_students").update({user_id:null}).eq("id",s.id).eq("user_id",created.user.id);await admin.auth.admin.deleteUser(created.user.id);return reply({error:"Could not consume the activation code. Please try again."},500);}\n   const {error:me}=await admin.from("school_memberships").upsert({business_id:p.business_id,user_id:created.user.id,school_role:"student",is_active:true},{onConflict:"business_id,user_id"});
+   const {error:me}=await admin.from("school_memberships").upsert({business_id:p.business_id,user_id:created.user.id,school_role:"student",is_active:true},{onConflict:"business_id,user_id"});
    if(me){await admin.from("school_students").update({user_id:null}).eq("id",s.id).eq("user_id",created.user.id);await admin.auth.admin.deleteUser(created.user.id);return reply({error:"Account setup failed: "+me.message},500);}
+   await admin.from("school_student_portal_activation_codes").delete().eq("student_id",s.id).eq("activation_code",codeRow.activation_code);
    return reply({ok:true,email,student_name:s.first_name+" "+s.last_name});
   }
   const token=(req.headers.get("Authorization")||"").replace("Bearer ","");
