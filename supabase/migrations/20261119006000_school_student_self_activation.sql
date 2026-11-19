@@ -60,6 +60,7 @@ declare
   v_business_id uuid;
   v_email text;
   v_user_id uuid;
+  v_education_level text;
 begin
   v_user_id := auth.uid();
   if v_user_id is null then raise exception 'Sign in and verify your email first'; end if;
@@ -83,6 +84,11 @@ begin
   for update;
   if not found then raise exception 'Student ID was not found in this school'; end if;
   if v_student.status <> 'active' then raise exception 'This student record is not active'; end if;
+  select lower(coalesce(sc.education_level::text,'')) into v_education_level
+  from public.school_classes sc where sc.id = v_student.class_id;
+  if coalesce(v_education_level,'') not in ('junior_secondary','senior_secondary') then
+    raise exception 'Direct Student Portal activation is available only for Junior and Senior Secondary students. Please use the Parent/Guardian Portal.';
+  end if;
   if v_student.student_email is null or lower(trim(v_student.student_email)) <> v_email then
     raise exception 'The verified email does not match the email recorded by your school. Contact the school administration.';
   end if;
