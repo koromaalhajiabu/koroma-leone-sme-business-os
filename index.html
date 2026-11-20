@@ -1139,6 +1139,44 @@ async function render(){
     const w=window.open('','_blank','width=420,height=720');if(!w){toast('Allow pop-ups to print receipts');return}
     w.onload=()=>{try{w.focus();w.print()}catch(e){}};
     w.document.write(`<!doctype html><html><head><title>${esc(sale.receipt)}</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:13px Arial;padding:18px;color:#111}h2,p{text-align:center;margin:4px}table{width:100%;border-collapse:collapse;margin:16px 0}td,th{padding:7px 3px;border-bottom:1px solid #ddd;text-align:left;font-size:11px}.right{text-align:right}.total{font-size:17px;font-weight:bold;text-align:right;margin-top:12px}.muted{text-align:center;color:#666;font-size:10px;margin-top:20px}</style></head><body><h2>${esc(state.business.name||'White Lion SME')}</h2><p>${esc(state.business.phone||'')}</p><p>SALES RECEIPT</p><hr><p>Receipt: ${esc(sale.receipt)}</p><p>Date: ${esc(sale.date)}</p><p>Customer: ${esc(sale.customer||'Walk-in')}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table><p class="right">Subtotal: ${money(sale.subtotal??sale.total)}</p><p class="right">Discount: ${money(sale.discount||0)}</p><p class="right">Tax: ${money(sale.tax||0)}</p><div class="total">TOTAL: ${money(sale.total)}</div><p>Payment: ${esc(sale.payment||'Cash')}</p><div class="muted">Thank you for shopping with us.<br>Designed by Alhaji Abu Koroma</div>
+
+<!-- WHITE LION RANDOM ACCENT THEMES -->
+<style id="wl-random-accent-style">
+:root{--wl-accent:#13865f;--wl-accent-2:#31a77b;--wl-accent-soft:#e9f7f0;--wl-accent-glow:rgba(19,134,95,.16)}
+.sidebar{background:linear-gradient(155deg,var(--wl-accent) 0%,color-mix(in srgb,var(--wl-accent) 65%,#101a2d) 42%,#101a2d 100%)!important;transition:background .45s ease}
+.brand-mark{background:linear-gradient(145deg,var(--wl-accent-2),var(--wl-accent))!important;color:#fff!important}
+.nav button.active{background:linear-gradient(100deg,var(--wl-accent-glow),rgba(255,255,255,.08))!important;box-shadow:inset 3px 0 var(--wl-accent-2),0 5px 15px rgba(0,0,0,.08)!important}
+.nav .ico,.eyebrow{color:var(--wl-accent)!important}
+.sidebar .nav .ico,.sidebar .eyebrow{color:var(--wl-accent-2)!important}
+.btn.primary,.quick:hover{border-color:var(--wl-accent)!important}
+.btn.primary{background:linear-gradient(135deg,var(--wl-accent-2),var(--wl-accent))!important;color:#fff!important}
+.btn.gold{background:linear-gradient(135deg,var(--wl-accent-2),var(--wl-accent))!important;border-color:var(--wl-accent)!important;color:#fff!important}
+.stat-icon{background:var(--wl-accent-soft)!important;color:var(--wl-accent)!important}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--wl-accent)!important;box-shadow:0 0 0 3px var(--wl-accent-glow)!important}
+.quick:hover{background:var(--wl-accent-soft)!important}
+a{color:var(--wl-accent)}
+@media(prefers-reduced-motion:no-preference){.stat,.panel,.module-card,.btn,.quick{transition:background-color .3s ease,border-color .3s ease,box-shadow .3s ease,transform .2s ease}}
+</style>
+<script id="wl-random-accent-controller">
+(function(){
+ 'use strict';
+ var palettes=[
+  {name:'Emerald',a:'#13865f',b:'#31a77b',soft:'#e9f7f0',glow:'rgba(19,134,95,.16)'},
+  {name:'Ocean blue',a:'#1769aa',b:'#3b91d1',soft:'#eaf4fc',glow:'rgba(23,105,170,.16)'},
+  {name:'Royal violet',a:'#6546a5',b:'#9272d0',soft:'#f1edfa',glow:'rgba(101,70,165,.16)'},
+  {name:'Sunset coral',a:'#b94f48',b:'#e27b68',soft:'#fff0ed',glow:'rgba(185,79,72,.16)'},
+  {name:'Teal',a:'#087f83',b:'#28a8a2',soft:'#e8f7f6',glow:'rgba(8,127,131,.16)'},
+  {name:'Sapphire',a:'#354f9b',b:'#6684d6',soft:'#edf1fc',glow:'rgba(53,79,155,.16)'}
+ ];
+ var chosen=palettes[Math.floor(Math.random()*palettes.length)],root=document.documentElement;
+ root.style.setProperty('--wl-accent',chosen.a);
+ root.style.setProperty('--wl-accent-2',chosen.b);
+ root.style.setProperty('--wl-accent-soft',chosen.soft);
+ root.style.setProperty('--wl-accent-glow',chosen.glow);
+ root.setAttribute('data-wl-accent',chosen.name.toLowerCase().replace(/ /g,'-'));
+ window.wlCurrentAccent=chosen.name;
+})();
+</script>
 </body></html>`);
     w.document.close();
     w.document.close();
