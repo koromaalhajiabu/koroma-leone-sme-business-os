@@ -58,7 +58,16 @@ function exportTranscriptPdf(){
 }
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const b=e.submitter||e.currentTarget.querySelector('button[type=submit]');b.disabled=true;hide('loginMessage');const fd=new FormData(e.currentTarget);const {error}=await client.auth.signInWithPassword({email:fd.get('email'),password:fd.get('password')});b.disabled=false;if(error){message('loginMessage',error.message,true);return}try{await load()}catch(err){await client.auth.signOut();showLogin();message('loginMessage',err.message||'Unable to load student account',true)}});
 $('registerStudent').addEventListener('click',async()=>{const email=$('loginForm').elements.email.value.trim(),password=$('loginForm').elements.password.value;if(!email||password.length<8){message('loginMessage','Enter your student email and a password of at least 8 characters, then create your account.',true);return}const b=$('registerStudent');b.disabled=true;const {data:created,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.href}});b.disabled=false;if(error){message('loginMessage',error.message,true);return}message('loginMessage',created.session?'Account created. You can now sign in.':'Account created. Check your email to verify it, then return here to sign in.');});
+function downloadMyInformation(){
+ if(!data){message('pageMessage','Load your records first.',true);return}
+ const blob=new Blob([JSON.stringify({format:'White Lion Student Portal Export',exported_at:new Date().toISOString(),data},null,2)],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=(data.student&&data.student.student_number||'my-student-record')+'-information.json';
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
 $('exportTranscript').addEventListener('click',exportTranscriptPdf);
+$('downloadMyInfo').addEventListener('click',downloadMyInformation);
 $('refreshBtn').addEventListener('click',()=>load().catch(e=>message('pageMessage',e.message,true)));
 $('signOutBtn').addEventListener('click',async()=>{await client.auth.signOut();data=null;showLogin()});
 client.auth.getSession().then(async({data:s})=>{if(s.session){try{await load()}catch(e){showLogin();message('loginMessage',e.message,true)}}else showLogin()});
