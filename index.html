@@ -904,7 +904,7 @@ html[data-theme="dark"] .footer{color:#8795aa}
     <button data-page="phoneunlocking"><span class="ico">📱</span>Phone Unlocking Service</button>
     <a href="./customer-support/" target="_blank" rel="noopener noreferrer" aria-label="Open customer Help and Support Centre" style="display:flex;align-items:center;gap:11px;color:#c6d0df;text-decoration:none;padding:10px 12px;border-radius:9px;font-size:12px;font-weight:550"><span class="ico" style="width:18px;text-align:center;color:#e2c681">?</span>Help &amp; Support ↗</a>
   </nav></div>
-  <div class="wl-sidebar-language" style="margin:4px 7px 10px;padding:11px 10px;border:1px solid rgba(255,255,255,.16);border-radius:11px;background:rgba(255,255,255,.055)"><label for="wlLanguageSidebar" style="display:block;color:#c6d0df;font-size:10px;font-weight:800;letter-spacing:.8px;margin-bottom:7px">🌐 LANGUAGE / LANGUE</label><select id="wlLanguageSidebar" aria-label="Choose language" style="width:100%;height:36px;border:1px solid rgba(255,255,255,.22);border-radius:8px;background:#182943;color:#fff;padding:0 9px;font-size:12px"><option value="en">English</option><option value="fr">Français</option><option value="ar">العربية</option><option value="es">Español</option><option value="hi">हिन्दी</option><option value="zh">中文（简体）</option></select></div><div class="wl-sidebar-language wl-theme-picker" style="margin:0 7px 12px;padding:11px 10px;border:1px solid rgba(255,255,255,.16);border-radius:11px;background:rgba(255,255,255,.055)"><label for="wlAccentTheme" style="display:block;color:#c6d0df;font-size:10px;font-weight:800;letter-spacing:.8px;margin-bottom:7px">🎨 COLOUR THEME</label><select id="wlAccentTheme" aria-label="Choose colour theme" style="width:100%;height:36px;border:1px solid rgba(255,255,255,.22);border-radius:8px;background:#182943;color:#fff;padding:0 9px;font-size:12px"><option value="random">Random dynamic theme</option><option value="emerald">Emerald</option><option value="ocean-blue">Ocean blue</option><option value="royal-violet">Royal violet</option><option value="sunset-coral">Sunset coral</option><option value="teal">Teal</option><option value="sapphire">Sapphire</option></select><small style="display:block;color:#9eacc0;font-size:10px;margin-top:6px">Choose a colour style for your workspace.</small></div><div class="side-foot">White Lion Tech Solutions<br>SME Business OS · Starter build</div>
+  <div class="wl-sidebar-language" style="margin:4px 7px 10px;padding:11px 10px;border:1px solid rgba(255,255,255,.16);border-radius:11px;background:rgba(255,255,255,.055)"><label for="wlLanguageSidebar" style="display:block;color:#c6d0df;font-size:10px;font-weight:800;letter-spacing:.8px;margin-bottom:7px">🌐 LANGUAGE / LANGUE</label><select id="wlLanguageSidebar" aria-label="Choose language" style="width:100%;height:36px;border:1px solid rgba(255,255,255,.22);border-radius:8px;background:#182943;color:#fff;padding:0 9px;font-size:12px"><option value="en">English</option><option value="fr">Français</option><option value="ar">العربية</option><option value="es">Español</option><option value="hi">हिन्दी</option><option value="zh">中文（简体）</option></select></div><div class="side-foot">White Lion Tech Solutions<br>SME Business OS · Starter build</div>
 </aside>
 <main class="main">
 <header class="topbar">
@@ -1181,23 +1181,13 @@ a{color:var(--wl-accent)}
   {name:'Teal',a:'#087f83',b:'#28a8a2',soft:'#e8f7f6',glow:'rgba(8,127,131,.16)'},
   {name:'Sapphire',a:'#354f9b',b:'#6684d6',soft:'#edf1fc',glow:'rgba(53,79,155,.16)'}
  ];
- var root=document.documentElement,selector=document.getElementById('wlAccentTheme');
- function applyTheme(themeName){
-  var chosen=palettes.find(function(item){return item.name.toLowerCase().replace(/ /g,'-')===themeName;});
-  if(!chosen){chosen=palettes[Math.floor(Math.random()*palettes.length)];themeName='random';}
-  root.style.setProperty('--wl-accent',chosen.a);
-  root.style.setProperty('--wl-accent-2',chosen.b);
-  root.style.setProperty('--wl-accent-soft',chosen.soft);
-  root.style.setProperty('--wl-accent-glow',chosen.glow);
-  root.setAttribute('data-wl-accent',chosen.name.toLowerCase().replace(/ /g,'-'));
-  window.wlCurrentAccent=chosen.name;
-  if(selector&&selector.value!==themeName)selector.value=themeName;
-  try{localStorage.setItem('wl-sme-accent-theme',themeName);}catch(e){}
- }
- var savedTheme='';try{savedTheme=localStorage.getItem('wl-sme-accent-theme')||'';}catch(e){}
- applyTheme(savedTheme||'random');
- if(selector)selector.addEventListener('change',function(){applyTheme(this.value);});
- window.wlSetAccentTheme=applyTheme;
+ var chosen=palettes[Math.floor(Math.random()*palettes.length)],root=document.documentElement;
+ root.style.setProperty('--wl-accent',chosen.a);
+ root.style.setProperty('--wl-accent-2',chosen.b);
+ root.style.setProperty('--wl-accent-soft',chosen.soft);
+ root.style.setProperty('--wl-accent-glow',chosen.glow);
+ root.setAttribute('data-wl-accent',chosen.name.toLowerCase().replace(/ /g,'-'));
+ window.wlCurrentAccent=chosen.name;
 })();
 </script>
 </body></html>`);
