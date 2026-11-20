@@ -15,6 +15,7 @@ async function load(){
  if(error)throw error;data=result;
  $('loginPanel').classList.add('hidden');$('dashboard').classList.remove('hidden');$('dashButtons').classList.remove('hidden');
  $('campusTitle').textContent=data.campus_name||'Student Portal';
+ if(data.campus_crest){$('campusCrest').src=data.campus_crest;$('campusCrest').style.display='block'}
  const s=data.student||{};
  $('studentWelcome').textContent='Welcome, '+s.first_name+' '+s.last_name+' · '+(s.student_number||'')+(data.program?' · '+data.program.name:'');
  $('gpaStat').textContent=data.cumulative_gpa==null?'—':Number(data.cumulative_gpa).toFixed(2);

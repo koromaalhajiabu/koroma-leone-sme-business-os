@@ -15,6 +15,7 @@ async function load(){
  if(error)throw error;data=result;
  $('loginPanel').classList.add('hidden');$('dashboard').classList.remove('hidden');$('dashButtons').classList.remove('hidden');
  $('campusTitle').textContent=data.campus_name||'Lecturer Portal';
+ if(data.campus_crest){$('campusCrest').src=data.campus_crest;$('campusCrest').style.display='block'}
  const l=data.lecturer||{};
  $('lecturerWelcome').textContent='Welcome, '+l.first_name+' '+l.last_name+' · '+(l.job_title||'Lecturer');
  $('sectionCount').textContent=(data.sections||[]).length;
