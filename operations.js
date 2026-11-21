@@ -516,9 +516,55 @@
   }
   async function saveCashbook(){
     const amount=Number(document.getElementById('wlOpsCashAmount').value),category=document.getElementById('wlOpsCashCategory').value.trim(),description=document.getElementById('wlOpsCashDescription').value.trim();
+    const entryType=document.getElementById('wlOpsCashType').value;
+    const paymentMethod=document.getElementById('wlOpsCashPayment').value;
+    const entryDate=document.getElementById('wlOpsCashDate').value||new Date().toISOString().slice(0,10);
+    const bankAccountId=document.getElementById('wlOpsCashBankAccount').value||null;
+    const branch=api.getSelectedBranch?.();
     if(!Number.isFinite(amount)||amount<=0||!category||!description)return say('Enter a category, description and positive amount.',true);
-    const {error}=await client.from('cashbook_entries').insert({business_id:business.id,branch_id:api.getSelectedBranch?.()?.id||null,bank_account_id:document.getElementById('wlOpsCashBankAccount').value||null,entry_type:document.getElementById('wlOpsCashType').value,category,description,amount,payment_method:document.getElementById('wlOpsCashPayment').value,entry_date:document.getElementById('wlOpsCashDate').value||new Date().toISOString().slice(0,10)});
-    if(error)return say(error.message,true);document.getElementById('wlOpsCashAmount').value='';say('Cashbook entry saved.');await Promise.all([renderFinance(),renderCashbookRegister()]);
+    const button=document.getElementById('wlOpsCashSave');
+    if(button)button.disabled=true;
+    try{
+      let settings=api.getApprovalSettings?.()||{};
+      if(api.refreshApprovalSettings){
+        try{settings=await api.refreshApprovalSettings()||settings;}
+        catch(error){return say('Approval rules could not be verified. Nothing was saved: '+error.message,true);}
+      }
+      if(entryType==='expense'&&settings.require_expense_approvals){
+        const requestId=window.crypto?.randomUUID?.();
+        if(!requestId)return say('Secure request ID generation is unavailable on this device. Update your browser before submitting.',true);
+        const reference='CASH-'+requestId;
+        const {error}=await client.rpc('create_business_operation_approval',{
+          p_business_id:business.id,
+          p_client_request_id:requestId,
+          p_request_type:'expense',
+          p_title:category+' · '+description,
+          p_description:description,
+          p_amount:amount,
+          p_currency_code:business.currency_code||'SLE',
+          p_payload:{
+            operation:'cashbook_expense',
+            client_record_id:reference,
+            branch_id:branch?.id||null,
+            bank_account_id:bankAccountId,
+            category,description,amount,
+            payment_method:paymentMethod,entry_date:entryDate
+          }
+        });
+        if(error)return say(error.message,true);
+        document.getElementById('wlOpsCashAmount').value='';
+        say('Cashbook expense submitted for approval. No cashbook or ledger entry has been posted yet.');
+        return;
+      }
+      const {error}=await client.from('cashbook_entries').insert({
+        business_id:business.id,branch_id:branch?.id||null,bank_account_id:bankAccountId,
+        entry_type:entryType,category,description,amount,payment_method:paymentMethod,entry_date:entryDate
+      });
+      if(error)return say(error.message,true);
+      document.getElementById('wlOpsCashAmount').value='';
+      say('Cashbook entry saved.');
+      await Promise.all([renderFinance(),renderCashbookRegister()]);
+    }finally{if(button)button.disabled=false;}
   }
   async function saveObligation(){
     const party=document.getElementById('wlOpsParty').value.trim(),description=document.getElementById('wlOpsObligationDesc').value.trim(),amount=Number(document.getElementById('wlOpsObligationAmount').value);
@@ -579,7 +625,8 @@
     const branch=api.getSelectedBranch?.();
     if(!productId||!batch||!Number.isFinite(qty)||qty<=0||!Number.isFinite(cost)||cost<0)return say('Enter a product, batch number, positive quantity and valid unit cost.',true);
     if(!branch?.id)return say('Select an active cloud branch before receiving a stock batch.',true);
-    const settings=api.getApprovalSettings?.()||{};
+    let settings=api.getApprovalSettings?.()||{};
+    if(api.refreshApprovalSettings){try{settings=await api.refreshApprovalSettings()||settings;}catch(error){return say('Approval rules could not be verified. Nothing was received: '+error.message,true);}}
     if(settings.require_purchase_approvals){
       if(!product?.client_record_id)return say('Sync this product to the selected business before submitting its batch receipt for approval.',true);
       const requestId=window.crypto?.randomUUID?.();
