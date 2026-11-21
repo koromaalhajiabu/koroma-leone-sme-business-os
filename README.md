@@ -10,6 +10,10 @@ A multi-industry SME operations platform by Koroma Leone Tech. The frontend is d
 
 - Multi-industry business profiles and workspace membership. 
 - Sales/POS, products, purchasing, customers, suppliers and expenses.
+- Cloud HR employee directory and payroll runs with draft review, approval, deductions and payment-reference recording.
+- Customer loyalty accounts, points ledger, redemption controls and balance-based reward tiers.
+- Online storefront and customer orders; delivery dispatch, rider management and public tracking.
+- Supplier portal and procurement intelligence; executive insights and business automation.
 - Supabase authentication, business membership and row-level security.
 - IndexedDB local persistence and offline transaction synchronisation.
 - Multi-branch operations, branch access and stock transfers.
@@ -37,7 +41,7 @@ Do not add a Supabase service-role key to browser code or the public repository.
 
 ## Database setup
 
-SQL migrations are in `supabase/migrations/`. The consolidated operations installer is:
+SQL migrations are in `supabase/migrations/`. The HR/payroll and customer-loyalty enhancement is recorded in `supabase/migrations/055_hr_loyalty_workflows.sql`. It adds the transactional `apply_customer_loyalty_points` RPC; the employee and payroll tables were already present. The HR/payroll UI records payroll drafts and approvals but does not initiate bank/mobile-money transfers or calculate statutory tax automatically. Configure and review deductions under applicable local rules. Loyalty tiers use default balance thresholds (Bronze 100+, Silver 500+, Gold 1,000+) in this release.\n\nThe consolidated operations installer is:
 
 `supabase/INSTALL_ALL_OPERATIONS.sql`
 
