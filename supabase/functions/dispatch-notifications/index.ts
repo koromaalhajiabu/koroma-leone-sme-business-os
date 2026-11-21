@@ -58,6 +58,7 @@ Deno.serve(async (req: Request) => {
           if (!from) throw new Error("Missing TWILIO_SMS_FROM");
           form.set("From", from);
           form.set("Body", `${item.message_title}: ${item.message_body}`);
+          form.set("StatusCallback", `${supabaseUrl}/functions/v1/twilio-status-webhook`);
         } else {
           const from = Deno.env.get("TWILIO_WHATSAPP_FROM");
           const contentSid = Deno.env.get("TWILIO_WHATSAPP_CONTENT_SID");
@@ -65,6 +66,7 @@ Deno.serve(async (req: Request) => {
           form.set("From", from.startsWith("whatsapp:") ? from : `whatsapp:${from}`);
           form.set("ContentSid", contentSid);
           form.set("ContentVariables", JSON.stringify({ "1": item.message_title, "2": item.message_body }));
+          form.set("StatusCallback", `${supabaseUrl}/functions/v1/twilio-status-webhook`);
         }
         response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
           method: "POST",
@@ -83,7 +85,7 @@ Deno.serve(async (req: Request) => {
       
       await fetch(`${supabaseUrl}/rest/v1/notification_delivery_queue?id=eq.${item.id}`, {
         method: "PATCH", headers: { ...restHeaders, prefer: "return=minimal" },
-        body: JSON.stringify({ status: "sent", provider_message_id: providerId, sent_at: new Date().toISOString(), last_error: null, updated_at: new Date().toISOString() }),
+        body: JSON.stringify({ status: "sent", delivery_status: "accepted", provider_status_at: new Date().toISOString(), provider_message_id: providerId, sent_at: new Date().toISOString(), last_error: null, updated_at: new Date().toISOString() }),
       });
       await fetch(`${supabaseUrl}/rest/v1/notification_delivery_attempts`, {
         method: "POST", headers: { ...restHeaders, prefer: "return=minimal" },
