@@ -30,7 +30,16 @@
     background:linear-gradient(90deg,transparent,var(--wl-palette-primary,#087a58),var(--wl-palette-secondary,#1668a7),transparent);
     background-size:220% 100%;animation:klt-spectrum 9s linear infinite;pointer-events:none}
   .status .dot,.dot{animation:klt-live-pulse 2.4s ease-in-out infinite}
-  #view .klt-enter{animation:klt-rise-in .52s var(--klt-motion-ease) both}
+  #view .klt-enter{animation:klt-rise-in .72s var(--klt-motion-ease) both}
+  #view .welcome.klt-enter{animation:klt-rise-in .8s var(--klt-motion-ease) both}
+  #view .stats.klt-enter{animation:klt-rise-in .85s var(--klt-motion-ease) both;animation-delay:100ms}
+  #view .grid-main.klt-enter{animation:klt-rise-in .85s var(--klt-motion-ease) both;animation-delay:180ms}
+  #view .stat.klt-enter{animation:klt-rise-in .72s var(--klt-motion-ease) both}
+  #view .panel.klt-enter{animation:klt-rise-in .72s var(--klt-motion-ease) both}
+  #view .stat-icon{animation:klt-icon-float 3.2s ease-in-out infinite}
+  #view .quick span{transition:transform .28s ease}
+  #view .quick:active span{transform:translateY(-3px) scale(1.12)}
+  #view .welcome h1{animation:klt-title-glow 4.8s ease-in-out infinite alternate}
   #view .klt-enter:nth-child(2){animation-delay:45ms}
   #view .klt-enter:nth-child(3){animation-delay:85ms}
   #view .klt-enter:nth-child(4){animation-delay:125ms}
@@ -42,6 +51,8 @@
     outline-offset:3px;
   }
 }
+@keyframes klt-icon-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes klt-title-glow{from{text-shadow:0 0 0 rgba(205,168,93,0)}to{text-shadow:0 5px 22px rgba(205,168,93,.18)}}
 @keyframes klt-rise-in{from{opacity:0;transform:translate3d(0,15px,0) scale(.992)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
 @keyframes klt-modal-in{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes klt-toast-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -51,7 +62,7 @@
   @media(prefers-reduced-motion:no-preference){
     .nav button:hover{transform:none}
     .stat:hover,.panel:hover,.module-card:hover{transform:none}
-    #view .klt-enter{animation-duration:.38s}
+    #view .klt-enter{animation-duration:.58s}
   }
 }
 @media(prefers-reduced-motion:reduce){
