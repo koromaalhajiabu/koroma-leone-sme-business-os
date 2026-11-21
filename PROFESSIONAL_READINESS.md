@@ -82,3 +82,12 @@ The browser smoke suite now exercises Executive Action Centre, Financial Plannin
 The Supabase security audit SQL is read-only. It reports tables without RLS, RLS-enabled tables without policies, public/anonymous table grants, and SECURITY DEFINER functions without a fixed search_path. Review every result against intended public data and RPC access; a clean report is not a substitute for cross-account tests using two separate authenticated business accounts.
 
 **Remaining release blockers that require live Supabase/device acceptance:** execute the read-only security audit; verify RLS isolation and role-denial cases with separate accounts; verify bank statement reconciliation; apply and test migration 019 if it is not already installed; validate opening inventory and COGS; run and restore an encrypted backup in a separate recovery project; test offline sync conflict recovery across two devices; and test the rebuilt APK offline on Android.
+
+## Security follow-up — migration 058
+
+- Migration 058 changes the retained legacy `device_service_financial_summary` view to `security_invoker=true`. This makes access follow the calling user's privileges and the underlying `phone_unlocking_orders` RLS policies instead of running with the view owner's permissions.
+- The change was applied to the connected Supabase project and verified in PostgreSQL catalog metadata (`reloptions = security_invoker=true`). The migration is recorded in Supabase migration history.
+- The security advisor no longer reports the previous `security_definer_view` finding.
+- Eleven RLS-enabled platform/internal tables have no policies and no grants to `anon`, `authenticated`, or `PUBLIC`; this currently blocks direct Data API access and appears intentional for internal tables, but any RPCs that use them must continue to enforce developer/role checks.
+- The security advisor still reports many `SECURITY DEFINER` functions executable by API roles, including trigger functions and selected public workflows. These require function-by-function review; do not revoke them in bulk because some are required for offline sync, approvals, storefront submissions, and controlled administration.
+- Supabase Auth leaked-password protection is currently disabled and should be enabled in the Auth security settings before production onboarding.
