@@ -1,4 +1,4 @@
-/* White Lion SME — selectable colour palettes with a random launch option. */
+/* Koroma Leone SME — selectable colour palettes with a random launch option. */
 (function(){
  'use strict';
  if(window.__wlDynamicAccentLoaded)return;

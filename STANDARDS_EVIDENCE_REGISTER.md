@@ -1,10 +1,10 @@
 # Standards Evidence Register
 
-**Product:** White Lion SME Business Operating System  
+**Product:** Koroma Leone SME Business Operating System  
 **Repository:** `koromaalhajiabu/white-lion-sme-business-os`  
 **Register version:** 1.0  
 **Created:** 2026-11-12  
-**Register owner:** White Lion Tech Solutions  
+**Register owner:** Koroma Leone Tech  
 **Assessment type:** Internal evidence register; not a certification or independent audit.
 
 ## 1. Purpose and evidence rules
@@ -94,6 +94,6 @@ This register is an internal engineering evidence record. It is not an ISO certi
 
 Approved description while assurance work remains in progress:
 
-> White Lion SME Business Operating System is developed with reference to recognised software quality, application security and accounting frameworks. Its reported functional tests and available repository evidence are being documented through an ongoing internal assurance process. No formal certification or independent compliance assessment is claimed.
+> Koroma Leone SME Business Operating System is developed with reference to recognised software quality, application security and accounting frameworks. Its reported functional tests and available repository evidence are being documented through an ongoing internal assurance process. No formal certification or independent compliance assessment is claimed.
 
 **Change control:** Update this register when evidence is added, tests are repeated, controls change, or a new release materially affects a recorded result. Preserve prior results and identify the release to which each result applies.

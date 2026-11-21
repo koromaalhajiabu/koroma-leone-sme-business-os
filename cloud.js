@@ -1,4 +1,4 @@
-/* White Lion SME OS — Supabase workspace, master-data and atomic transaction sync. */
+/* Koroma Leone SME OS — Supabase workspace, master-data and atomic transaction sync. */
 (() => {
   const SUPABASE_URL = 'https://nclncqlgnxnijlumznnt.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
@@ -71,7 +71,7 @@
     .wl-public-mode #wlCloudBox #wlSignUp{background:#fff;color:#075b35}
     .wl-public-mode #wlCloudBox .wl-public-privacy{font-size:10px;line-height:1.6;color:#819087;margin:13px 0 0}
     .wl-public-mode #wlCloudBox .cloud-status{font-size:11px;min-height:17px}
-    .wl-public-mode .main:after{content:"Designed by Alhaji Abu Koroma · White Lion Tech Solutions";display:block;text-align:center;color:#8a9a90;font-size:10px;margin:20px 0 0}
+    .wl-public-mode .main:after{content:"Designed by Alhaji Abu Koroma · Koroma Leone Tech";display:block;text-align:center;color:#8a9a90;font-size:10px;margin:20px 0 0}
     @media(max-width:760px){.wl-public-mode .main{padding:12px;justify-content:flex-start}.wl-public-mode #wlCloudBox{padding:21px!important;border-radius:19px;margin:8px 0!important}.wl-public-mode #wlCloudBox .wl-public-grid{grid-template-columns:1fr;gap:22px}.wl-public-mode #wlCloudBox .wl-public-copy h1{font-size:34px;letter-spacing:-1.2px}.wl-public-mode #wlCloudBox .wl-public-brand{margin-bottom:24px}.wl-public-mode #wlCloudBox .wl-public-features{gap:8px}.wl-public-mode #wlCloudBox .wl-public-feature{padding:11px}.wl-public-mode #wlCloudBox .wl-public-auth{padding:17px}}
     @media(prefers-reduced-motion:no-preference){.wl-public-mode #wlCloudBox{animation:wlWelcomeIn .45s ease-out both}@keyframes wlWelcomeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}}
   `;
@@ -133,7 +133,7 @@
       // Backward-compatible fallback for pages that do not contain the premium login shell.
       box.innerHTML = `
 
-      <div class="wl-public-brand"><span class="wl-public-mark" aria-hidden="true">W</span><span><strong>WHITE LION</strong><small>BUSINESS SYSTEMS · SME BUSINESS OS</small></span></div>
+      <div class="wl-public-brand"><span class="wl-public-mark" aria-hidden="true">K</span><span><strong>KOROMA LEONE</strong><small>BUSINESS SYSTEMS · SME BUSINESS OS</small></span></div>
       <div id="wlCloudAuth" class="wl-public-grid">
         <div class="wl-public-copy">
           <div class="wl-public-kicker">One platform. Your whole business.</div>
@@ -185,7 +185,7 @@
     dev.id = 'wlDeveloperBox';
     dev.hidden = true;
     dev.innerHTML = `
-      <h3>WHITE LION · PRIVATE DEVELOPER CONSOLE</h3>
+      <h3>KOROMA LEONE · PRIVATE DEVELOPER CONSOLE</h3>
       <div id="wlDevIdentity" class="dev-meta">Verifying developer permissions…</div>
       <div id="wlDevStatus" class="cloud-status">Loading secure platform controls…</div>
       <div id="wlDevStats" class="dev-meta"></div>
@@ -343,8 +343,8 @@
     const verified = !!status?.email_confirmed;
     const workspacePending = !!status?.workspace_pending;
     const heading = workspacePending ? 'Approved — Awaiting Workspace Assignment' : 'Awaiting Developer Approval';
-    const explanation = workspacePending ? 'Your account has been approved. The White Lion platform developer is preparing and assigning your business workspace. Business operations will appear here once your workspace is assigned.' : (verified ? 'Your registration is awaiting review by the White Lion platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.');
-    panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">WHITE LION CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">' + heading + '</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + explanation + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button id="wlApprovalCheck" style="border:0;border-radius:9px;padding:11px 18px;background:#087a43;color:#fff;font-weight:800">Check approval status</button><button id="wlApprovalSignOut" style="border:1px solid #b9cfc0;border-radius:9px;padding:11px 18px;background:#fff;color:#075b35;font-weight:800">Sign out</button></div>';
+    const explanation = workspacePending ? 'Your account has been approved. The Koroma Leone platform developer is preparing and assigning your business workspace. Business operations will appear here once your workspace is assigned.' : (verified ? 'Your registration is awaiting review by the Koroma Leone platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.');
+    panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">KOROMA LEONE CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">' + heading + '</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + explanation + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button id="wlApprovalCheck" style="border:0;border-radius:9px;padding:11px 18px;background:#087a43;color:#fff;font-weight:800">Check approval status</button><button id="wlApprovalSignOut" style="border:1px solid #b9cfc0;border-radius:9px;padding:11px 18px;background:#fff;color:#075b35;font-weight:800">Sign out</button></div>';
     $('wlApprovalCheck').onclick = async () => { $('wlApprovalCheck').disabled=true; $('wlApprovalCheck').textContent='Checking…'; await loadBusinesses(); if ($('wlApprovalCheck')) { $('wlApprovalCheck').disabled=false; $('wlApprovalCheck').textContent='Check approval status'; } };
     $('wlApprovalSignOut').onclick = async () => { await client.auth.signOut(); session=null; activeBusiness=null; panel.hidden=true; showSignedOut(); };
     $('wlCloudStatus').textContent = verified ? 'Email verified. Awaiting developer approval.' : 'Email confirmation required.';
@@ -386,7 +386,7 @@
       : '<option value="">No business workspace yet</option>';
     if (businesses.length) await selectBusiness(businesses.find(b => b.id === previouslySelectedId) || businesses[0]);
     else if (isDeveloper) say('Developer account verified. Create or manage customer workspaces from the Developer Console.');
-    else say('Your account is approved. Your business workspace is being prepared by the White Lion platform developer.');
+    else say('Your account is approved. Your business workspace is being prepared by the Koroma Leone platform developer.');
   }
   async function createBranch() {
     if (!activeBusiness) return say('Select a business workspace first.');
@@ -1064,10 +1064,10 @@
       return say('Only the registered private developer account can reset business data.');
     }
     const confirmation = prompt(
-      'This permanently deletes ALL business workspaces and cloud business records, and clears this device’s local business records. Your developer login and platform audit history are preserved. Other accounts will be disabled and queued for deletion after 30 days.\n\nType RESET WHITE LION to continue:',
+      'This permanently deletes ALL business workspaces and cloud business records, and clears this device’s local business records. Your developer login and platform audit history are preserved. Other accounts will be disabled and queued for deletion after 30 days.\n\nType RESET KOROMA LEONE to continue:',
       ''
     );
-    if (confirmation !== 'RESET WHITE LION') return say('Reset cancelled. No records were changed.');
+    if (confirmation !== 'RESET KOROMA LEONE') return say('Reset cancelled. No records were changed.');
     const button = $('wlDevResetData');
     button.disabled = true;
     button.textContent = 'Resetting business data…';
@@ -1147,7 +1147,7 @@
         '</optgroup>';
       modal.innerHTML = '<form id="wlIndustrySetupForm" style="width:min(520px,100%);max-height:92vh;overflow:auto;background:#fff;color:#17243a;border-radius:18px;padding:22px;box-shadow:0 25px 80px #0005">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:5px"><h2 style="margin:0;font-size:19px">Register a business</h2><button type="button" id="wlIndustrySetupClose" aria-label="Close" style="border:0;border-radius:8px;padding:7px 11px;background:#eef1f5;font-size:18px">×</button></div>' +
-        '<p style="margin:0 0 16px;color:#748197;font-size:12px">Choose the business type. White Lion SME will activate the recommended modules for this workspace.</p>' +
+        '<p style="margin:0 0 16px;color:#748197;font-size:12px">Choose the business type. Koroma Leone SME will activate the recommended modules for this workspace.</p>' +
         '<label style="display:block;font-size:11px;font-weight:700;margin:12px 0 6px">Business / organisation name</label><input id="wlIndustryBusinessName" required minlength="2" maxlength="120" placeholder="Enter business name" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #dfe5ee;border-radius:10px">' +
         '<label style="display:block;font-size:11px;font-weight:700;margin:14px 0 6px">Industry / business type</label><select id="wlIndustryBusinessType" required style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #dfe5ee;border-radius:10px;background:#fff">' + groups + '</select>' +
         '<label style="display:block;font-size:11px;font-weight:700;margin:14px 0 6px">Default currency code</label><input id="wlIndustryCurrency" required maxlength="3" value="SLE" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #dfe5ee;border-radius:10px;text-transform:uppercase">' +

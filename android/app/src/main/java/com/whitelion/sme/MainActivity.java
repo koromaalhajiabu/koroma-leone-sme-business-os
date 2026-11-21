@@ -117,7 +117,7 @@ public class MainActivity extends Activity {
                     return false;
                 }
 
-                // Keep links back to the hosted White Lion app inside the bundled local app.
+                // Keep links back to the hosted Koroma Leone app inside the bundled local app.
                 if ("https".equalsIgnoreCase(scheme)
                         && "koromaalhajiabu.github.io".equalsIgnoreCase(host)
                         && uri.getPath() != null
@@ -173,7 +173,7 @@ public class MainActivity extends Activity {
         page.setBackgroundColor(Color.WHITE);
 
         TextView title = new TextView(this);
-        title.setText("White Lion SME");
+        title.setText("Koroma Leone SME");
         title.setTextColor(Color.rgb(16, 26, 45));
         title.setTextSize(24);
         title.setTypeface(null, android.graphics.Typeface.BOLD);

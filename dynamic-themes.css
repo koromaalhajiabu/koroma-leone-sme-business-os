@@ -1,4 +1,4 @@
-/* White Lion SME — coordinated colour palettes for a lively, consistent interface. */
+/* Koroma Leone SME — coordinated colour palettes for a lively, consistent interface. */
 html[data-wl-accent] .sidebar{
   background:linear-gradient(160deg,var(--wl-palette-primary) 0%,var(--wl-palette-deep) 58%,var(--wl-palette-deepest) 100%)!important;
   border-right-color:rgba(255,255,255,.15)!important;

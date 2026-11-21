@@ -1,4 +1,4 @@
-/* White Lion SME — subscription plans, invoices and payment verification UI. */
+/* Koroma Leone SME — subscription plans, invoices and payment verification UI. */
 (() => {
   'use strict';
   const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -75,7 +75,7 @@
   function renderCataloguePreview(view, message) {
     const currency=selectedCurrency,cycle=selectedCycle;
     view.innerHTML=`
-      <div class="wl-billing-hero"><h1>Plans & Billing</h1><p>Compare White Lion SME plans before setting up your business. Choose SLE or USD and monthly or annual pricing.</p></div>
+      <div class="wl-billing-hero"><h1>Plans & Billing</h1><p>Compare Koroma Leone SME plans before setting up your business. Choose SLE or USD and monthly or annual pricing.</p></div>
       <div class="panel"><h3>Subscription plans</h3><p class="panel-sub">${esc(message)}</p>
         <div class="wl-billing-controls"><label>Currency <select id="wlBillCurrency"><option value="SLE" ${currency==='SLE'?'selected':''}>SLE · Sierra Leone Leone</option><option value="USD" ${currency==='USD'?'selected':''}>USD · US Dollar</option></select></label><label>Billing period <select id="wlBillCycle"><option value="monthly" ${cycle==='monthly'?'selected':''}>Monthly</option><option value="annual" ${cycle==='annual'?'selected':''}>Annual · 2 months free</option></select></label></div>
         <div class="wl-plan-grid">${plansFallback.map(p=>{
@@ -141,7 +141,7 @@
               <div class="report-box"><small>Access status</small><b>Always active</b></div>
             </div>
             <div class="wl-billing-note" style="background:#eaf7ef;border-color:#ccebd8;color:#17633c">
-              White lion Tech Solutions is the White Lion platform owner's workspace. No subscription purchase, renewal, invoice or payment is required. This exemption does not apply to customer workspaces.
+              Koroma Leone Tech is the Koroma Leone platform owner's workspace. No subscription purchase, renewal, invoice or payment is required. This exemption does not apply to customer workspaces.
             </div>
           </div>
           <div class="panel">
@@ -162,7 +162,7 @@
       const daysRemaining=accessUntil?Math.max(0,Math.ceil((accessUntil.getTime()-Date.now())/86400000)):null;
       const accessState=access.allowed===false?'Online access blocked':sub?.status==='grace_period'?'Online access allowed during grace':sub?.status==='trial'?'Free trial access active':sub?.status==='active'?'Paid subscription active':sub?.status==='pending_payment'?'Awaiting payment verification':access.status==='grandfathered'?'Existing workspace access preserved':'Check subscription status';
       view.innerHTML=`
-        <div class="wl-billing-hero"><h1>Plans & Billing</h1><p>Manage the White Lion SME subscription for <b>${esc(active.name)}</b>. Select SLE or USD pricing and choose monthly or annual billing. Annual subscriptions are priced at ten monthly payments.</p></div>
+        <div class="wl-billing-hero"><h1>Plans & Billing</h1><p>Manage the Koroma Leone SME subscription for <b>${esc(active.name)}</b>. Select SLE or USD pricing and choose monthly or annual billing. Annual subscriptions are priced at ten monthly payments.</p></div>
         <div class="panel">
           <div class="panel-head"><div><h3>Current subscription</h3><div class="panel-sub">Subscription status and access period for this workspace</div></div>${sub?statusPill(sub.status):statusPill('not subscribed')}</div>
           ${sub?`<div class="report-cards"><div class="report-box"><small>Current plan</small><b>${esc(plans.find(p=>p.code===sub.plan_code)?.name||sub.plan_code)}</b></div><div class="report-box"><small>Billing currency / cycle</small><b>${esc(sub.currency_code)} · ${esc(sub.billing_cycle)}</b></div><div class="report-box"><small>${esc(accessLabel)}</small><b>${accessUntil?accessUntil.toLocaleDateString():'Awaiting activation'}</b></div></div>`:'<p class="panel-sub">No subscription is recorded for this workspace. Eligible accounts receive one 7-day Professional trial for their first business workspace; additional workspaces require a paid subscription.</p>'}
@@ -185,10 +185,10 @@
             const amount=currency==='SLE'?(cycle==='annual'?p.sle_annual:p.sle_monthly):(cycle==='annual'?p.usd_annual:p.usd_monthly);
             return `<article class="wl-plan ${p.code==='professional'?'featured':''}"><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p><div class="wl-plan-price">${money(amount,currency)} <small>/ ${cycle==='annual'?'year':'month'}</small></div><div class="panel-sub">${Number(p.max_users)} employees · ${Number(p.max_branches)} branch(es)</div><ul>${(Array.isArray(p.features)?p.features:[]).map(f=>'<li>'+esc(f)+'</li>').join('')}</ul><button class="btn ${p.code==='professional'?'gold':'primary'}" data-request-plan="${esc(p.code)}">Request invoice</button></article>`;
           }).join('')}</div>
-          <div class="wl-billing-note">${sub?.status==='trial'?'You are using the free Professional trial. '+trialDaysLeft+' day(s) remain. No payment is required during the trial.':sub?.status==='grace_period'?'You are in the seven-day renewal grace period. '+(daysRemaining??0)+' day(s) remain.':'A plan request creates an invoice only. Paid access is activated after White Lion verifies the payment. Payment screenshots or references do not automatically activate subscriptions.'}</div>
+          <div class="wl-billing-note">${sub?.status==='trial'?'You are using the free Professional trial. '+trialDaysLeft+' day(s) remain. No payment is required during the trial.':sub?.status==='grace_period'?'You are in the seven-day renewal grace period. '+(daysRemaining??0)+' day(s) remain.':'A plan request creates an invoice only. Paid access is activated after Koroma Leone verifies the payment. Payment screenshots or references do not automatically activate subscriptions.'}</div>
         </div>
         <section class="wl-payment-guide" aria-labelledby="wlPaymentGuideTitle">
-          <h3 id="wlPaymentGuideTitle">How to pay for your White Lion subscription</h3>
+          <h3 id="wlPaymentGuideTitle">How to pay for your Koroma Leone subscription</h3>
           <p>Use Orange Money to pay an invoice for this business workspace. Follow these steps carefully:</p>
           <ol>
             <li>Choose your subscription plan above and tap <strong>Request invoice</strong>.</li>
@@ -196,13 +196,13 @@
             <li>Send that exact amount through Orange Money to the number shown here.</li>
             <li>Keep the Orange Money transaction ID/reference from your successful transfer.</li>
             <li>Return to the invoice, select <strong>Orange Money</strong>, enter the transaction reference and exact amount, then tap <strong>Submit reference</strong>.</li>
-            <li>White Lion will check the payment. Your subscription becomes active only after the payment is verified by the platform developer.</li>
+            <li>Koroma Leone will check the payment. Your subscription becomes active only after the payment is verified by the platform developer.</li>
           </ol>
           <div class="wl-payment-number">075075818</div>
           <div class="wl-payment-warning"><strong>Important:</strong> Submit a reference only after you have completed the transfer. Do not send money without an invoice. A submitted reference is not proof of receipt, and it does not activate your subscription automatically.</div>
         </section>
         <div class="panel"><div class="panel-head"><div><h3>Invoices and payment records</h3><div class="panel-sub">Your workspace's subscription invoices and submitted payment references</div></div></div>
-          ${invoices.length?invoices.map(inv=>`<div class="panel" style="box-shadow:none;border:1px solid #e9edf3;margin:10px 0;padding:14px"><div class="panel-head"><div><b>${esc(inv.invoice_number)}</b><div class="panel-sub">${esc(inv.plan_code)} · ${esc(inv.billing_cycle)} · due ${new Date(inv.due_at).toLocaleDateString()}</div></div><div style="text-align:right"><b>${money(inv.amount_due,inv.currency_code)}</b><div>${statusPill(inv.status)}</div></div></div>${['pending','awaiting_verification'].includes(inv.status)?`<div class="wl-orange-money"><strong>Orange Money payment instructions</strong><br>1. Send <strong>${money(inv.amount_due,inv.currency_code)}</strong> to <strong>${orangeMoneyNumber}</strong> using Orange Money.<br>2. Enter the transaction reference and exact amount below.<br>3. Submit the reference. White Lion will verify it manually before activating your subscription.</div><form class="wl-pay-form" data-pay-invoice="${esc(inv.id)}"><label>Payment method<select name="provider" required><option value="Orange Money">Orange Money · 075075818</option><option>Afrimoney</option><option>Bank transfer</option><option>Cash / manual</option></select></label><label>Transaction reference<input name="reference" required minlength="3" placeholder="Enter Orange Money transaction ID"></label><label>Exact amount<input name="amount" required type="number" min="0.01" step="0.01" value="${esc(inv.amount_due)}"></label><button class="btn primary" type="submit">Submit reference</button></form>`:'<div class="panel-sub">No payment action is required for this invoice.</div>'}</div>`).join(''):'<div class="empty">No subscription invoices have been created for this business.</div>'}
+          ${invoices.length?invoices.map(inv=>`<div class="panel" style="box-shadow:none;border:1px solid #e9edf3;margin:10px 0;padding:14px"><div class="panel-head"><div><b>${esc(inv.invoice_number)}</b><div class="panel-sub">${esc(inv.plan_code)} · ${esc(inv.billing_cycle)} · due ${new Date(inv.due_at).toLocaleDateString()}</div></div><div style="text-align:right"><b>${money(inv.amount_due,inv.currency_code)}</b><div>${statusPill(inv.status)}</div></div></div>${['pending','awaiting_verification'].includes(inv.status)?`<div class="wl-orange-money"><strong>Orange Money payment instructions</strong><br>1. Send <strong>${money(inv.amount_due,inv.currency_code)}</strong> to <strong>${orangeMoneyNumber}</strong> using Orange Money.<br>2. Enter the transaction reference and exact amount below.<br>3. Submit the reference. Koroma Leone will verify it manually before activating your subscription.</div><form class="wl-pay-form" data-pay-invoice="${esc(inv.id)}"><label>Payment method<select name="provider" required><option value="Orange Money">Orange Money · 075075818</option><option>Afrimoney</option><option>Bank transfer</option><option>Cash / manual</option></select></label><label>Transaction reference<input name="reference" required minlength="3" placeholder="Enter Orange Money transaction ID"></label><label>Exact amount<input name="amount" required type="number" min="0.01" step="0.01" value="${esc(inv.amount_due)}"></label><button class="btn primary" type="submit">Submit reference</button></form>`:'<div class="panel-sub">No payment action is required for this invoice.</div>'}</div>`).join(''):'<div class="empty">No subscription invoices have been created for this business.</div>'}
         </div>
         <div id="wlBillingDeveloper"></div>`;
       document.getElementById('wlBillCurrency').onchange=e=>{selectedCurrency=e.target.value;render()};
@@ -226,7 +226,7 @@
     }
   }
   async function requestPlan(code,businessId) {
-    if(businessId === '50b69fb6-688c-4f28-8755-12cb5c34dc77'){toast('White lion Tech Solutions has a permanent platform owner exemption. No payment is required.');return;}
+    if(businessId === '50b69fb6-688c-4f28-8755-12cb5c34dc77'){toast('Koroma Leone Tech has a permanent platform owner exemption. No payment is required.');return;}
     const sb=client();if(!sb)return;
     const button=document.querySelector('[data-request-plan="'+CSS.escape(code)+'"]');
     if(button){button.disabled=true;button.textContent='Creating invoice…'}
@@ -269,7 +269,7 @@
       '</tr>';
     }).join('');
     host.innerHTML=`<div class="panel">
-      <div class="panel-head"><div><h3>White Lion developer billing console</h3><div class="panel-sub">Customer subscription monitoring and payment verification</div></div><span class="wl-billing-status active">Developer</span></div>
+      <div class="panel-head"><div><h3>Koroma Leone developer billing console</h3><div class="panel-sub">Customer subscription monitoring and payment verification</div></div><span class="wl-billing-status active">Developer</span></div>
       <div class="wl-billing-metrics">
         <div class="wl-billing-metric"><small>Customer workspaces</small><strong>${customers.length}</strong></div>
         <div class="wl-billing-metric"><small>Not suspended</small><strong>${active}</strong></div>
@@ -296,7 +296,7 @@
       ${directoryResult.error?'<div class="wl-billing-note">Customer directory could not be loaded: '+esc(directoryResult.error.message)+'. The billing totals above are still available.</div>':''}
       <h3 style="margin:20px 0 5px">Pending payment verification</h3>
       ${(d.pending||[]).length?(d.pending||[]).map(p=>`<div class="wl-review-row"><div><b>${esc(p.business_name)}</b><small>${esc(p.invoice_number)} · ${esc(p.plan_code)} · ${esc(p.provider)} · Ref: ${esc(p.reference)}</small><small>${money(p.amount,p.currency_code)} · submitted ${new Date(p.submitted_at).toLocaleString()}</small></div><div><button class="btn primary small" data-review-payment="${esc(p.payment_id)}" data-approve="true">Verify & activate</button> <button class="btn danger small" data-review-payment="${esc(p.payment_id)}" data-approve="false">Reject</button></div></div>`).join(''):'<div class="empty">No payment references are awaiting verification.</div>'}
-      <p class="panel-sub">Revenue totals include only verified customer payments. White Lion's permanently exempt owner workspace is excluded. Payment-provider APIs are not connected; payment verification remains manual.</p>
+      <p class="panel-sub">Revenue totals include only verified customer payments. Koroma Leone's permanently exempt owner workspace is excluded. Payment-provider APIs are not connected; payment verification remains manual.</p>
     </div>`;
     const filterRows=()=>{
       const q=(document.getElementById('wlCustomerSearch')?.value||'').trim().toLowerCase();

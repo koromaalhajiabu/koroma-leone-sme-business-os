@@ -52,7 +52,7 @@ $('registerLecturer').addEventListener('click',async()=>{const email=$('loginFor
 $('gradeSection').addEventListener('change',updateStudentsForSection);
 function downloadMyInformation(){
  if(!data){message('pageMessage','Load your records first.',true);return}
- const blob=new Blob([JSON.stringify({format:'White Lion Lecturer Portal Export',exported_at:new Date().toISOString(),data},null,2)],{type:'application/json;charset=utf-8'});
+ const blob=new Blob([JSON.stringify({format:'Koroma Leone Lecturer Portal Export',exported_at:new Date().toISOString(),data},null,2)],{type:'application/json;charset=utf-8'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download=(data.lecturer&&(data.lecturer.first_name+'-'+data.lecturer.last_name)||'my-lecturer-record')+'-information.json';
  document.body.appendChild(a);a.click();a.remove();

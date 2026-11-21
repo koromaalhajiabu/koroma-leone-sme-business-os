@@ -1,4 +1,4 @@
-# White Lion Public Leagues Android APK
+# Koroma Leone Public Leagues Android APK
 
 Standalone Android application for the Public Leagues Directory:
 https://koromaalhajiabu.github.io/white-lion-sme-business-os/public-leagues.html

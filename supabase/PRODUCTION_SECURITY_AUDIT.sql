@@ -1,4 +1,4 @@
--- WHITE LION SME BUSINESS OS — READ-ONLY PRODUCTION SECURITY AUDIT
+-- KOROMA LEONE SME BUSINESS OS — READ-ONLY PRODUCTION SECURITY AUDIT
 -- Run in the Supabase SQL Editor for project nclncqlgnxnijlumznnt.
 -- This file performs SELECT-only catalog checks. It does not alter data, policies or permissions.
 -- Review every returned row against the platform's intended public/private access model.

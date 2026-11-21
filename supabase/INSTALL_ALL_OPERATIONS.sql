@@ -1,4 +1,4 @@
--- WHITE LION SME BUSINESS OPERATING SYSTEM
+-- KOROMA LEONE SME BUSINESS OPERATING SYSTEM
 -- SINGLE INSTALLER: Branch-aware operations + finance + inventory controls
 -- Prerequisite: migrations 001–009 must already be installed.
 -- Run this entire file ONCE in Supabase SQL Editor.
@@ -8,7 +8,7 @@
 begin;
 
 -- MIGRATION 010: BRANCH-AWARE OPERATIONS
--- White Lion SME Business OS — Migration 010
+-- Koroma Leone SME Business OS — Migration 010
 -- Branch-scoped transaction posting, transfer rejection, and branch stock write controls.
 -- Legacy transactions remain unchanged; new postings must name an active branch.
 
@@ -885,7 +885,7 @@ revoke all on function public.reject_branch_stock_transfer(uuid,text) from publi
 grant execute on function public.reject_branch_stock_transfer(uuid,text) to authenticated;
 
 -- MIGRATION 011: FINANCE AND INVENTORY CONTROLS
--- White Lion SME Business OS — Migration 011
+-- Koroma Leone SME Business OS — Migration 011
 -- Financial registers, product batches/expiry and controlled stock adjustments.
 
 create table if not exists public.cashbook_entries (
@@ -1341,7 +1341,7 @@ order by component;
 -- ================================================================
 -- MIGRATION 017: BANK AND MOBILE-MONEY STATEMENT RECONCILIATION
 -- ================================================================
--- White Lion SME Business OS — Migration 017
+-- Koroma Leone SME Business OS — Migration 017
 -- Bank and mobile-money statement import and cashbook reconciliation.
 -- CSV statements are imported by an authorised finance user; no bank API is implied.
 begin;
@@ -1553,7 +1553,7 @@ commit;
 -- Kept in sync with supabase/migrations/018_double_entry_general_ledger.sql
 -- ============================================================
 
--- White Lion SME Business OS — Migration 018
+-- Koroma Leone SME Business OS — Migration 018
 -- Double-entry general ledger, automated source posting and financial reports.
 -- Existing operational records are preserved. Triggers post new source records only.
 begin;
@@ -2020,7 +2020,7 @@ commit;
 
 
 -- Migration 019: weighted-average inventory valuation and automatic COGS.
--- White Lion SME Business OS — Migration 019
+-- Koroma Leone SME Business OS — Migration 019
 -- Moving weighted-average inventory valuation and automatic COGS posting.
 -- Existing stock is opened at product.cost_price; historical sales are not rewritten.
 begin;

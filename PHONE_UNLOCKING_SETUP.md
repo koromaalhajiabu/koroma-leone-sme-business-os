@@ -1,4 +1,4 @@
-# White Lion SME Business OS — retired device-provider integrations
+# Koroma Leone SME Business OS — retired device-provider integrations
 
 The DeviceDecoded, IMEI.org and ServiceCoded provider integrations have been retired and removed from the application.
 

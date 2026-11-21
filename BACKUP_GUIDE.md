@@ -1,4 +1,4 @@
-# White Lion SME — automated logical backup and recovery
+# Koroma Leone SME — automated logical backup and recovery
 
 ## What the automated backup contains
 

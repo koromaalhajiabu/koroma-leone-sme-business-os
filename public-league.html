@@ -73,12 +73,12 @@ function render(){
   const seasons=snapshot.seasons||[];
   document.title=c.name+' · Public league page';
   root.innerHTML=
-    '<div class="hero"><div class="kicker">White Lion · Public league page</div><h1>'+esc(c.name)+'</h1><p>'+esc(c.competition_type)+' · '+esc(c.region||'Region not set')+' · '+esc(c.organiser||'Organiser not set')+'</p></div>'+
+    '<div class="hero"><div class="kicker">Koroma Leone · Public league page</div><h1>'+esc(c.name)+'</h1><p>'+esc(c.competition_type)+' · '+esc(c.region||'Region not set')+' · '+esc(c.organiser||'Organiser not set')+'</p></div>'+
     (seasons.length?'<div class="toolbar"><select id="seasonSelect" aria-label="Select season">'+seasons.map(s=>'<option value="'+esc(s.id)+'" '+(s.id===seasonId?'selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select></div>':'')+
     '<div class="card"><h2>League table</h2>'+standingsTable()+'</div>'+
     '<div class="card"><h2>Fixtures &amp; results</h2>'+fixturesTable()+'</div>'+
     '<div class="card"><h2>Player statistics</h2>'+statsTable()+'</div>'+
-    '<p class="foot"><a href="./public-leagues.html" style="color:#087a43;font-weight:700">Browse all public leagues</a><br>Read-only public page · Powered by White Lion SME</p>';
+    '<p class="foot"><a href="./public-leagues.html" style="color:#087a43;font-weight:700">Browse all public leagues</a><br>Read-only public page · Powered by Koroma Leone SME</p>';
   document.getElementById('seasonSelect')?.addEventListener('change',e=>{seasonId=e.target.value;render();});
 }
 

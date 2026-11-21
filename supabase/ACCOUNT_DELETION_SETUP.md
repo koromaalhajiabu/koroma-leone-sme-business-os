@@ -4,7 +4,7 @@ This feature uses a 30-day recovery period. A request immediately suspends the t
 
 ## 1. Apply the database migration
 
-Open the [White Lion Supabase SQL Editor](https://supabase.com/dashboard/project/nclncqlgnxnijlumznnt/sql/new), paste the complete contents of `supabase/migrations/008_account_deletion_recovery.sql`, and run it once.
+Open the [Koroma Leone Supabase SQL Editor](https://supabase.com/dashboard/project/nclncqlgnxnijlumznnt/sql/new), paste the complete contents of `supabase/migrations/008_account_deletion_recovery.sql`, and run it once.
 
 The migration:
 - Creates private deletion-request records and developer-only request/cancel/list RPCs.

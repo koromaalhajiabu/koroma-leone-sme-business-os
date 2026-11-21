@@ -1,4 +1,4 @@
-# White Lion SME Business Operating System — Professional Readiness Review
+# Koroma Leone SME Business Operating System — Professional Readiness Review
 
 Last reviewed: 12 November 2026
 

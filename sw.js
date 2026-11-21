@@ -1,5 +1,5 @@
-/* White Lion SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='white-lion-sme-v249';
+/* Koroma Leone SME OS — network-first application updates with offline fallback. */
+const CACHE_NAME='koroma-leone-sme-v250';
 const APP_SHELL=[
   './',
   './index.html',
@@ -26,7 +26,7 @@ const APP_SHELL=[
   './delivery-tracking.html',
   './storefront.html',
   './storefront-public.js?v=1',
-  './manifest.webmanifest?v=46',
+  './manifest.webmanifest?v=47',
   './shared.js?v=2',
   './affiliate-marketing.js?v=4',
   './external-affiliate-networks.js?v=1',
