@@ -100,3 +100,6 @@ Migration 063 adds database-level checks for sales discounts, payment limits and
 ### Financial ageing, commitments forecast and controlled period reopening
 
 Migration 064 adds business-scoped receivables/payables ageing and a 90-day contractual cash-commitments forecast to Business Intelligence. These reports include only entered, open or part-paid obligations; they are not forecasts of unentered sales or bank-confirmed cash. The migration also restricts bank statement import/matching RPC grants to authenticated users and adds owner/admin-controlled period reopening. Reopening requires a reason, reverses the original closing journal without editing it, and is audited; a re-closed period is locked again. Apply and acceptance-test migration 064 before using these controls on live accounting records.
+
+
+Business Intelligence also displays rule-based in-app financial anomaly alerts for overdue customer/supplier obligations and near-term contractual cash gaps. These are management alerts from recorded data, not push notifications, fraud detection or bank monitoring.
