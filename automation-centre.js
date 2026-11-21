@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  var state = { tab: 'approvals', rows: [], metrics: null, notice: '', renderToken: 0 };
+  var state = { tab: 'approvals', rows: [], metrics: null, settings: null, notice: '', renderToken: 0 };
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
@@ -110,6 +110,10 @@
       '#wlAutomationCentre .wlac-answer{min-height:72px;padding:13px;border:1px solid #e4ece6;border-radius:12px;background:#fbfdfb;color:#2f4939;font-size:12px;line-height:1.65;white-space:pre-wrap}',
       '#wlAutomationCentre .wlac-input-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}',
       '#wlAutomationCentre .wlac-input-row input{min-width:0}',
+      '#wlAutomationCentre .wlac-policy-row{display:flex;gap:14px;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #e7eee8}',
+      '#wlAutomationCentre .wlac-policy-row b{display:block;color:#183d29;font-size:12px}',
+      '#wlAutomationCentre .wlac-policy-row small{display:block;color:#718078;font-size:10px;margin-top:4px;line-height:1.5}',
+      '#wlAutomationCentre .wlac-policy-row input{width:19px;height:19px;flex:0 0 auto;accent-color:#087a43}'
       '@media(max-width:850px){#wlAutomationCentre .wlac-grid{grid-template-columns:1fr}}',
       '@media(max-width:560px){#wlAutomationCentre .wlac-kpis{grid-template-columns:1fr 1fr}#wlAutomationCentre .wlac-kpi:last-child{grid-column:1/-1}#wlAutomationCentre .wlac-heading h1{font-size:21px}#wlAutomationCentre .wlac-panel{padding:14px}}'
     ].join('\n');
@@ -163,6 +167,54 @@
       '<div class="wlac-kpis"><div class="wlac-kpi"><small>Visible requests</small><b>' + state.rows.length + '</b></div><div class="wlac-kpi"><small>Pending</small><b>' + pending + '</b></div><div class="wlac-kpi"><small>Approved</small><b>' + approved + '</b></div></div>' +
       (canReview ? '<div class="wlac-muted" style="margin-bottom:10px">Your role: ' + esc(role) + '. Payroll requests remain restricted to owners and administrators.</div>' : '') +
       '<div id="wlacQueue">' + queue + '</div></section></div>';
+  }
+
+  function policySettings(context) {
+    var s = state.settings || {};
+    var canManage = ['owner','admin'].indexOf(String(context.business.role || '').toLowerCase()) !== -1;
+    var disabled = canManage ? '' : ' disabled';
+    function check(name, title, description) {
+      return '<label class="wlac-policy-row"><span><b>' + title + '</b><small>' + description + '</small></span><input type="checkbox" name="' + name + '"' + (s[name] ? ' checked' : '') + disabled + '></label>';
+    }
+    return '<section class="wlac-panel"><h3>Approval requirements</h3>' +
+      '<p class="wlac-muted">These rules apply to this business only. When enabled, the server holds the operation until an authorised person approves it. Existing records are not changed.</p>' +
+      '<form id="wlacSettingsForm">' +
+      check('require_purchase_approvals','Purchases and stock receipts','Hold purchase orders and batch receipts before increasing cloud stock') +
+      check('require_expense_approvals','Operating expenses','Hold new expense records and cashbook expense entries before posting') +
+      check('require_refund_approvals','Customer refunds','Hold refund processing, cashbook entries and returned stock until approved') +
+      '<div class="wlac-policy-row"><span><b>Stock adjustments</b><small>Always controlled by the existing stock-adjustment approval workflow. This rule cannot be switched off here.</small></span><span class="wlac-status approved">Approval enforced</span></div>' +
+      (canManage ? '<div class="wlac-actions"><button class="wlac-button" type="submit">Save approval rules</button></div>' : '<p class="wlac-muted">Only the business owner or administrator can change approval rules. Your current role is ' + esc(context.business.role || 'member') + '.</p>') +
+      '</form><p class="wlac-muted" style="margin-top:12px">Rules are off until the owner or administrator enables them. Pending requests must be reviewed in the Approval workflows tab.</p></section>';
+  }
+
+  async function savePolicySettings(event) {
+    event.preventDefault();
+    var context = ctx();
+    if (!context.client || !context.business) return;
+    if (['owner','admin'].indexOf(String(context.business.role || '').toLowerCase()) === -1) {
+      state.notice = 'Only the business owner or administrator can change approval rules.';
+      await render();
+      return;
+    }
+    var form = event.currentTarget;
+    var values = {
+      p_business_id: context.business.id,
+      p_require_purchase_approvals: !!form.elements.require_purchase_approvals.checked,
+      p_require_expense_approvals: !!form.elements.require_expense_approvals.checked,
+      p_require_refund_approvals: !!form.elements.require_refund_approvals.checked,
+      p_require_stock_adjustment_approvals: true
+    };
+    var result = await context.client.rpc('set_business_approval_settings', values);
+    if (result.error) {
+      state.notice = 'Approval rules were not changed: ' + result.error.message;
+    } else {
+      state.settings = result.data || state.settings;
+      if (window.whiteLionCloud && window.whiteLionCloud.refreshApprovalSettings) {
+        await window.whiteLionCloud.refreshApprovalSettings();
+      }
+      state.notice = 'Approval rules saved for ' + (context.business.name || 'this business') + '.';
+    }
+    await render();
   }
 
   function assistant(context) {
@@ -282,6 +334,8 @@
     });
     var form = document.getElementById('wlacRequestForm');
     if (form) form.addEventListener('submit', submit);
+    var settingsForm = document.getElementById('wlacSettingsForm');
+    if (settingsForm) settingsForm.addEventListener('submit', savePolicySettings);
     var refresh = document.getElementById('wlacRefresh');
     if (refresh) refresh.addEventListener('click', render);
 
@@ -316,8 +370,8 @@
     view.innerHTML = '<div id="wlAutomationCentre">' +
       '<div class="wlac-heading"><div><div class="eyebrow">KOROMA LEONE TECH · WORKFLOW CONTROLS</div><h1>Automation Centre</h1><p>Business approvals, accountability and read-only operational guidance for ' + esc(context.business.name || 'this workspace') + '.</p></div><span class="wlac-badge">Business-scoped access</span></div>' +
       (state.notice ? '<div class="wlac-notice" role="status">' + esc(state.notice) + '</div>' : '') +
-      '<div class="wlac-tabs"><button class="wlac-tab ' + (state.tab === 'approvals' ? 'active' : '') + '" data-wlac-tab="approvals" type="button">Approval workflows</button><button class="wlac-tab ' + (state.tab === 'assistant' ? 'active' : '') + '" data-wlac-tab="assistant" type="button">Business Assistant</button></div>' +
-      (state.tab === 'assistant' ? assistant(context) : approvals(context)) + '</div>';
+      '<div class="wlac-tabs"><button class="wlac-tab ' + (state.tab === 'approvals' ? 'active' : '') + '" data-wlac-tab="approvals" type="button">Approval workflows</button><button class="wlac-tab ' + (state.tab === 'policies' ? 'active' : '') + '" data-wlac-tab="policies" type="button">Approval rules</button><button class="wlac-tab ' + (state.tab === 'assistant' ? 'active' : '') + '" data-wlac-tab="assistant" type="button">Business Assistant</button></div>' +
+      (state.tab === 'assistant' ? assistant(context) : state.tab === 'policies' ? policySettings(context) : approvals(context)) + '</div>';
     bind(context);
   }
 
@@ -346,8 +400,12 @@
         return;
       }
 
+      var settings = await context.client.rpc('get_business_approval_settings', { p_business_id: context.business.id });
+      if (token !== state.renderToken) return;
+      if (settings.error) throw new Error('Approval rules could not be loaded: ' + settings.error.message);
+      state.settings = settings.data || {};
       var rows = await context.client.from('business_approval_requests')
-        .select('id,business_id,client_request_id,request_type,title,description,amount,currency_code,requested_by,status,review_note,reviewed_at,created_at')
+        .select('id,business_id,client_request_id,request_type,title,description,amount,currency_code,requested_by,status,review_note,reviewed_at,executed_at,created_at')
         .eq('business_id', context.business.id)
         .order('created_at', { ascending: false })
         .limit(150);
