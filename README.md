@@ -108,3 +108,19 @@ Business Intelligence also displays rule-based in-app financial anomaly alerts f
 ### Subscription notification centre
 
 Migration 065 adds a private, owner-scoped in-app notification table and a daily scheduled generator for 7-day, 3-day and 1-day subscription renewal reminders, overdue unpaid invoices, verified payments, grace-period starts and expiry events. Notifications are visible only to the signed-in owner who owns the relevant workspace. Migration 066 restricts customer updates to the read-state field only. The notification centre is loaded from `subscription-notifications.js`; it uses the existing authenticated Supabase session and does not send SMS, email or provider push messages. The existing subscription expiry job and seven-day grace period are preserved.
+
+
+## External subscription notifications (migrations 067–069)
+
+- Added opt-in email, SMS and WhatsApp preferences with recorded consent timestamps. All external channels are OFF by default.
+- Added a private outbound delivery queue and delivery-attempt history. Queue and attempt tables are inaccessible to browser roles; only the service role can process them.
+- New in-app subscription/payment notifications are copied into the queue only for channels the recipient explicitly enabled and supplied a valid destination for.
+- Deployed Supabase Edge Function `dispatch-notifications`. It uses Resend for transactional email and Twilio Programmable Messaging for SMS and WhatsApp templates. Provider credentials are read only from Supabase Edge Function secrets; never place them in GitHub or frontend code.
+- The scheduled dispatcher runs every five minutes after the two Vault entries `notification_project_url` and `notification_dispatch_key` are created. Until those Vault entries and provider credentials are configured, no external messages are sent. Missing provider credentials block the affected delivery rather than exposing secrets or sending through a fallback.
+- Required Edge Function secrets: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM`, and `TWILIO_WHATSAPP_CONTENT_SID`. WhatsApp requires an approved Meta/Twilio template whose first two variables map to notification title and body.
+- To enable the schedule, create Vault secrets in Supabase SQL Editor (never share the service-role key in chat):
+  `select vault.create_secret('https://nclncqlgnxnijlumznnt.supabase.co','notification_project_url');`
+  `select vault.create_secret('<PASTE YOUR SUPABASE SERVICE ROLE KEY HERE>','notification_dispatch_key');`
+  Then confirm the `koroma-notification-dispatch` job exists in pg_cron. Keep the service-role key only in Vault; do not commit it.
+- Before live use, verify sender identity and SMS delivery on Africell, Orange, QCell and Sierratel. Twilio documents that two-way SMS is not supported for Sierra Leone and generic alphanumeric sender IDs may be filtered on Africell. WhatsApp is supported for +232 destinations, but template approval and Meta fees apply.
+- The in-app notification centre remains independent and continues to work when all external channels are disabled.
