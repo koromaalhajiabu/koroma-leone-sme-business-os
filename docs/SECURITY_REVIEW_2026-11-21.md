@@ -22,7 +22,7 @@ Scope: Supabase project nclncqlgnxnijlumznnt and GitHub Pages deployment.
 - Ran three non-production SQL authorization checks under the authenticated database role with a synthetic, unlinked user identity. The accounting report RPC rejected an unlinked business user, the platform dashboard RPC rejected a non-developer, and the school teacher portal rejected an account without an active teacher profile. These are useful server-side authorization checks, but they are not substitutes for tests using real signed JWTs in the browser.
 
 ## Remaining owner actions / validation
-- Supabase advisor reports leaked-password protection disabled. Enable it in Supabase Dashboard → Authentication → Security and Protection. This is a project Auth setting and was not changed through SQL.
+- Supabase advisor reports leaked-password protection disabled. Supabase documentation states this feature is available on the Pro plan and above, so it cannot be enabled on the current Free plan without upgrading. The dashboard setting is under Authentication → Providers / Auth settings → Password security. Minimum password length and complexity should still be configured as strongly as the current plan permits.
 - Authenticated end-to-end tests across separate business accounts and employee roles remain required. SQL administrator checks do not prove browser/JWT RLS behavior.
 - Backup restoration into a separate project remains untested.
 - Public endpoints should receive rate-limit/abuse testing before high-volume public launch.
