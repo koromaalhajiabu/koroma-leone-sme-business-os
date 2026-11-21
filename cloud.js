@@ -1439,6 +1439,17 @@
           if ((row.localBusinessId && row.localBusinessId !== activeBusiness.id) || (row.cloudSyncedFor && row.cloudSyncedFor !== activeBusiness.id)) {
             throw new Error(type + ' record ' + localId + ' is linked to a different business workspace. Export a separate copy before importing it elsewhere.');
           }
+          if (type === 'expenses' && row.approvalRequestId) {
+            const posted = await client.from('expenses').select('id')
+              .eq('business_id',activeBusiness.id).eq('client_record_id',row.cloudClientRecordId||'').maybeSingle();
+            if(posted.error)throw new Error('Could not verify approved expense: '+posted.error.message);
+            if(posted.data){row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;row.cloudSyncedAt=new Date().toISOString();row.approvalStatus='completed';await put(type,row);continue;}
+            const prior = await client.from('business_approval_requests').select('status,executed_at')
+              .eq('id',row.approvalRequestId).eq('business_id',activeBusiness.id).maybeSingle();
+            if(prior.error)throw new Error('Could not verify expense approval request: '+prior.error.message);
+            if(prior.data && prior.data.status==='pending'){approvalPending++;continue;}
+            if(prior.data && ['rejected','cancelled'].includes(prior.data.status)){row.approvalStatus=prior.data.status;await put(type,row);continue;}
+          }
           let stableId = row.cloudClientRecordId;
           if (!stableId) {
             stableId = crypto.randomUUID();
@@ -1517,6 +1528,17 @@
         for (const row of rows) {
           if ((row.localBusinessId && row.localBusinessId !== activeBusiness.id) || (row.cloudSyncedFor && row.cloudSyncedFor !== activeBusiness.id)) {
             throw new Error(type + ' transaction ' + (row.receipt || row.id) + ' belongs to a different business workspace.');
+          }
+          if (type === 'purchases' && row.approvalRequestId) {
+            const posted = row.cloudTransactionId ? await client.from('offline_purchases').select('id')
+              .eq('business_id',activeBusiness.id).eq('client_transaction_id',row.cloudTransactionId).maybeSingle() : {data:null,error:null};
+            if(posted.error)throw new Error('Could not verify approved purchase: '+posted.error.message);
+            if(posted.data){row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;row.cloudSyncedAt=new Date().toISOString();row.approvalStatus='completed';await put(type,row);continue;}
+            const prior = await client.from('business_approval_requests').select('status,executed_at')
+              .eq('id',row.approvalRequestId).eq('business_id',activeBusiness.id).maybeSingle();
+            if(prior.error)throw new Error('Could not verify purchase approval request: '+prior.error.message);
+            if(prior.data && prior.data.status==='pending'){approvalPending++;continue;}
+            if(prior.data && ['rejected','cancelled'].includes(prior.data.status)){row.approvalStatus=prior.data.status;await put(type,row);continue;}
           }
           if (row.cloudSyncedFor === activeBusiness.id) { if (!row.localBusinessId) { row.localBusinessId=activeBusiness.id; await put(type,row); } continue; }
           if (!row.branchId) throw new Error('Transaction ' + (row.receipt || row.id) + ' has no saved branch. Select a branch when recording new transactions; older transactions must be assigned deliberately before syncing.');
@@ -1634,6 +1656,17 @@
       let returnTotal=0;
       for(const row of returnsToSync){
         if(row.cloudSyncedFor===activeBusiness.id)continue;
+        if(row.approvalRequestId){
+          const posted=await client.from('offline_sale_returns').select('id')
+            .eq('business_id',activeBusiness.id).eq('client_return_id',row.clientReturnId||String(row.id)).maybeSingle();
+          if(posted.error)throw new Error('Could not verify approved refund: '+posted.error.message);
+          if(posted.data){row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;row.cloudReturnId=posted.data.id;row.cloudSyncedAt=new Date().toISOString();row.approvalStatus='completed';await put('returns',row);returnTotal++;continue;}
+          const prior=await client.from('business_approval_requests').select('status,executed_at')
+            .eq('id',row.approvalRequestId).eq('business_id',activeBusiness.id).maybeSingle();
+          if(prior.error)throw new Error('Could not verify refund approval request: '+prior.error.message);
+          if(prior.data&&prior.data.status==='pending'){approvalPending++;continue;}
+          if(prior.data&&['rejected','cancelled'].includes(prior.data.status)){row.approvalStatus=prior.data.status;await put('returns',row);continue;}
+        }
         if((row.localBusinessId&&row.localBusinessId!==activeBusiness.id)||(row.cloudSyncedFor&&row.cloudSyncedFor!==activeBusiness.id))
           throw new Error('Return '+(row.clientReturnId||row.id)+' belongs to a different business workspace.');
         const sale=localSalesForReturns.find(s=>String(s.id)===String(row.saleId));
