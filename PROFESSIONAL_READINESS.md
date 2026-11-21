@@ -138,3 +138,17 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Security advisor count for anonymous-executable SECURITY DEFINER functions is now 126. Remaining findings include trigger helpers and other public/authenticated workflows across the wider platform; they require individual review and must not be bulk-revoked.
 - Supabase Auth leaked-password protection remains disabled and should be enabled in Auth security settings.
 - This migration does not constitute an independent audit or authenticated user acceptance test. Test normal sale discounts, full/partial payment, purchase posting, refunds, accounting reports and period controls in the live app before commercial use.
+
+
+## Financial intelligence and controlled period reopening — migration 064
+
+- Applied `supabase/migrations/064_financial_intelligence_and_controlled_period_reopening.sql` to the connected Supabase project.
+- Restricted `import_bank_statement_lines` and `match_bank_statement_line` to authenticated execution only. Their existing `auth.uid()`, owner/admin/accountant and same-business/same-bank-account checks remain in place.
+- Added `accounting_obligation_aging(business_id, as_of)`, a business-role-checked, invoker-security RPC for open and part-paid receivables/payables. It reports remaining balance, days overdue and Not due / 1–30 / 31–60 / 61–90 / Over 90 day categories.
+- Added `accounting_cash_commitments_forecast(business_id, from, to)`, a role-checked invoker-security RPC that groups due-dated outstanding receivables and payables for up to 365 days. It intentionally forecasts entered contractual obligations only; it does not invent future sales or discretionary expenses.
+- Added an append-only period reopening event table with RLS enabled and no direct client grants. The `reopen_accounting_period` RPC is restricted to business owners/admins and requires a reason of at least 10 characters.
+- Reopening records the actor and reason, reverses the immutable original period-closing journal inside the reopened period, and writes an audit event. Re-closing the same period posts a new closing journal and updates the close record; the prior reopen/reversal history remains.
+- Updated the closed-period guard to unlock a period only when a later authorised reopen event exists. Re-closing advances the close timestamp and locks it again.
+- Updated Business Intelligence to show live obligation ageing and a 90-day due-date commitments forecast, with clear limitations displayed. Added a controlled reopen action to the existing accounting workflow controls.
+- Updated the service-worker cache to v268 so clients fetch the new Business Intelligence interface.
+- Database migration and repository changes are applied/committed. Authenticated live acceptance is still required for import/match role denials, ageing bucket values, forecast totals, period reopen/reversal, backdated journal acceptance while reopened, and re-close/lock behaviour. Do not test period reopening on production books without a controlled test business and backup.
