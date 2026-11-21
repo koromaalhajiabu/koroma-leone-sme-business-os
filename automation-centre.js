@@ -22,6 +22,7 @@
   function roleCanReview(type, role) {
     role = String(role || '').toLowerCase();
     if (type === 'payroll') return role === 'owner' || role === 'admin';
+    if (type === 'refund') return ['owner','admin','manager'].indexOf(role) !== -1;
     return ['owner', 'admin', 'manager', 'accountant'].indexOf(role) !== -1;
   }
 
@@ -141,6 +142,7 @@
       (row.description ? '<p>' + esc(row.description) + '</p>' : '') +
       '<div class="wlac-meta">Submitted ' + esc(dateText(row.created_at)) + ' · ' + (mine ? 'Submitted by you' : 'Submitted by a colleague') + '</div>' +
       (row.review_note ? '<div class="wlac-meta">Review note: ' + esc(row.review_note) + '</div>' : '') +
+      (row.executed_at ? '<div class="wlac-meta">Approved and posted to the business records · ' + esc(dateText(row.executed_at)) + '</div>' : '') +
       actions + '</article>';
   }
 
