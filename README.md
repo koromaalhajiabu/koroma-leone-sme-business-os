@@ -103,3 +103,8 @@ Migration 064 adds business-scoped receivables/payables ageing and a 90-day cont
 
 
 Business Intelligence also displays rule-based in-app financial anomaly alerts for overdue customer/supplier obligations and near-term contractual cash gaps. These are management alerts from recorded data, not push notifications, fraud detection or bank monitoring.
+
+
+### Subscription notification centre
+
+Migration 065 adds a private, owner-scoped in-app notification table and a daily scheduled generator for 7-day, 3-day and 1-day subscription renewal reminders, overdue unpaid invoices, verified payments, grace-period starts and expiry events. Notifications are visible only to the signed-in owner who owns the relevant workspace. Migration 066 restricts customer updates to the read-state field only. The notification centre is loaded from `subscription-notifications.js`; it uses the existing authenticated Supabase session and does not send SMS, email or provider push messages. The existing subscription expiry job and seven-day grace period are preserved.
