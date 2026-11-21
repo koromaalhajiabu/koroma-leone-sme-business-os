@@ -124,3 +124,5 @@ Migration 065 adds a private, owner-scoped in-app notification table and a daily
   Then confirm the `koroma-notification-dispatch` job exists in pg_cron. Keep the service-role key only in Vault; do not commit it.
 - Before live use, verify sender identity and SMS delivery on Africell, Orange, QCell and Sierratel. Twilio documents that two-way SMS is not supported for Sierra Leone and generic alphanumeric sender IDs may be filtered on Africell. WhatsApp is supported for +232 destinations, but template approval and Meta fees apply.
 - The in-app notification centre remains independent and continues to work when all external channels are disabled.
+
+- Delivery callbacks are enabled: Twilio SMS/WhatsApp status callbacks use the signed `twilio-status-webhook`; Resend delivery/bounce/complaint events use the signed `resend-status-webhook`. Configure the Resend webhook URL as `https://nclncqlgnxnijlumznnt.supabase.co/functions/v1/resend-status-webhook` and add `RESEND_WEBHOOK_SECRET` to Edge Function secrets. Twilio status callbacks are automatically attached by the dispatcher. Provider API acceptance and final delivery status are recorded separately.
