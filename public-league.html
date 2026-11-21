@@ -13,7 +13,7 @@ body{margin:0;background:#f4f8f5;font:15px/1.55 system-ui,Arial;color:#203b2b}
 .hero{padding:22px 20px;margin-bottom:16px;border-radius:17px;background:linear-gradient(120deg,#075b35,#0c8f52);color:#fff}
 .hero .kicker{font-size:10px;font-weight:850;letter-spacing:1.6px;text-transform:uppercase;opacity:.85}
 .hero h1{margin:6px 0 5px;font-size:clamp(21px,4vw,28px);letter-spacing:-.5px}
-.hero p{margin:0;font-size:12px;opacity:.9}
+.hero p{margin:0;font-size:12px;opacity:.9}.hero-brand{display:flex;align-items:center;gap:14px}.hero-logo{width:68px;height:68px;flex:0 0 68px;object-fit:contain;border-radius:13px;background:#fff;padding:5px}.club-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.club-item{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid #e5eee7;border-radius:11px;min-width:0}.club-item img{width:40px;height:40px;object-fit:contain;flex:0 0 40px}.club-item b{font-size:12px}.player-photo{width:34px;height:34px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:7px;background:#edf4ef}
 .toolbar{margin-bottom:14px}
 .toolbar select{width:100%;min-height:44px;padding:9px 11px;border:1px solid #d9e8df;border-radius:10px;background:#fff;color:#203b2b;font:inherit;font-size:13px}
 .card{background:#fff;border:1px solid #e0eae3;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 6px 20px rgba(7,91,53,.045)}
@@ -63,7 +63,7 @@ function statsTable(){
   const rows=[...(snapshot.player_statistics||[])].slice(0,25);
   if(!rows.length)return '<p class="muted">No match events recorded yet.</p>';
   return '<div class="table-wrap"><table><thead><tr><th>#</th><th>Player</th><th>Club</th><th>Goals</th><th>Assists</th><th>Yellow</th><th>Red</th></tr></thead><tbody>'+
-    rows.map((p,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+esc(p.full_name)+'</b></td><td>'+esc(p.club_name)+'</td><td>'+p.goals+'</td><td>'+p.assists+'</td><td>'+p.yellow_cards+'</td><td>'+p.red_cards+'</td></tr>').join('')+
+    rows.map((p,i)=>'<tr><td>'+(i+1)+'</td><td>'+(p.photo_url?'<img class="player-photo" src="'+esc(p.photo_url)+'" alt="'+esc(p.full_name)+'" loading="lazy">':'')+'<b>'+esc(p.full_name)+'</b></td><td>'+esc(p.club_name)+'</td><td>'+p.goals+'</td><td>'+p.assists+'</td><td>'+p.yellow_cards+'</td><td>'+p.red_cards+'</td></tr>').join('')+
     '</tbody></table></div>';
 }
 
@@ -73,7 +73,8 @@ function render(){
   const seasons=snapshot.seasons||[];
   document.title=c.name+' · Public league page';
   root.innerHTML=
-    '<div class="hero"><div class="kicker">Koroma Leone Tech · Public league page</div><h1>'+esc(c.name)+'</h1><p>'+esc(c.competition_type)+' · '+esc(c.region||'Region not set')+' · '+esc(c.organiser||'Organiser not set')+'</p></div>'+
+    '<div class="hero"><div class="hero-brand">'+(c.logo_url?'<img class="hero-logo" src="'+esc(c.logo_url)+'" alt="'+esc(c.name)+' crest">':'')+'<div><div class="kicker">Koroma Leone Tech · Public league page</div><h1>'+esc(c.name)+'</h1><p>'+esc(c.competition_type)+' · '+esc(c.region||'Region not set')+' · '+esc(c.organiser||'Organiser not set')+'</p></div></div></div>'+
+    '<div class="card"><h2>Participating clubs</h2>'+(snapshot.clubs||[]).length?'<div class="club-grid">'+(snapshot.clubs||[]).map(club=>'<div class="club-item">'+(club.crest_url?'<img src="'+esc(club.crest_url)+'" alt="'+esc(club.name)+' crest" loading="lazy">':'')+'<b>'+esc(club.name)+'</b></div>').join('')+'</div>':'<p class="muted">No clubs registered yet.</p>'+'</div>'+
     (seasons.length?'<div class="toolbar"><select id="seasonSelect" aria-label="Select season">'+seasons.map(s=>'<option value="'+esc(s.id)+'" '+(s.id===seasonId?'selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select></div>':'')+
     '<div class="card"><h2>League table</h2>'+standingsTable()+'</div>'+
     '<div class="card"><h2>Fixtures &amp; results</h2>'+fixturesTable()+'</div>'+
