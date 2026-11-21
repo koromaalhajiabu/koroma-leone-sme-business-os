@@ -1,8 +1,8 @@
 {
-  "name": "Koroma Leone SME Business Operating System",
-  "short_name": "Koroma Leone SME",
-  "id": "./?app=white-lion-sme-v4",
-  "start_url": "./?app=white-lion-sme-v4",
+  "name": "Koroma Leone Tech Business Operating System",
+  "short_name": "Koroma Leone Tech",
+  "id": "./?app=koroma-leone-tech-v5",
+  "start_url": "./?app=koroma-leone-tech-v5",
   "scope": "./",
   "display": "standalone",
   "display_override": [
