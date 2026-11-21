@@ -571,10 +571,55 @@
   }
   function stopScanner(){if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}const v=document.getElementById('wlOpsVideo');if(v){v.pause();v.srcObject=null;v.hidden=true;}}
   async function receiveBatch(){
-    const productId=document.getElementById('wlOpsBatchProduct').value,batch=document.getElementById('wlOpsBatchNo').value.trim(),qty=Number(document.getElementById('wlOpsBatchQty').value),cost=Number(document.getElementById('wlOpsBatchCost').value);
+    const productId=document.getElementById('wlOpsBatchProduct').value;
+    const product=products.find(x=>String(x.id)===String(productId));
+    const batch=document.getElementById('wlOpsBatchNo').value.trim();
+    const qty=Number(document.getElementById('wlOpsBatchQty').value);
+    const cost=Number(document.getElementById('wlOpsBatchCost').value);
+    const branch=api.getSelectedBranch?.();
     if(!productId||!batch||!Number.isFinite(qty)||qty<=0||!Number.isFinite(cost)||cost<0)return say('Enter a product, batch number, positive quantity and valid unit cost.',true);
-    const {error}=await client.rpc('receive_product_batch',{p_business_id:business.id,p_branch_id:api.getSelectedBranch?.()?.id,p_product_id:productId,p_batch_number:batch,p_expiry_date:document.getElementById('wlOpsExpiry').value||null,p_quantity:qty,p_unit_cost:cost});
-    if(error)return say(error.message,true);document.getElementById('wlOpsBatchQty').value='';say('Batch received and branch stock increased atomically.');await renderBatches();
+    if(!branch?.id)return say('Select an active cloud branch before receiving a stock batch.',true);
+    const settings=api.getApprovalSettings?.()||{};
+    if(settings.require_purchase_approvals){
+      if(!product?.client_record_id)return say('Sync this product to the selected business before submitting its batch receipt for approval.',true);
+      const requestId=window.crypto?.randomUUID?.();
+      if(!requestId)return say('Secure request ID generation is unavailable on this device. Update your browser before submitting.',true);
+      const payload={
+        operation:'batch_receipt',
+        branch_id:branch.id,
+        product_client_record_id:product.client_record_id,
+        product_name:product.name,
+        batch_number:batch,
+        expiry_date:document.getElementById('wlOpsExpiry').value||null,
+        quantity:qty,
+        unit_cost:cost
+      };
+      const {data,error}=await client.rpc('create_business_operation_approval',{
+        p_business_id:business.id,
+        p_client_request_id:requestId,
+        p_request_type:'purchase',
+        p_title:'Batch receipt · '+product.name+' · '+batch,
+        p_description:'Stock batch receipt awaiting approval.',
+        p_amount:Math.round(qty*cost*100)/100,
+        p_currency_code:business.currency_code||'SLE',
+        p_payload:payload
+      });
+      if(error)return say(error.message,true);
+      document.getElementById('wlOpsBatchQty').value='';
+      document.getElementById('wlOpsBatchNo').value='';
+      document.getElementById('wlOpsBatchCost').value='';
+      say('Batch receipt submitted for approval. Branch stock and batch quantities will remain unchanged until it is approved.');
+      return;
+    }
+    const {error}=await client.rpc('receive_product_batch',{
+      p_business_id:business.id,p_branch_id:branch.id,p_product_id:productId,
+      p_batch_number:batch,p_expiry_date:document.getElementById('wlOpsExpiry').value||null,
+      p_quantity:qty,p_unit_cost:cost
+    });
+    if(error)return say(error.message,true);
+    document.getElementById('wlOpsBatchQty').value='';
+    say('Batch received and branch stock increased atomically.');
+    await renderBatches();
   }
   async function renderBatches(){
     const el=document.getElementById('wlOpsBatches');if(!el)return;
