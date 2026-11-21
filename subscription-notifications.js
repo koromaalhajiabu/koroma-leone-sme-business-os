@@ -5,7 +5,7 @@
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const labels = {subscription:'Subscription',payment:'Payments',orders:'Orders',approvals:'Approvals',inventory:'Inventory',delivery:'Delivery',system:'System'};
   const routes = {billing:'billing',sales:'sales',orders:'sales',approvals:'actions',actions:'actions',inventory:'inventory',stockcontrol:'stockcontrol',delivery:'sales'};
-  let open = false, loading = false, rows = [], unreadCount = 0, filter = 'all';
+  let open = false, loading = false, rows = [], unreadCount = 0, filter = 'all', categoryFilter = 'all';
 
   const css = document.createElement('style');
   css.textContent = [
@@ -16,7 +16,7 @@
     '.kl-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px 12px;border-bottom:1px solid #edf1ed}.kl-head strong{display:block;font-size:15px}.kl-head small{display:block;margin-top:3px;color:#829087;font-size:10px}',
     '.kl-actions{display:flex;gap:5px}.kl-actions button{border:1px solid #e1e8e2;border-radius:8px;background:#fff;color:#17633e;font-size:10px;font-weight:750;padding:7px 9px;cursor:pointer}',
     '.kl-tools{padding:11px 13px;border-bottom:1px solid #edf1ed;display:grid;gap:9px;background:#fbfdfb}.kl-tabs{display:flex;gap:6px}.kl-tabs button{border:1px solid #e1e9e2;border-radius:20px;background:#fff;color:#607267;padding:6px 11px;font-size:10px;font-weight:750;cursor:pointer}.kl-tabs button.active{background:#eaf6ef;border-color:#b8ddc5;color:#11643a}',
-    '.kl-filter-row{display:grid;grid-template-columns:118px minmax(0,1fr);gap:7px}.kl-filter-row select,.kl-filter-row input{width:100%;min-width:0;border:1px solid #e1e8e2;border-radius:8px;background:#fff;color:#32483a;padding:8px 9px;font-size:11px}',
+    '.kl-category-filters{display:flex;gap:6px;overflow-x:auto;max-width:100%;padding:1px 1px 5px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.kl-category-filters button{flex:0 0 auto;border:1px solid #e1e8e2;border-radius:20px;background:#fff;color:#607267;padding:7px 10px;font-size:10px;font-weight:750;white-space:nowrap;cursor:pointer}.kl-category-filters button.active{background:#eaf6ef;border-color:#b8ddc5;color:#11643a}.kl-search-row input{width:100%;min-width:0;border:1px solid #e1e8e2;border-radius:8px;background:#fff;color:#32483a;padding:9px 10px;font-size:11px}',
     '#klNotificationList{overflow:auto;min-height:130px;overscroll-behavior:contain}.kl-item{position:relative;display:block;width:100%;padding:13px 15px 13px 17px;border:0;border-bottom:1px solid #eff3ef;background:#fff;text-align:left;color:inherit;cursor:pointer}.kl-item:hover{background:#f7fbf8}.kl-item.unread{background:#f2f8f3}.kl-item.unread:before{content:"";position:absolute;left:7px;top:18px;width:5px;height:5px;border-radius:50%;background:#168447}',
     '.kl-item b{display:block;font-size:12px;margin:4px 0;line-height:1.4}.kl-item p{margin:0;color:#65766c;font-size:11px;line-height:1.55;overflow-wrap:anywhere}.kl-meta{display:flex;justify-content:space-between;gap:8px;margin-top:7px;color:#89968e;font-size:9px}.kl-category{display:inline-block;border:1px solid #e2eae3;border-radius:20px;padding:3px 7px;color:#577064;background:#fbfdfb;font-size:9px;font-weight:750}',
     '.kl-empty{padding:30px 18px;text-align:center;color:#7b8a80;font-size:11px;line-height:1.6}.kl-foot{padding:9px 14px;border-top:1px solid #edf1ed;color:#8a978e;font-size:9px;background:#fbfdfb}',
@@ -47,15 +47,30 @@
         '<div class="kl-actions"><button id="klNotificationRefresh" type="button">Refresh</button><button id="klMarkAllRead" type="button">Mark all read</button></div></div>' +
         '<div class="kl-tools"><div class="kl-tabs" role="tablist" aria-label="Notification status">' +
         '<button type="button" class="active" data-filter="all" aria-selected="true">All</button><button type="button" data-filter="unread" aria-selected="false">Unread</button></div>' +
-        '<div class="kl-filter-row"><select id="klNotificationCategory" aria-label="Filter by type">' +
-        '<option value="all">All types</option><option value="subscription">Subscription</option><option value="payment">Payments</option><option value="orders">Orders</option><option value="approvals">Approvals</option><option value="inventory">Inventory</option><option value="delivery">Delivery</option><option value="system">System</option></select>' +
-        '<input id="klNotificationSearch" type="search" placeholder="Search notifications…" aria-label="Search notifications"></div></div>' +
+        '<div class="kl-category-filters" id="klNotificationCategories" aria-label="Filter by category">' +
+        '<button type="button" class="active" data-category="all" aria-pressed="true">All types</button>' +
+        '<button type="button" data-category="subscription" aria-pressed="false">Subscription</button>' +
+        '<button type="button" data-category="payment" aria-pressed="false">Payments</button>' +
+        '<button type="button" data-category="orders" aria-pressed="false">Orders</button>' +
+        '<button type="button" data-category="approvals" aria-pressed="false">Approvals</button>' +
+        '<button type="button" data-category="inventory" aria-pressed="false">Inventory</button>' +
+        '<button type="button" data-category="delivery" aria-pressed="false">Delivery</button>' +
+        '<button type="button" data-category="system" aria-pressed="false">System</button></div>' +
+        '<div class="kl-search-row"><input id="klNotificationSearch" type="search" placeholder="Search notifications…" aria-label="Search notifications"></div></div>' +
         '<div id="klNotificationList" aria-live="polite"><div class="kl-empty">Sign in to view your notifications.</div></div>' +
         '<div class="kl-foot">Your notifications are private to your signed-in account.</div>';
       document.body.appendChild(p);
       p.querySelector('#klNotificationRefresh').addEventListener('click', () => load(true));
       p.querySelector('#klMarkAllRead').addEventListener('click', markAll);
-      p.querySelector('#klNotificationCategory').addEventListener('change', render);
+      p.querySelector('#klNotificationCategories').addEventListener('click', e => {
+        const chip = e.target.closest('[data-category]'); if (!chip) return;
+        categoryFilter = chip.dataset.category || 'all';
+        p.querySelectorAll('[data-category]').forEach(x => {
+          const active = x.dataset.category === categoryFilter;
+          x.classList.toggle('active', active); x.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        render();
+      });
       p.querySelector('#klNotificationSearch').addEventListener('input', render);
       p.querySelectorAll('[data-filter]').forEach(tab => tab.addEventListener('click', () => {
         filter = tab.dataset.filter === 'unread' ? 'unread' : 'all';
@@ -116,7 +131,7 @@
 
   function render() {
     const list = document.getElementById('klNotificationList'); if (!list) return;
-    const category = document.getElementById('klNotificationCategory')?.value || 'all';
+    const category = categoryFilter;
     const term = (document.getElementById('klNotificationSearch')?.value || '').trim().toLowerCase();
     const visible = rows.filter(r =>
       (filter !== 'unread' || !r.read_at) &&
