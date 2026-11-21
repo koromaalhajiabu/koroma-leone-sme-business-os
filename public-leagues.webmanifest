@@ -1,6 +1,6 @@
 {
-  "name": "Koroma Leone Public Leagues Directory",
-  "short_name": "WL Leagues",
+  "name": "Koroma Leone Tech Public Leagues Directory",
+  "short_name": "KLT Leagues",
   "id": "/koroma-leone-sme-business-os/public-leagues.html",
   "start_url": "/koroma-leone-sme-business-os/public-leagues.html",
   "scope": "/koroma-leone-sme-business-os/",
@@ -12,7 +12,7 @@
   "orientation": "any",
   "background_color": "#f3f8f4",
   "theme_color": "#087a43",
-  "description": "Public football leagues and competitions published on Koroma Leone. Browse fixtures, results, standings and player statistics.",
+  "description": "Public football leagues and competitions published by Koroma Leone Tech. Browse fixtures, results, standings and player statistics.",
   "icons": [
     {
       "src": "/koroma-leone-sme-business-os/icons/white-lion-192.png",
