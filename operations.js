@@ -573,11 +573,46 @@
     if(error)return say(error.message,true);document.getElementById('wlOpsObligationAmount').value='';say('Financial obligation saved.');await renderFinance();
   }
   async function recordPayment(id,balance){
-    const raw=prompt('Enter payment amount in '+(business?.currency_code||'SLE')+'. Outstanding: '+money(balance));
-    if(raw===null)return;const amount=Number(raw);if(!Number.isFinite(amount)||amount<=0||amount>balance)return say('Enter a valid payment not exceeding the outstanding balance.',true);
-    const method=prompt('Payment method (cash, mobile money, bank transfer, card):','cash');if(method===null)return;
-    const {error}=await client.rpc('record_obligation_payment',{p_obligation_id:id,p_amount:amount,p_payment_method:method,p_payment_date:new Date().toISOString().slice(0,10),p_reference:null});
-    if(error)return say(error.message,true);say('Payment recorded and posted to cashbook.');await Promise.all([renderFinance(),renderCashbookRegister()]);
+    const {data:obligation,error:obligationError}=await client.from('financial_obligations')
+      .select('id,obligation_type,party_name,description,amount,amount_paid,status')
+      .eq('business_id',business.id).eq('id',id).maybeSingle();
+    if(obligationError)return say('Could not verify this payable or receivable: '+obligationError.message,true);
+    if(!obligation)return say('The payable or receivable record was not found.',true);
+    const outstanding=Math.max(0,Number(obligation.amount||0)-Number(obligation.amount_paid||0));
+    const raw=prompt('Enter payment amount in '+(business?.currency_code||'SLE')+'. Outstanding: '+money(outstanding||balance));
+    if(raw===null)return;
+    const amount=Number(raw);
+    if(!Number.isFinite(amount)||amount<=0||amount>(outstanding||Number(balance||0)))return say('Enter a valid payment not exceeding the outstanding balance.',true);
+    const method=prompt('Payment method (cash, mobile money, bank transfer, card):','cash');
+    if(method===null)return;
+    let settings=api.getApprovalSettings?.()||{};
+    if(api.refreshApprovalSettings){
+      try{settings=await api.refreshApprovalSettings()||settings;}
+      catch(error){return say('Approval rules could not be verified. No payment was recorded: '+error.message,true);}
+    }
+    if(obligation.obligation_type==='payable'&&settings.require_expense_approvals){
+      const requestId=window.crypto?.randomUUID?.();
+      if(!requestId)return say('Secure request ID generation is unavailable on this device. Update your browser before submitting.',true);
+      const {error}=await client.rpc('create_business_payable_payment_approval',{
+        p_business_id:business.id,
+        p_client_request_id:requestId,
+        p_obligation_id:obligation.id,
+        p_amount:amount,
+        p_payment_method:method,
+        p_payment_date:new Date().toISOString().slice(0,10)
+      });
+      if(error)return say('Payable payment approval was not submitted: '+error.message,true);
+      say('Payable payment submitted for approval. The payable balance and cashbook will change only after approval.');
+      await Promise.all([renderFinance(),renderCashbookRegister()]);
+      return;
+    }
+    const {error}=await client.rpc('record_obligation_payment',{
+      p_obligation_id:id,p_amount:amount,p_payment_method:method,
+      p_payment_date:new Date().toISOString().slice(0,10),p_reference:null
+    });
+    if(error)return say(error.message,true);
+    say('Payment recorded and posted to cashbook.');
+    await Promise.all([renderFinance(),renderCashbookRegister()]);
   }
   async function renderFinance(){
     const summary=document.getElementById('wlOpsFinanceSummary'),list=document.getElementById('wlOpsObligations');if(!summary||!list)return;
