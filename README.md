@@ -8,7 +8,7 @@ A multi-industry SME operations platform by Koroma Leone Tech. The frontend is d
 
 ## Platform capabilities
 
-- Multi-industry business profiles and workspace membership.
+- Multi-industry business profiles and workspace membership. 
 - Sales/POS, products, purchasing, customers, suppliers and expenses.
 - Supabase authentication, business membership and row-level security.
 - IndexedDB local persistence and offline transaction synchronisation.
