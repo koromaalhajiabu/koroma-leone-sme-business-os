@@ -19,6 +19,8 @@ Scope: Supabase project nclncqlgnxnijlumznnt and GitHub Pages deployment.
 - Reviewed the remaining functions lacking a direct auth.uid()/business-role helper pattern: public-facing endpoints and constant version functions were distinguished from authenticated flows. Eleven identity-scoped school/campus/referral functions were inspected; their bodies scope access to the signed-in user's linked student, guardian, teacher, lecturer, or referral identity, and teacher/lecturer write paths check assigned classes or sections.
 - This is a static source review and privilege check, not proof that every authenticated role path passes or fails at runtime. The remaining authenticated-callable SECURITY DEFINER functions still need targeted tests with real JWT sessions for owners, managers, employees, teachers, guardians, students, and unrelated users.
 
+- Ran three non-production SQL authorization checks under the authenticated database role with a synthetic, unlinked user identity. The accounting report RPC rejected an unlinked business user, the platform dashboard RPC rejected a non-developer, and the school teacher portal rejected an account without an active teacher profile. These are useful server-side authorization checks, but they are not substitutes for tests using real signed JWTs in the browser.
+
 ## Remaining owner actions / validation
 - Supabase advisor reports leaked-password protection disabled. Enable it in Supabase Dashboard → Authentication → Security and Protection. This is a project Auth setting and was not changed through SQL.
 - Authenticated end-to-end tests across separate business accounts and employee roles remain required. SQL administrator checks do not prove browser/JWT RLS behavior.
