@@ -44,7 +44,7 @@ setTimeout(function () {
 <link rel="icon" type="image/webp" sizes="160x160" href="icons/white-lion-official.webp">
 <link rel="apple-touch-icon" href="icons/white-lion-official.webp">
 <script src="./shared.js?v=2"></script>
-<script src="./i18n.js?v=12" defer></script>
+<script src="./i18n.js?v=11" defer></script>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="White Lion SME">
@@ -886,7 +886,6 @@ html[data-theme="dark"] .footer{color:#8795aa}
      <button data-page="executive"><span class="ico">◈</span>Executive Intelligence</button>
      <button data-page="actions"><span class="ico">⚑</span>Executive Action Centre</button>
      <button data-page="finance"><span class="ico">◷</span>Financial Planning</button>
-     <button id="affiliateMarketingNav" data-page="affiliates" type="button"><span class="ico">🤝</span>Affiliate Marketing</button>
      <button id="externalAffiliateNetworksNav" data-page="external-affiliates" type="button"><span class="ico">🌐</span>External Affiliate Networks</button>
      </nav></div>
    <div><div class="nav-label">Business Tools</div><nav class="nav" id="businessToolsNav">
@@ -904,7 +903,7 @@ html[data-theme="dark"] .footer{color:#8795aa}
     <button data-page="phoneunlocking"><span class="ico">📱</span>Phone Unlocking Service</button>
     <a href="./customer-support/" target="_blank" rel="noopener noreferrer" aria-label="Open customer Help and Support Centre" style="display:flex;align-items:center;gap:11px;color:#c6d0df;text-decoration:none;padding:10px 12px;border-radius:9px;font-size:12px;font-weight:550"><span class="ico" style="width:18px;text-align:center;color:#e2c681">?</span>Help &amp; Support ↗</a>
   </nav></div>
-  <div class="wl-sidebar-language" style="margin:4px 7px 10px;padding:11px 10px;border:1px solid rgba(255,255,255,.16);border-radius:11px;background:rgba(255,255,255,.055)"><label for="wlLanguageSidebar" style="display:block;color:#c6d0df;font-size:10px;font-weight:800;letter-spacing:.8px;margin-bottom:7px">🌐 LANGUAGE / LANGUE</label><select id="wlLanguageSidebar" aria-label="Choose language" style="width:100%;height:36px;border:1px solid rgba(255,255,255,.22);border-radius:8px;background:#182943;color:#fff;padding:0 9px;font-size:12px"><option value="en">English</option><option value="fr">Français</option><option value="ar">العربية</option><option value="es">Español</option><option value="hi">हिन्दी</option><option value="zh">中文（简体）</option></select></div><div class="side-foot">White Lion Tech Solutions<br>SME Business OS · Starter build</div>
+  <div class="side-foot">White Lion Tech Solutions<br>SME Business OS · Starter build</div>
 </aside>
 <main class="main">
 <header class="topbar">
@@ -986,8 +985,6 @@ function all(store){return new Promise((resolve,reject)=>{const r=db.transaction
 function put(store,obj){return new Promise((resolve,reject)=>{const tx=db.transaction(store,'readwrite');const r=tx.objectStore(store).put(obj);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 function del(store,id){return new Promise((resolve,reject)=>{const numeric=Number(id),key=String(id).trim()!==''&&Number.isFinite(numeric)?numeric:id;const r=db.transaction(store,'readwrite').objectStore(store).delete(key);r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error)})}
 async function setting(key,value){if(value!==undefined){await put('settings',{key,value});return value}const rows=await all('settings');return rows.find(x=>x.key===key)?.value}
-// Explicit bridge for isolated feature scripts that need local-first records.
-window.whiteLionLocalDB = Object.freeze({ all, put, del, setting });
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
 function setPage(p){if(!p)return;if(p==='affiliates'){state.page='affiliates';applyIndustryWording();document.querySelectorAll('[data-page]').forEach(b=>{const active=b.dataset.page===p;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});document.getElementById('crumb').textContent='Affiliate Marketing';document.getElementById('sidebar').classList.remove('open');if(window.WhiteLionAffiliateMarketing?.open)window.WhiteLionAffiliateMarketing.open();else document.getElementById('view').innerHTML='<div class="panel"><h2>Affiliate Marketing is loading</h2><p class="panel-sub">Please wait a moment, then reopen this section.</p></div>';return;}if(p==='external-affiliates'){state.page='external-affiliates';document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));document.getElementById('crumb').textContent='External Affiliate Networks';document.getElementById('sidebar').classList.remove('open');if(window.WhiteLionExternalAffiliateNetworks?.open)window.WhiteLionExternalAffiliateNetworks.open();else document.getElementById('view').innerHTML='<div class="panel"><h2>External Affiliate Networks is loading</h2><p class="panel-sub">Please wait a moment, then reopen this section.</p></div>';return;}if(p==='school'){state.page='school';applyIndustryWording();document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));document.getElementById('crumb').textContent='School Management';document.getElementById('sidebar').classList.remove('open');if(window.WhiteLionSchool)window.WhiteLionSchool.render();return;}if(p==='campus'){state.page='campus';applyIndustryWording();document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===p));document.getElementById('crumb').textContent='Campus Management';document.getElementById('sidebar').classList.remove('open');if(window.WhiteLionCampus)window.WhiteLionCampus.render();return;}if(p==='billing'){document.getElementById('sidebar').classList.remove('open');if(window.whiteLionBilling&&typeof window.whiteLionBilling.render==='function'){window.whiteLionBilling.render()}else{document.getElementById('view').innerHTML='<div class="panel"><h2>Plans & Billing</h2><p>Billing module is still loading. Please wait a moment and try again.</p></div>'}return}if(p===state.page){document.getElementById('sidebar').classList.remove('open');render();return}state.page=p;applyIndustryWording();document.querySelectorAll('[data-page]').forEach(b=>{const active=b.dataset.page===p;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});document.getElementById('crumb').textContent=({dashboard:'Overview',sales:'Sales & POS',products:'Products & Inventory',purchases:'Purchases',customers:'Customers',suppliers:'Suppliers',expenses:'Expenses',reports:'Reports',intelligence:'Business Intelligence',executive:'Executive Intelligence',finance:'Financial Planning',inventory:'Inventory Management',stockcontrol:'Inventory Intelligence',reorder:'Smart Reorder Planner',returns:'Returns & Refunds',employees:'Employees',settings:'Business settings',documents:'Business documents',league:'Sports & Local League',phoneunlocking:'Phone unlocking service'})[p];applyIndustryWording();document.getElementById('sidebar').classList.remove('open');const view=document.getElementById('view');view.classList.remove('page-transition');void view.offsetWidth;view.classList.add('page-transition');render()}
 window.setPage=setPage;
@@ -1141,55 +1138,6 @@ async function render(){
     const w=window.open('','_blank','width=420,height=720');if(!w){toast('Allow pop-ups to print receipts');return}
     w.onload=()=>{try{w.focus();w.print()}catch(e){}};
     w.document.write(`<!doctype html><html><head><title>${esc(sale.receipt)}</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:13px Arial;padding:18px;color:#111}h2,p{text-align:center;margin:4px}table{width:100%;border-collapse:collapse;margin:16px 0}td,th{padding:7px 3px;border-bottom:1px solid #ddd;text-align:left;font-size:11px}.right{text-align:right}.total{font-size:17px;font-weight:bold;text-align:right;margin-top:12px}.muted{text-align:center;color:#666;font-size:10px;margin-top:20px}</style></head><body><h2>${esc(state.business.name||'White Lion SME')}</h2><p>${esc(state.business.phone||'')}</p><p>SALES RECEIPT</p><hr><p>Receipt: ${esc(sale.receipt)}</p><p>Date: ${esc(sale.date)}</p><p>Customer: ${esc(sale.customer||'Walk-in')}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table><p class="right">Subtotal: ${money(sale.subtotal??sale.total)}</p><p class="right">Discount: ${money(sale.discount||0)}</p><p class="right">Tax: ${money(sale.tax||0)}</p><div class="total">TOTAL: ${money(sale.total)}</div><p>Payment: ${esc(sale.payment||'Cash')}</p><div class="muted">Thank you for shopping with us.<br>Designed by Alhaji Abu Koroma</div>
-
-<!-- WHITE LION RANDOM ACCENT THEMES -->
-<style id="wl-random-accent-style">
-:root{--wl-accent:#13865f;--wl-accent-2:#31a77b;--wl-accent-soft:#e9f7f0;--wl-accent-glow:rgba(19,134,95,.16)}
-.sidebar{background:linear-gradient(155deg,var(--wl-accent) 0%,color-mix(in srgb,var(--wl-accent) 65%,#101a2d) 42%,#101a2d 100%)!important;transition:background .45s ease}
-.brand-mark{background:linear-gradient(145deg,var(--wl-accent-2),var(--wl-accent))!important;color:#fff!important}
-.nav button.active{background:linear-gradient(100deg,var(--wl-accent-glow),rgba(255,255,255,.08))!important;box-shadow:inset 3px 0 var(--wl-accent-2),0 5px 15px rgba(0,0,0,.08)!important}
-.nav .ico,.eyebrow{color:var(--wl-accent)!important}
-.sidebar .nav .ico,.sidebar .eyebrow{color:var(--wl-accent-2)!important}
-.btn.primary,.quick:hover{border-color:var(--wl-accent)!important}
-.btn.primary{background:linear-gradient(135deg,var(--wl-accent-2),var(--wl-accent))!important;color:#fff!important}
-.btn.gold{background:linear-gradient(135deg,var(--wl-accent-2),var(--wl-accent))!important;border-color:var(--wl-accent)!important;color:#fff!important}
-.stat-icon{background:var(--wl-accent-soft)!important;color:var(--wl-accent)!important}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--wl-accent)!important;box-shadow:0 0 0 3px var(--wl-accent-glow)!important}
-.quick:hover{background:var(--wl-accent-soft)!important}
-a{color:var(--wl-accent)}
-@media(prefers-reduced-motion:no-preference){.stat,.panel,.module-card,.btn,.quick{transition:background-color .3s ease,border-color .3s ease,box-shadow .3s ease,transform .2s ease}}
-/* WHITE LION — language selector visibility and mobile access */
-.wl-language-control{display:flex!important;align-items:center!important;visibility:visible!important;opacity:1!important;position:relative;z-index:8;flex:0 0 auto}
-.wl-language-control select{display:block!important;visibility:visible!important;opacity:1!important;min-width:92px;max-width:132px;height:36px;padding:0 9px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#24334a;font-size:11px;font-weight:750}
-.wl-sidebar-language{display:block!important;visibility:visible!important;opacity:1!important;flex:0 0 auto}
-#wlLanguageSidebar{display:block!important;visibility:visible!important;opacity:1!important;width:100%;min-height:38px}
-@media(max-width:720px){
- .wl-language-control{display:flex!important}
- .wl-language-control select{min-width:66px;max-width:84px}
- .wl-sidebar-language{margin-top:8px!important}
-}
-@media(max-width:400px){.wl-language-control select{min-width:58px;max-width:64px}}
-</style>
-<script id="wl-random-accent-controller">
-(function(){
- 'use strict';
- var palettes=[
-  {name:'Emerald',a:'#13865f',b:'#31a77b',soft:'#e9f7f0',glow:'rgba(19,134,95,.16)'},
-  {name:'Ocean blue',a:'#1769aa',b:'#3b91d1',soft:'#eaf4fc',glow:'rgba(23,105,170,.16)'},
-  {name:'Royal violet',a:'#6546a5',b:'#9272d0',soft:'#f1edfa',glow:'rgba(101,70,165,.16)'},
-  {name:'Sunset coral',a:'#b94f48',b:'#e27b68',soft:'#fff0ed',glow:'rgba(185,79,72,.16)'},
-  {name:'Teal',a:'#087f83',b:'#28a8a2',soft:'#e8f7f6',glow:'rgba(8,127,131,.16)'},
-  {name:'Sapphire',a:'#354f9b',b:'#6684d6',soft:'#edf1fc',glow:'rgba(53,79,155,.16)'}
- ];
- var chosen=palettes[Math.floor(Math.random()*palettes.length)],root=document.documentElement;
- root.style.setProperty('--wl-accent',chosen.a);
- root.style.setProperty('--wl-accent-2',chosen.b);
- root.style.setProperty('--wl-accent-soft',chosen.soft);
- root.style.setProperty('--wl-accent-glow',chosen.glow);
- root.setAttribute('data-wl-accent',chosen.name.toLowerCase().replace(/ /g,'-'));
- window.wlCurrentAccent=chosen.name;
-})();
-</script>
 </body></html>`);
     w.document.close();
     w.document.close();
@@ -1647,20 +1595,19 @@ if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventLi
 <script src="./executive-intelligence.js?v=2" defer onerror="window.__wlScriptFail.push('executive-intelligence.js')"></script>
 <script src="./supplier-intelligence.js?v=1" defer onerror="window.__wlScriptFail.push('supplier-intelligence.js')"></script>
 <script src="./smart-reorder.js?v=2" defer onerror="window.__wlScriptFail.push('smart-reorder.js')"></script>
-<script src="./cloud.js?v=63" defer onerror="window.__wlScriptFail.push('cloud.js')"></script>
-<script src="./operations.js?v=23" defer onerror="window.__wlScriptFail.push('operations.js')"></script>
+<script src="./cloud.js?v=61" defer onerror="window.__wlScriptFail.push('cloud.js')"></script>
+<script src="./operations.js?v=22" defer onerror="window.__wlScriptFail.push('operations.js')"></script>
 <script src="./documents.js?v=3" defer onerror="window.__wlScriptFail.push('documents.js')"></script>
 <script src="./phone-unlocking.js?v=2" defer onerror="window.__wlScriptFail.push('phone-unlocking.js')"></script>
 <script src="./league.js?v=5" defer onerror="window.__wlScriptFail.push('league.js')"></script>
 <script src="./billing.js?v=11" defer onerror="window.__wlScriptFail.push('billing.js')"></script>
 <script src="./action-centre.js?v=4" defer></script>
 <script src="./dynamic-login.js?v=3" defer onerror="window.__wlScriptFail.push('dynamic-login.js')"></script>
-<script src="./premium-experience.js?v=2" defer onerror="window.__wlScriptFail.push('premium-experience.js')"></script>
+<script src="./premium-experience.js?v=1" defer onerror="window.__wlScriptFail.push('premium-experience.js')"></script>
 <script src="./school-management.js?v=47" defer onerror="window.__wlScriptFail.push('school-management.js')"></script>
 <script src="./school-analytics.js?v=2" defer onerror="window.__wlScriptFail.push('school-analytics.js')"></script>
 <script src="./campus-management.js?v=4" defer onerror="window.__wlScriptFail.push('campus-management.js')"></script>
 <script src="./storefront-admin.js?v=2" defer onerror="window.__wlScriptFail.push('storefront-admin.js')"></script>
 <script src="./delivery-admin.js?v=2" defer onerror="window.__wlScriptFail.push('delivery-admin.js')"></script>
-<script src="./affiliate-marketing.js?v=4" defer onerror="window.__wlScriptFail.push('affiliate-marketing.js')"></script>
-<script src="./external-affiliate-networks.js?v=2" defer onerror="window.__wlScriptFail.push('external-affiliate-networks.js')"></script>
+<script src="./external-affiliate-networks.js?v=1" defer onerror="window.__wlScriptFail.push('external-affiliate-networks.js')"></script>
 </body></html>

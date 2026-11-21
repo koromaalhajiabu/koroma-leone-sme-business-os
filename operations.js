@@ -1,12 +1,6 @@
 /* White Lion SME OS — branch transfers, finance registers and advanced inventory controls. */
 (() => {
   let api,client,business,memberRole=null,scannerStream=null,products=[],branchesCache=[];
-  // This module has its own closure; explicitly use the main app's IndexedDB adapter.
-  const all = (store) => {
-    const db = window.whiteLionLocalDB;
-    if (!db || typeof db.all !== 'function') throw new Error('Local database adapter is not ready.');
-    return db.all(store);
-  };
   const css=document.createElement('style');
   css.textContent=`
     #wlOpsPanel{margin-top:16px;padding:20px;background:#fff;border:1px solid #e2ebe5;border-radius:16px;color:#203b2b;font-size:12px;box-shadow:0 8px 26px rgba(12,55,34,.055)}

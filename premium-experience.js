@@ -4,7 +4,7 @@
 if(window.__wlPremiumExperienceLoaded)return;window.__wlPremiumExperienceLoaded=true;
 const $=id=>document.getElementById(id), cloud=()=>window.whiteLionCloud, sess=()=>cloud()?.getSession?.(), biz=()=>cloud()?.getActiveBusiness?.(), client=()=>cloud()?.getClient?.();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const read=async name=>{try{const db=window.whiteLionLocalDB;return db&&typeof db.all==='function'?await db.all(name):[]}catch(_){return[]}};
+const read=async name=>{try{return typeof all==='function'?await all(name):[]}catch(_){return[]}};
 let profileOpen=false,alertSignature='';
 const css = [
 '.wl-pe-btn{position:relative;min-height:38px;padding:8px 11px;border:1px solid #e1e8e2;border-radius:11px;background:#fff;color:#24364b;font-size:11px;font-weight:750}',

@@ -89,7 +89,8 @@ function setLanguage(code){
  document.documentElement.dir=lang.dir;
  document.documentElement.setAttribute('data-wl-language',current);
  try{localStorage.setItem('wl-sme-language',current)}catch(e){}
- document.querySelectorAll('#wlLanguage,#wlLanguageSidebar').forEach(select=>{if(select.value!==current)select.value=current;});
+ const select=document.getElementById('wlLanguage');
+ if(select&&select.value!==current)select.value=current;
  scan(document.body);
  window.dispatchEvent(new CustomEvent('whiteLionLanguageChanged',{detail:{language:current,direction:lang.dir}}));
 }
@@ -113,11 +114,11 @@ window.wlRefreshTranslations=()=>scan(document.body);
 // Delegate the language change from document so it survives header re-renders.
 document.addEventListener('change',function(event){
  const target=event.target;
- if(target&&(target.id==='wlLanguage'||target.id==='wlLanguageSidebar'))setLanguage(target.value);
+ if(target&&target.id==='wlLanguage')setLanguage(target.value);
 },true);
 document.addEventListener('input',function(event){
  const target=event.target;
- if(target&&(target.id==='wlLanguage'||target.id==='wlLanguageSidebar'))setLanguage(target.value);
+ if(target&&target.id==='wlLanguage')setLanguage(target.value);
 },true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

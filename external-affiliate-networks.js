@@ -11,16 +11,9 @@
   const toast = msg => typeof window.toast === 'function' ? window.toast(msg) : alert(msg);
   const partners = [
     {key:'shopify',name:'Shopify Affiliate Program',category:'E-commerce platform',url:'https://www.shopify.com/affiliates',fit:'Promote online stores and commerce tools',payout:'Confirm the payout method offered to your country'},
-    {key:'impact',name:'impact.com',category:'Affiliate network',url:'https://impact.com/affiliate-marketing/',fit:'Apply to multiple advertiser programmes from one network (hosts Bluehost, Canva, Semrush and many more)',payout:'Confirm publisher approval and available withdrawal methods'},
+    {key:'impact',name:'impact.com',category:'Affiliate network',url:'https://impact.com/affiliate-marketing/',fit:'Apply to multiple advertiser programmes from one network',payout:'Confirm publisher approval and available withdrawal methods'},
     {key:'hostinger',name:'Hostinger Affiliates',category:'Web hosting',url:'https://www.hostinger.com/affiliates',fit:'Promote hosting, domains and website services',payout:'Check minimum payout and country eligibility'},
-    {key:'cj',name:'CJ Affiliate',category:'Affiliate network',url:'https://www.cj.com/publisher',fit:'Discover and apply to multiple advertiser programmes',payout:'Confirm Sierra Leone payout availability before promoting'},
-    {key:'namecheap',name:'Namecheap Affiliates',category:'Web hosting & domains',url:'https://www.namecheap.com/affiliates/',fit:'Promote domains, hosting and website security add-ons',payout:'Confirm the payout method and minimum threshold for your account'},
-    {key:'bluehost',name:'Bluehost Affiliate Program',category:'Web hosting',url:'https://www.bluehost.com/affiliates',fit:'Promote WordPress hosting plans (runs via the impact.com network)',payout:'Apply through impact.com; confirm your withdrawal method there'},
-    {key:'aliexpress',name:'AliExpress Affiliate (Portals)',category:'Electronics & general marketplace',url:'https://portals.aliexpress.com/',fit:'Promote phones, electronics, gadgets and general goods from one huge catalogue',payout:'Confirm available payment methods for your country at sign-up'},
-    {key:'clickbank',name:'ClickBank',category:'Software & digital products marketplace',url:'https://www.clickbank.com/affiliate-network/',fit:'Promote software, courses and digital tools across many niches',payout:'ClickBank pays via Payoneer in many countries; confirm Sierra Leone eligibility during setup'},
-    {key:'canva',name:'Canva Affiliate Program',category:'Software (design tool)',url:'https://www.canva.com/affiliates/',fit:'Promote Canva Pro to anyone who creates graphics, flyers or social posts',payout:'Runs via impact.com; confirm your withdrawal method there'},
-    {key:'semrush',name:'Semrush Affiliate Program',category:'Software (SEO / marketing tool)',url:'https://www.semrush.com/affiliates/',fit:'Promote an SEO and digital-marketing toolkit to businesses and marketers',payout:'Runs via impact.com; confirm your withdrawal method there'},
-    {key:'shein',name:'SHEIN Affiliate Program',category:'Fashion & apparel',url:'https://affiliate.shein.com/',fit:'Promote fashion, clothing and accessories to a general audience',payout:'Confirm the payout method and minimum threshold for your country'}
+    {key:'cj',name:'CJ Affiliate',category:'Affiliate network',url:'https://www.cj.com/publisher',fit:'Discover and apply to multiple advertiser programmes',payout:'Confirm Sierra Leone payout availability before promoting'}
   ];
   let current='overview', cache={accounts:[],clicks:[],conversions:[]};
   function shell(title,sub,body,actions=''){

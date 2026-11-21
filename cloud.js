@@ -3,16 +3,6 @@
   const SUPABASE_URL = 'https://nclncqlgnxnijlumznnt.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
   const $ = (id) => document.getElementById(id);
-  // Use the main app's IndexedDB adapter; cloud.js runs in its own closure.
-  const localDB = () => {
-    const api = window.whiteLionLocalDB;
-    if (!api || typeof api.all !== 'function' || typeof api.put !== 'function') {
-      throw new Error('Local database bridge is not ready. Reload the latest White Lion application files.');
-    }
-    return api;
-  };
-  const all = (store) => localDB().all(store);
-  const put = (store, record) => localDB().put(store, record);
   const sortBusinessesByName = (items) => [...(items || [])].sort((a,b) => String(a?.name || '').localeCompare(String(b?.name || ''), undefined, {sensitivity:'base', numeric:true}));
   window.__wlCloudScriptLoaded = true;
   // Use document-level delegation so authentication remains clickable even if
