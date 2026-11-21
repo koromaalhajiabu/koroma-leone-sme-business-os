@@ -74,7 +74,7 @@ function render(){
   document.title=c.name+' · Public league page';
   root.innerHTML=
     '<div class="hero"><div class="hero-brand">'+(c.logo_url?'<img class="hero-logo" src="'+esc(c.logo_url)+'" alt="'+esc(c.name)+' crest">':'')+'<div><div class="kicker">Koroma Leone Tech · Public league page</div><h1>'+esc(c.name)+'</h1><p>'+esc(c.competition_type)+' · '+esc(c.region||'Region not set')+' · '+esc(c.organiser||'Organiser not set')+'</p></div></div></div>'+
-    '<div class="card"><h2>Participating clubs</h2>'+(snapshot.clubs||[]).length?'<div class="club-grid">'+(snapshot.clubs||[]).map(club=>'<div class="club-item">'+(club.crest_url?'<img src="'+esc(club.crest_url)+'" alt="'+esc(club.name)+' crest" loading="lazy">':'')+'<b>'+esc(club.name)+'</b></div>').join('')+'</div>':'<p class="muted">No clubs registered yet.</p>'+'</div>'+
+    '<div class="card"><h2>Participating clubs</h2>'+((snapshot.clubs||[]).length?'<div class="club-grid">'+(snapshot.clubs||[]).map(club=>'<div class="club-item">'+(club.crest_url?'<img src="'+esc(club.crest_url)+'" alt="'+esc(club.name)+' crest" loading="lazy">':'')+'<b>'+esc(club.name)+'</b></div>').join('')+'</div>':'<p class="muted">No clubs registered yet.</p>')+'</div>'+
     (seasons.length?'<div class="toolbar"><select id="seasonSelect" aria-label="Select season">'+seasons.map(s=>'<option value="'+esc(s.id)+'" '+(s.id===seasonId?'selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select></div>':'')+
     '<div class="card"><h2>League table</h2>'+standingsTable()+'</div>'+
     '<div class="card"><h2>Fixtures &amp; results</h2>'+fixturesTable()+'</div>'+
