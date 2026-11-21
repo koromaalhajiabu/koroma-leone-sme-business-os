@@ -3,8 +3,8 @@
 A multi-industry SME operations platform by Koroma Leone Tech. The frontend is deployed as a static Progressive Web App through GitHub Pages; Supabase provides authentication, cloud data and tenant security.
 
 **Developer:** Designed by Alhaji Abu Koroma  
-**Live application:** https://koromaalhajiabu.github.io/white-lion-sme-business-os/  
-**Repository:** https://github.com/koromaalhajiabu/white-lion-sme-business-os
+**Live application:** https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/  
+**Repository:** https://github.com/koromaalhajiabu/koroma-leone-sme-business-os
 
 ## Platform capabilities
 
