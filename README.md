@@ -41,7 +41,7 @@ Do not add a Supabase service-role key to browser code or the public repository.
 
 ## Database setup
 
-SQL migrations are in `supabase/migrations/`. The HR/payroll and customer-loyalty enhancement is recorded in `supabase/migrations/055_hr_loyalty_workflows.sql`; the business-scoped attendance register is in `supabase/migrations/056_employee_attendance_register.sql`. It adds the transactional `apply_customer_loyalty_points` RPC; the employee and payroll tables were already present. The HR/payroll UI records payroll drafts and approvals but does not initiate bank/mobile-money transfers or calculate statutory tax automatically. Configure and review deductions under applicable local rules. Loyalty tiers use default balance thresholds (Bronze 100+, Silver 500+, Gold 1,000+) in this release.\n\nThe consolidated operations installer is:
+SQL migrations are in `supabase/migrations/`. The HR/payroll and customer-loyalty enhancement is recorded in `supabase/migrations/055_hr_loyalty_workflows.sql`; the business-scoped attendance register is in `supabase/migrations/056_employee_attendance_register.sql`, with least-privilege role policies refined in `supabase/migrations/057_attendance_policy_roles.sql`. It adds the transactional `apply_customer_loyalty_points` RPC; the employee and payroll tables were already present. The HR/payroll UI records payroll drafts and approvals but does not initiate bank/mobile-money transfers or calculate statutory tax automatically. Configure and review deductions under applicable local rules. Loyalty tiers use default balance thresholds (Bronze 100+, Silver 500+, Gold 1,000+) in this release.\n\nThe consolidated operations installer is:
 
 `supabase/INSTALL_ALL_OPERATIONS.sql`
 
