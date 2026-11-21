@@ -172,3 +172,16 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Supabase catalog verification: notification table exists, RLS is enabled, only own-row SELECT/UPDATE policies exist, the generator is SECURITY DEFINER with an empty search path, execution is denied to anon/authenticated and granted to service_role, and the daily cron job is active.
 - The notification table was empty at verification time. No real customer notification was sent or generated during deployment checks. The live UI still requires a signed-in owner acceptance test, and scheduled reminder content should be verified with controlled test subscription/invoice dates before production rollout.
 - This is in-app notification delivery only. SMS, email, WhatsApp and Orange Money provider callbacks are not included in this phase.
+
+
+## External notification channels — migrations 067–069
+
+- Migration 067 adds user-scoped notification channel preferences, consent timestamps, a private delivery queue, attempt history, and a trigger that queues only explicitly opted-in email/SMS/WhatsApp channels.
+- Migration 068 corrects and verifies E.164 phone and email validation constraints.
+- Migration 069 schedules the dispatcher every five minutes using pg_cron + pg_net + Supabase Vault. The job deliberately does nothing until the two named Vault secrets are configured.
+- Supabase Edge Function `dispatch-notifications` is deployed and requires a valid service-role JWT. Provider adapters are present for Resend transactional email and Twilio SMS/WhatsApp template messaging. The function is not a live delivery proof.
+- Catalog checks observed RLS enabled on preferences, queue and attempt tables; preferences policy is scoped to auth.uid(); queue and attempt tables have no browser-role grants; no preference rows or queued external deliveries existed during verification. The in-app test notification was already marked read.
+- External sending remains OFF until the account owner records consent and enters contact destinations, provider credentials are added to Supabase Edge Function secrets, the Vault URL/service-role key are configured, and real provider delivery tests pass.
+- Required acceptance: confirm email domain authentication; verify SMS sender ID and delivery on Africell, Orange, QCell and Sierratel; submit and approve WhatsApp utility templates; test provider failures/retries and delivery logs; verify opt-out prevents future queue entries; confirm a second account cannot read or modify the first user's preferences.
+- Twilio's Sierra Leone guidance says two-way SMS is unavailable and advises against generic alphanumeric sender IDs on Africell. Confirm current carrier-specific routing and pricing with the provider before funding a production account. WhatsApp provider and Meta charges are separate.
+- Do not call this feature production-live until credentials, scheduled invocation and end-to-end delivery are verified with test recipients.
