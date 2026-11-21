@@ -95,3 +95,8 @@ Serve the repository over HTTPS or localhost for service-worker and PWA behaviou
 ### Financial integrity hardening
 
 Migration 063 adds database-level checks for sales discounts, payment limits and sale/purchase line arithmetic; tightens the canonical sale RPC; and restricts internal accounting journal helpers and selected finance RPCs to their intended API roles. It is applied to the connected Supabase project. See [PROFESSIONAL_READINESS.md](PROFESSIONAL_READINESS.md) for the verification results and remaining acceptance tests.
+
+
+### Financial ageing, commitments forecast and controlled period reopening
+
+Migration 064 adds business-scoped receivables/payables ageing and a 90-day contractual cash-commitments forecast to Business Intelligence. These reports include only entered, open or part-paid obligations; they are not forecasts of unentered sales or bank-confirmed cash. The migration also restricts bank statement import/matching RPC grants to authenticated users and adds owner/admin-controlled period reopening. Reopening requires a reason, reverses the original closing journal without editing it, and is audited; a re-closed period is locked again. Apply and acceptance-test migration 064 before using these controls on live accounting records.
