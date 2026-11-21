@@ -26,6 +26,11 @@ const legacyDuplicates = new Map([
   ['026', ['026_automatic_seven_day_business_trial.sql', '026_seven_day_professional_trial.sql']],
   ['046', ['046_independent_device_services_platform.sql', '046_integrated_missing_capabilities.sql']],
   ['047', ['047_device_services_catalogue_drafts.sql', '047_expansion_integrity_and_module_seeding.sql']],
+  ['055', ['055_affiliate_marketing_foundation.sql', '055_hr_loyalty_workflows.sql']],
+  ['056', ['056_affiliate_security_workflows.sql', '056_employee_attendance_register.sql']],
+  ['057', ['057_affiliate_active_membership_rls.sql', '057_attendance_policy_roles.sql']],
+  ['058', ['058_harden_device_service_financial_view.sql', '058_verified_affiliate_sale_commissions.sql']],
+  ['059', ['059_external_affiliate_networks.sql', '059_restrict_platform_and_transaction_rpc_grants.sql']],
   ['202611190001', ['202611190001_campus_portal_access.sql', '202611190001_school_people_photos.sql']]
 ]);
 
