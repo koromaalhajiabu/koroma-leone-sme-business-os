@@ -91,3 +91,17 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Eleven RLS-enabled platform/internal tables have no policies and no grants to `anon`, `authenticated`, or `PUBLIC`; this currently blocks direct Data API access and appears intentional for internal tables, but any RPCs that use them must continue to enforce developer/role checks.
 - The security advisor still reports many `SECURITY DEFINER` functions executable by API roles, including trigger functions and selected public workflows. These require function-by-function review; do not revoke them in bulk because some are required for offline sync, approvals, storefront submissions, and controlled administration.
 - Supabase Auth leaked-password protection is currently disabled and should be enabled in the Auth security settings before production onboarding.
+
+
+## Security review — migration 059
+
+- Reviewed core business RLS policies for businesses, memberships, products, sales, purchases, employees, payroll, attendance, branches, branch transfers, expenses, cashbook and customer loyalty.
+- Core workspace reads are scoped through active business membership. Sensitive write paths are role-scoped (for example payroll to owner/admin/accountant; attendance management to owner/admin/manager; branch transaction posting to assigned branch roles).
+- Reviewed the branch-aware offline transaction RPC. It verifies active membership, allowed role, transaction type, active branch ownership, branch assignment for cashier/storekeeper, item quantities and prices, authoritative line totals, discounts/tax, and stock availability.
+- Corrected API grants that had drifted from repository migrations: anonymous callers can no longer execute platform account suspension/restoration, business freeze/suspension, business registration limit, customer approval, maintenance, membership administration, or branch transaction posting RPCs. These remain executable by authenticated callers and retain their internal developer/role checks.
+- Disabled anonymous and authenticated execution of the deprecated auto-first-branch `sync_local_transaction` RPC. The supported transaction path is `sync_branch_transaction`, which requires an explicit branch.
+- Verified the resulting grants in PostgreSQL: the seven platform administration RPCs and branch transaction RPC deny `anon` and allow `authenticated`; the legacy transaction RPC denies both.
+- Security advisor's anonymous SECURITY DEFINER finding count reduced from 146 to 137 after this grant correction. Remaining findings are not bulk-revoked because some represent required trigger helpers, authenticated workflows, and controlled public storefront/portal operations that need individual review.
+- Eleven internal tables have RLS enabled with no direct API policies and no grants to anon/authenticated/PUBLIC; these are currently inaccessible through direct client table access. Keep them behind vetted RPCs with explicit authorization checks.
+- Auth leaked-password protection remains disabled in Supabase Auth settings; this needs enabling in the dashboard before production onboarding.
+- This review is not a penetration test. Cross-account isolation still requires a controlled two-account acceptance test in the live app.
