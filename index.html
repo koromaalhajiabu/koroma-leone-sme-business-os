@@ -1461,7 +1461,8 @@ async function render(){
  let advancedFinancePanel='';
  if(ledgerClient&&businessId){
   try{
-   const asOf=dateOnly(new Date()),forecastEnd=dateOnly(new Date(Date.now()+90*86400000));
+   const advDate=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+   const asOf=advDate(new Date()),forecastEnd=advDate(new Date(Date.now()+90*86400000));
    const [agingResult,forecastResult]=await Promise.all([
     ledgerClient.rpc('accounting_obligation_aging',{p_business_id:businessId,p_as_of:asOf}),
     ledgerClient.rpc('accounting_cash_commitments_forecast',{p_business_id:businessId,p_from:asOf,p_to:forecastEnd})
