@@ -617,6 +617,10 @@
   }
   function stopScanner(){if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}const v=document.getElementById('wlOpsVideo');if(v){v.pause();v.srcObject=null;v.hidden=true;}}
   async function receiveBatch(){
+    const actionButton=document.getElementById('wlOpsBatchSave');
+    if(actionButton?.disabled)return;
+    if(actionButton)actionButton.disabled=true;
+    try{
     const productId=document.getElementById('wlOpsBatchProduct').value;
     const product=products.find(x=>String(x.id)===String(productId));
     const batch=document.getElementById('wlOpsBatchNo').value.trim();
@@ -667,8 +671,9 @@
     document.getElementById('wlOpsBatchQty').value='';
     say('Batch received and branch stock increased atomically.');
     await renderBatches();
-  }
-  async function renderBatches(){
+  
+    }finally{if(actionButton)actionButton.disabled=false;}
+  }  async function renderBatches(){
     const el=document.getElementById('wlOpsBatches');if(!el)return;
     const branch=api.getSelectedBranch?.();if(!branch){el.textContent='Select a branch to view batches.';return;}
     const {data,error}=await client.from('product_batches').select('batch_number,expiry_date,quantity_on_hand,unit_cost,product_id').eq('business_id',business.id).eq('branch_id',branch.id).order('expiry_date',{ascending:true}).limit(50);
@@ -677,12 +682,17 @@
     el.innerHTML=(data||[]).map(x=>{const days=x.expiry_date?Math.ceil((new Date(x.expiry_date+'T00:00:00')-new Date(new Date().toISOString().slice(0,10)+'T00:00:00'))/86400000):null;const alert=days===null?'':days<0?' · EXPIRED':days<=30?' · EXPIRING SOON':'';return '<div class="ops-row">'+esc(names.get(x.product_id)||'Product')+' · '+esc(x.batch_number)+' · Qty '+Number(x.quantity_on_hand).toLocaleString()+' · Expiry '+esc(x.expiry_date||'Not set')+'<strong>'+alert+'</strong></div>';}).join('')||'No batch records for this branch.';
   }
   async function requestAdjustment(){
+    const actionButton=document.getElementById('wlOpsAdjustRequest');
+    if(actionButton?.disabled)return;
+    if(actionButton)actionButton.disabled=true;
+    try{
     const productId=document.getElementById('wlOpsAdjustProduct').value,type=document.getElementById('wlOpsAdjustType').value,qty=Number(document.getElementById('wlOpsAdjustQty').value),reason=document.getElementById('wlOpsAdjustReason').value.trim();
     if(!productId||!Number.isFinite(qty)||qty<=0||reason.length<3)return say('Select a product, enter a positive quantity and a reason.',true);
     const {error}=await client.rpc('request_stock_adjustment',{p_business_id:business.id,p_branch_id:api.getSelectedBranch?.()?.id,p_product_id:productId,p_adjustment_type:type,p_quantity:qty,p_reason:reason});
     if(error)return say(error.message,true);document.getElementById('wlOpsAdjustQty').value='';document.getElementById('wlOpsAdjustReason').value='';say('Adjustment submitted for manager approval.');await renderAdjustments();
-  }
-  async function renderAdjustments(){
+  
+    }finally{if(actionButton)actionButton.disabled=false;}
+  }  async function renderAdjustments(){
     const el=document.getElementById('wlOpsAdjustments');if(!el)return;
     const branch=api.getSelectedBranch?.();if(!branch){el.textContent='Select a branch to view adjustments.';return;}
     const {data,error}=await client.from('stock_adjustments').select('id,product_id,adjustment_type,quantity,reason,status,created_at').eq('business_id',business.id).eq('branch_id',branch.id).order('created_at',{ascending:false}).limit(30);
