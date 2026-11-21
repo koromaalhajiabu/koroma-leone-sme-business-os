@@ -51,7 +51,8 @@ try {
     fail('PWA manifest is missing a valid start_url, scope or standalone display mode');
   }
   for (const icon of manifest.icons || []) {
-    const iconPath = path.resolve(root, icon.src.replace(/^\.\//, ''));
+    const iconSourcePath = icon.src.split(/[?#]/, 1)[0].replace(/^\.\//, '');
+    const iconPath = path.resolve(root, iconSourcePath);
     if (!iconPath.startsWith(root + path.sep) || !fs.existsSync(iconPath)) {
       fail('PWA icon is missing or outside the repository: ' + icon.src);
     }
