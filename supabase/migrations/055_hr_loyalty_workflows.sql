@@ -53,4 +53,4 @@ end;
 $$;
 
 revoke all on function public.apply_customer_loyalty_points(uuid,uuid,bigint,text,text,text) from public;
-grant execute on function public.apply_customer_loyalty_points(uuid,uuid,bigint,text,text,text) to authenticated;
+revoke all on function public.apply_customer_loyalty_points(uuid,uuid,bigint,text,text,text) from anon;\ngrant execute on function public.apply_customer_loyalty_points(uuid,uuid,bigint,text,text,text) to authenticated;
