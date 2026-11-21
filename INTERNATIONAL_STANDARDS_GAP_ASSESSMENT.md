@@ -1,8 +1,8 @@
 # Koroma Leone SME Business OS — International Standards Readiness Assessment
 
 **Assessment date:** 12 November 2026  
-**Repository:** https://github.com/koromaalhajiabu/white-lion-sme-business-os  
-**Live application:** https://koromaalhajiabu.github.io/white-lion-sme-business-os/  
+**Repository:** https://github.com/koromaalhajiabu/koroma-leone-sme-business-os  
+**Live application:** https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/  
 **Assessment type:** Internal, repository-based gap assessment  
 **Prepared for:** Koroma Leone Tech
 
