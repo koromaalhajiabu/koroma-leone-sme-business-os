@@ -18,19 +18,24 @@ for (const name of migrations) {
   byVersion.set(match[1], files);
 }
 
-// These two pairs are legacy SQL-Editor scripts already present in the repository.
-// Keep the exception explicit so no new duplicate migration versions can be added silently.
+// Explicitly document the legacy duplicate labels already present in the repository.
+// Do not rename or replay these SQL-Editor migrations automatically: first reconcile
+// each file with the live Supabase migration history and its actual schema effects.
 const legacyDuplicates = new Map([
   ['022', ['022_public_league_directory.sql', '022_public_leagues_directory.sql']],
-  ['026', ['026_automatic_seven_day_business_trial.sql', '026_seven_day_professional_trial.sql']]
+  ['026', ['026_automatic_seven_day_business_trial.sql', '026_seven_day_professional_trial.sql']],
+  ['046', ['046_independent_device_services_platform.sql', '046_integrated_missing_capabilities.sql']],
+  ['047', ['047_device_services_catalogue_drafts.sql', '047_expansion_integrity_and_module_seeding.sql']],
+  ['202611190001', ['202611190001_campus_portal_access.sql', '202611190001_school_people_photos.sql']]
 ]);
+
 for (const [version, names] of byVersion) {
   if (names.length < 2) continue;
   const expected = legacyDuplicates.get(version);
   if (!expected || [...names].sort().join('|') !== [...expected].sort().join('|')) {
     fail('Unexpected duplicate migration version ' + version + ': ' + names.join(', '));
   } else {
-    console.warn('LEGACY MIGRATION COLLISION (review before using Supabase CLI): ' + version + ' — ' + names.join(', '));
+    console.warn('LEGACY MIGRATION COLLISION (manual migration-history review required): ' + version + ' — ' + names.join(', '));
   }
 }
 for (const [version, expected] of legacyDuplicates) {
@@ -76,4 +81,6 @@ if (!actionCentre.includes('actorLabel')) {
   fail('Executive Action Centre audit history must display actor labels');
 }
 
-if (!process.exitCode) console.log('Release integrity checks passed. Legacy duplicate migration labels are explicitly allowlisted for manual-history review.');
+if (!process.exitCode) {
+  console.log('Release integrity checks passed. All known legacy migration collisions remain explicitly allowlisted for manual-history review.');
+}
