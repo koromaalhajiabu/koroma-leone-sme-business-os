@@ -1,9 +1,9 @@
 {
   "name": "Koroma Leone Public Leagues Directory",
   "short_name": "WL Leagues",
-  "id": "/white-lion-sme-business-os/public-leagues.html",
-  "start_url": "/white-lion-sme-business-os/public-leagues.html",
-  "scope": "/white-lion-sme-business-os/",
+  "id": "/koroma-leone-sme-business-os/public-leagues.html",
+  "start_url": "/koroma-leone-sme-business-os/public-leagues.html",
+  "scope": "/koroma-leone-sme-business-os/",
   "display": "standalone",
   "display_override": [
     "standalone",
@@ -15,13 +15,13 @@
   "description": "Public football leagues and competitions published on Koroma Leone. Browse fixtures, results, standings and player statistics.",
   "icons": [
     {
-      "src": "/white-lion-sme-business-os/icons/white-lion-192.png",
+      "src": "/koroma-leone-sme-business-os/icons/white-lion-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/white-lion-sme-business-os/icons/white-lion-512.png",
+      "src": "/koroma-leone-sme-business-os/icons/white-lion-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
