@@ -14,6 +14,16 @@
     authenticate(button.id === 'wlSignUp');
   }, true);
   let client = null, session = null, activeBusiness = null, selectedBranch = null;
+  let approvalSettings = { require_purchase_approvals:false, require_expense_approvals:false, require_refund_approvals:false, require_stock_adjustment_approvals:false };
+  async function refreshApprovalSettings() {
+    if (!client || !activeBusiness) return approvalSettings;
+    const {data,error}=await client.rpc('get_business_approval_settings',{p_business_id:activeBusiness.id});
+    if (error) throw new Error('Could not verify approval rules: '+error.message);
+    approvalSettings=data||approvalSettings;
+    try { localStorage.setItem('koroma-leone-approval-settings:'+activeBusiness.id,JSON.stringify(approvalSettings)); } catch (_) {}
+    window.dispatchEvent(new CustomEvent('whiteLionApprovalSettingsChanged',{detail:{business:activeBusiness,settings:approvalSettings}}));
+    return approvalSettings;
+  }
 
   const style = document.createElement('style');
   style.textContent = `
@@ -476,6 +486,11 @@
   async function selectBusiness(business) {
     activeBusiness = business;
     $('wlBusinessSelect').value = business.id;
+    try { await refreshApprovalSettings(); }
+    catch (error) {
+      try { approvalSettings=JSON.parse(localStorage.getItem('koroma-leone-approval-settings:'+business.id)||'null')||approvalSettings; } catch (_) {}
+      say('Approval rules could not be refreshed: '+error.message+'. Cached rules are shown until the connection is restored.');
+    }
     const sideName = $('sideBusiness'), sideIndustry = $('sideIndustry');
     if (sideName) sideName.textContent = business.name;
     if (sideIndustry) sideIndustry.textContent = business.industry + ' · ' + business.currency_code;
@@ -1620,7 +1635,9 @@
         getSession: () => session,
         getActiveBusiness: () => activeBusiness,
         getSelectedBranch: () => selectedBranch,
-        getBranches: () => (window.__wlBranches || []).filter(b => b.is_active)
+        getBranches: () => (window.__wlBranches || []).filter(b => b.is_active),
+        getApprovalSettings: () => ({...approvalSettings}),
+        refreshApprovalSettings
       };
       window.dispatchEvent(new CustomEvent('whiteLionCloudReady'));
     } catch (error) {
