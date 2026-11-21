@@ -2499,3 +2499,9 @@ grant execute on function public.inventory_valuation_report(uuid) to authenticat
 
 commit;
 
+-- Internal SECURITY DEFINER batch helpers are reachable only through guarded workflows.
+REVOKE ALL ON FUNCTION public.consume_product_batches(uuid, uuid, uuid, numeric)
+  FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.transfer_product_batches(uuid, uuid, uuid, uuid, numeric)
+  FROM PUBLIC, anon, authenticated;
+

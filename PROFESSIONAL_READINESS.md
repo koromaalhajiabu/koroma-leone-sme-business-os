@@ -187,3 +187,15 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Do not call this feature production-live until credentials, scheduled invocation and end-to-end delivery are verified with test recipients.
 
 - Migration 070 adds provider delivery state and timestamp fields. The Twilio and Resend webhook Edge Functions are deployed; Twilio validates X-Twilio-Signature and Resend validates Svix signatures before updating delivery state. Webhook end-to-end delivery remains untested until provider accounts and webhook secrets are configured.
+
+## Security follow-up — 21 November 2026
+
+- Live Supabase catalog review confirmed Row Level Security is enabled on all 176 public tables (zero public tables without RLS).
+- Fourteen RLS-enabled internal tables have no client policies. Direct privileges for both `anon` and `authenticated` were checked and are absent for SELECT/INSERT/UPDATE/DELETE; these are intentionally closed pending a review of any server-side access paths. Do not add permissive policies merely to clear the informational advisor.
+- Reviewed the anonymous-executable SECURITY DEFINER warnings. Two internal inventory batch helpers, `consume_product_batches` and `transfer_product_batches`, were callable by API roles despite having no caller-identity checks. Migration `restrict_internal_inventory_batch_helpers` revokes EXECUTE from PUBLIC, anon and authenticated. Their database owner remains able to execute them, and the protected SECURITY DEFINER stock workflows retain their internal calls.
+- Verified after applying the migration: both helpers deny EXECUTE to anon and authenticated and retain owner execution. The Supabase advisor's anonymous SECURITY DEFINER finding count reduced from 125 to 123.
+- Remaining SECURITY DEFINER findings have not been bulk-revoked. They include trigger-returning functions, public storefront/tracking/portal endpoints, and authenticated workflows with in-function authorization checks. Continue function-by-function review before changing grants.
+- The Supabase advisor still reports `pg_net` in the public schema. Do not move the extension without checking dependencies used by scheduled notification workflows.
+- The 14 no-policy tables are not currently exposed to the browser roles by direct table grants. Their intended server-side access and retention requirements still need owner review.
+
+**Scope note:** This is a live catalog/privilege review, not a penetration test or full authenticated cross-tenant regression test. It does not establish independent security certification.
