@@ -90,3 +90,8 @@ See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for GitHub Actions secret setup, encrypte
 ## Local run
 
 Serve the repository over HTTPS or localhost for service-worker and PWA behaviour. Opening the HTML file directly with a `file://` URL does not provide the full PWA experience.
+
+
+### Financial integrity hardening
+
+Migration 063 adds database-level checks for sales discounts, payment limits and sale/purchase line arithmetic; tightens the canonical sale RPC; and restricts internal accounting journal helpers and selected finance RPCs to their intended API roles. It is applied to the connected Supabase project. See [PROFESSIONAL_READINESS.md](PROFESSIONAL_READINESS.md) for the verification results and remaining acceptance tests.
