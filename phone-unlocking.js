@@ -1,4 +1,4 @@
-/* White Lion SME — Phone Unlocking Service.
+/* Koroma Leone SME — Phone Unlocking Service.
    Platform-operated service (not a per-tenant SME module): visible only to the
    platform developer account, backed by the real mobile-unlock.com integration
    (the "mobile-unlock-provider" Edge Function, which submits genuine unlock jobs,

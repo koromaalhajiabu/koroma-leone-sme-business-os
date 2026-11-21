@@ -1,4 +1,4 @@
-/* White Lion SME OS — interactive sign-in experience. No auth logic is changed. */
+/* Koroma Leone SME OS — interactive sign-in experience. No auth logic is changed. */
 (function(){
  'use strict';
  function init(){

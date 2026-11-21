@@ -1,6 +1,6 @@
 # Affiliate Marketing — setup and acceptance
 
-The Affiliate Marketing module is an optional, cloud-backed module for the White Lion SME Business OS.
+The Affiliate Marketing module is an optional, cloud-backed module for the Koroma Leone SME Business OS.
 
 ## What is included
 

@@ -1,14 +1,14 @@
-# White Lion SME Business OS — International Standards Readiness Assessment
+# Koroma Leone SME Business OS — International Standards Readiness Assessment
 
 **Assessment date:** 12 November 2026  
-**Repository:** https://github.com/koromaalhajiabu/white-lion-sme-business-os  
-**Live application:** https://koromaalhajiabu.github.io/white-lion-sme-business-os/  
+**Repository:** https://github.com/koromaalhajiabu/koroma-leone-sme-business-os  
+**Live application:** https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/  
 **Assessment type:** Internal, repository-based gap assessment  
-**Prepared for:** White Lion Tech Solutions
+**Prepared for:** Koroma Leone Tech
 
 ## 1. Executive conclusion
 
-White Lion SME Business OS has a substantial multi-industry SME platform foundation. The repository contains a GitHub Pages PWA, Supabase authentication and tenant controls, offline transaction synchronisation, branch operations, inventory costing, accounting ledger workflows, audit logging and an encrypted logical backup workflow.
+Koroma Leone SME Business OS has a substantial multi-industry SME platform foundation. The repository contains a GitHub Pages PWA, Supabase authentication and tenant controls, offline transaction synchronisation, branch operations, inventory costing, accounting ledger workflows, audit logging and an encrypted logical backup workflow.
 
 The developer has stated that they have independently tested every aspect of the live system and that it works. This assessment records that statement as **developer-attested functional testing**. This review did not independently log into the live Supabase project, inspect its private settings or repeat the developer's end-to-end tests.
 
@@ -152,7 +152,7 @@ For each test, retain:
 
 Recommended product statement:
 
-> “White Lion SME Business OS is a multi-industry SME operations platform developed by White Lion Tech Solutions. It incorporates security, software-quality and accounting design practices informed by recognised international frameworks. Its functionality has been independently tested by its developer. Formal certification and independent conformity assessments are separate activities and are not claimed.”
+> “Koroma Leone SME Business OS is a multi-industry SME operations platform developed by Koroma Leone Tech. It incorporates security, software-quality and accounting design practices informed by recognised international frameworks. Its functionality has been independently tested by its developer. Formal certification and independent conformity assessments are separate activities and are not claimed.”
 
 Do not use ISO logos or claim certification without a valid certificate and permission from the relevant certification body.
 

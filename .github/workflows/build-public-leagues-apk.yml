@@ -1,4 +1,4 @@
-name: Build and Publish Public Leagues Android APK
+name: Build and Publish Koroma Leone Tech Public Leagues Android APK
 
 on:
   workflow_dispatch:
@@ -51,12 +51,12 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p output
-          cp public-leagues-android/app/build/outputs/apk/debug/app-debug.apk output/WhiteLion-Public-Leagues.apk
+          cp public-leagues-android/app/build/outputs/apk/debug/app-debug.apk output/KoromaLeoneTech-Public-Leagues.apk
       - name: Upload downloadable APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WhiteLion-Public-Leagues-APK
-          path: output/WhiteLion-Public-Leagues.apk
+          name: KoromaLeoneTech-Public-Leagues-APK
+          path: output/KoromaLeoneTech-Public-Leagues.apk
           if-no-files-found: error
           retention-days: 90
       - name: Publish APK as a public GitHub Release download
@@ -64,7 +64,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="public-leagues-build-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" output/WhiteLion-Public-Leagues.apk \
-            --title "White Lion Public Leagues Android App" \
-            --notes "Standalone Android app for the public read-only leagues directory. Built from the koromaalhajiabu/white-lion-sme-business-os repository." \
+          gh release create "$TAG" output/KoromaLeoneTech-Public-Leagues.apk \
+            --title "Koroma Leone Tech Public Leagues Android App" \
+            --notes "Standalone Android app for the public read-only leagues directory. Built from the koromaalhajiabu/koroma-leone-sme-business-os repository." \
             --latest

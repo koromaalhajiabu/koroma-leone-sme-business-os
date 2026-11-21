@@ -16,4 +16,4 @@ dependencies {
     implementation 'androidx.webkit:webkit:1.11.0'
 }
 
-// Android build configuration maintained by White Lion Tech Solutions.
+// Android build configuration maintained by Koroma Leone Tech.

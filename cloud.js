@@ -1,4 +1,4 @@
-/* White Lion SME OS — Supabase workspace, master-data and atomic transaction sync. */
+/* Koroma Leone SME OS — Supabase workspace, master-data and atomic transaction sync. */
 (() => {
   const SUPABASE_URL = 'https://nclncqlgnxnijlumznnt.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
@@ -14,6 +14,16 @@
     authenticate(button.id === 'wlSignUp');
   }, true);
   let client = null, session = null, activeBusiness = null, selectedBranch = null;
+  let approvalSettings = { require_purchase_approvals:false, require_expense_approvals:false, require_refund_approvals:false, require_stock_adjustment_approvals:false };
+  async function refreshApprovalSettings() {
+    if (!client || !activeBusiness) return approvalSettings;
+    const {data,error}=await client.rpc('get_business_approval_settings',{p_business_id:activeBusiness.id});
+    if (error) throw new Error('Could not verify approval rules: '+error.message);
+    approvalSettings=data||approvalSettings;
+    try { localStorage.setItem('koroma-leone-approval-settings:'+activeBusiness.id,JSON.stringify(approvalSettings)); } catch (_) {}
+    window.dispatchEvent(new CustomEvent('whiteLionApprovalSettingsChanged',{detail:{business:activeBusiness,settings:approvalSettings}}));
+    return approvalSettings;
+  }
 
   const style = document.createElement('style');
   style.textContent = `
@@ -71,7 +81,7 @@
     .wl-public-mode #wlCloudBox #wlSignUp{background:#fff;color:#075b35}
     .wl-public-mode #wlCloudBox .wl-public-privacy{font-size:10px;line-height:1.6;color:#819087;margin:13px 0 0}
     .wl-public-mode #wlCloudBox .cloud-status{font-size:11px;min-height:17px}
-    .wl-public-mode .main:after{content:"Designed by Alhaji Abu Koroma · White Lion Tech Solutions";display:block;text-align:center;color:#8a9a90;font-size:10px;margin:20px 0 0}
+    .wl-public-mode .main:after{content:"Designed by Alhaji Abu Koroma · Koroma Leone Tech";display:block;text-align:center;color:#8a9a90;font-size:10px;margin:20px 0 0}
     @media(max-width:760px){.wl-public-mode .main{padding:12px;justify-content:flex-start}.wl-public-mode #wlCloudBox{padding:21px!important;border-radius:19px;margin:8px 0!important}.wl-public-mode #wlCloudBox .wl-public-grid{grid-template-columns:1fr;gap:22px}.wl-public-mode #wlCloudBox .wl-public-copy h1{font-size:34px;letter-spacing:-1.2px}.wl-public-mode #wlCloudBox .wl-public-brand{margin-bottom:24px}.wl-public-mode #wlCloudBox .wl-public-features{gap:8px}.wl-public-mode #wlCloudBox .wl-public-feature{padding:11px}.wl-public-mode #wlCloudBox .wl-public-auth{padding:17px}}
     @media(prefers-reduced-motion:no-preference){.wl-public-mode #wlCloudBox{animation:wlWelcomeIn .45s ease-out both}@keyframes wlWelcomeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}}
   `;
@@ -133,7 +143,7 @@
       // Backward-compatible fallback for pages that do not contain the premium login shell.
       box.innerHTML = `
 
-      <div class="wl-public-brand"><span class="wl-public-mark" aria-hidden="true">W</span><span><strong>WHITE LION</strong><small>BUSINESS SYSTEMS · SME BUSINESS OS</small></span></div>
+      <div class="wl-public-brand"><span class="wl-public-mark" aria-hidden="true">K</span><span><strong>KOROMA LEONE</strong><small>BUSINESS SYSTEMS · SME BUSINESS OS</small></span></div>
       <div id="wlCloudAuth" class="wl-public-grid">
         <div class="wl-public-copy">
           <div class="wl-public-kicker">One platform. Your whole business.</div>
@@ -185,7 +195,7 @@
     dev.id = 'wlDeveloperBox';
     dev.hidden = true;
     dev.innerHTML = `
-      <h3>WHITE LION · PRIVATE DEVELOPER CONSOLE</h3>
+      <h3>KOROMA LEONE · PRIVATE DEVELOPER CONSOLE</h3>
       <div id="wlDevIdentity" class="dev-meta">Verifying developer permissions…</div>
       <div id="wlDevStatus" class="cloud-status">Loading secure platform controls…</div>
       <div id="wlDevStats" class="dev-meta"></div>
@@ -343,8 +353,8 @@
     const verified = !!status?.email_confirmed;
     const workspacePending = !!status?.workspace_pending;
     const heading = workspacePending ? 'Approved — Awaiting Workspace Assignment' : 'Awaiting Developer Approval';
-    const explanation = workspacePending ? 'Your account has been approved. The White Lion platform developer is preparing and assigning your business workspace. Business operations will appear here once your workspace is assigned.' : (verified ? 'Your registration is awaiting review by the White Lion platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.');
-    panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">WHITE LION CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">' + heading + '</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + explanation + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button id="wlApprovalCheck" style="border:0;border-radius:9px;padding:11px 18px;background:#087a43;color:#fff;font-weight:800">Check approval status</button><button id="wlApprovalSignOut" style="border:1px solid #b9cfc0;border-radius:9px;padding:11px 18px;background:#fff;color:#075b35;font-weight:800">Sign out</button></div>';
+    const explanation = workspacePending ? 'Your account has been approved. The Koroma Leone platform developer is preparing and assigning your business workspace. Business operations will appear here once your workspace is assigned.' : (verified ? 'Your registration is awaiting review by the Koroma Leone platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.');
+    panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">KOROMA LEONE CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">' + heading + '</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + explanation + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button id="wlApprovalCheck" style="border:0;border-radius:9px;padding:11px 18px;background:#087a43;color:#fff;font-weight:800">Check approval status</button><button id="wlApprovalSignOut" style="border:1px solid #b9cfc0;border-radius:9px;padding:11px 18px;background:#fff;color:#075b35;font-weight:800">Sign out</button></div>';
     $('wlApprovalCheck').onclick = async () => { $('wlApprovalCheck').disabled=true; $('wlApprovalCheck').textContent='Checking…'; await loadBusinesses(); if ($('wlApprovalCheck')) { $('wlApprovalCheck').disabled=false; $('wlApprovalCheck').textContent='Check approval status'; } };
     $('wlApprovalSignOut').onclick = async () => { await client.auth.signOut(); session=null; activeBusiness=null; panel.hidden=true; showSignedOut(); };
     $('wlCloudStatus').textContent = verified ? 'Email verified. Awaiting developer approval.' : 'Email confirmation required.';
@@ -386,7 +396,7 @@
       : '<option value="">No business workspace yet</option>';
     if (businesses.length) await selectBusiness(businesses.find(b => b.id === previouslySelectedId) || businesses[0]);
     else if (isDeveloper) say('Developer account verified. Create or manage customer workspaces from the Developer Console.');
-    else say('Your account is approved. Your business workspace is being prepared by the White Lion platform developer.');
+    else say('Your account is approved. Your business workspace is being prepared by the Koroma Leone platform developer.');
   }
   async function createBranch() {
     if (!activeBusiness) return say('Select a business workspace first.');
@@ -476,6 +486,11 @@
   async function selectBusiness(business) {
     activeBusiness = business;
     $('wlBusinessSelect').value = business.id;
+    try { await refreshApprovalSettings(); }
+    catch (error) {
+      try { approvalSettings=JSON.parse(localStorage.getItem('koroma-leone-approval-settings:'+business.id)||'null')||approvalSettings; } catch (_) {}
+      say('Approval rules could not be refreshed: '+error.message+'. Cached rules are shown until the connection is restored.');
+    }
     const sideName = $('sideBusiness'), sideIndustry = $('sideIndustry');
     if (sideName) sideName.textContent = business.name;
     if (sideIndustry) sideIndustry.textContent = business.industry + ' · ' + business.currency_code;
@@ -1064,10 +1079,10 @@
       return say('Only the registered private developer account can reset business data.');
     }
     const confirmation = prompt(
-      'This permanently deletes ALL business workspaces and cloud business records, and clears this device’s local business records. Your developer login and platform audit history are preserved. Other accounts will be disabled and queued for deletion after 30 days.\n\nType RESET WHITE LION to continue:',
+      'This permanently deletes ALL business workspaces and cloud business records, and clears this device’s local business records. Your developer login and platform audit history are preserved. Other accounts will be disabled and queued for deletion after 30 days.\n\nType RESET KOROMA LEONE to continue:',
       ''
     );
-    if (confirmation !== 'RESET WHITE LION') return say('Reset cancelled. No records were changed.');
+    if (confirmation !== 'RESET KOROMA LEONE') return say('Reset cancelled. No records were changed.');
     const button = $('wlDevResetData');
     button.disabled = true;
     button.textContent = 'Resetting business data…';
@@ -1147,7 +1162,7 @@
         '</optgroup>';
       modal.innerHTML = '<form id="wlIndustrySetupForm" style="width:min(520px,100%);max-height:92vh;overflow:auto;background:#fff;color:#17243a;border-radius:18px;padding:22px;box-shadow:0 25px 80px #0005">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:5px"><h2 style="margin:0;font-size:19px">Register a business</h2><button type="button" id="wlIndustrySetupClose" aria-label="Close" style="border:0;border-radius:8px;padding:7px 11px;background:#eef1f5;font-size:18px">×</button></div>' +
-        '<p style="margin:0 0 16px;color:#748197;font-size:12px">Choose the business type. White Lion SME will activate the recommended modules for this workspace.</p>' +
+        '<p style="margin:0 0 16px;color:#748197;font-size:12px">Choose the business type. Koroma Leone SME will activate the recommended modules for this workspace.</p>' +
         '<label style="display:block;font-size:11px;font-weight:700;margin:12px 0 6px">Business / organisation name</label><input id="wlIndustryBusinessName" required minlength="2" maxlength="120" placeholder="Enter business name" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #dfe5ee;border-radius:10px">' +
         '<label style="display:block;font-size:11px;font-weight:700;margin:14px 0 6px">Industry / business type</label><select id="wlIndustryBusinessType" required style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #dfe5ee;border-radius:10px;background:#fff">' + groups + '</select>' +
         '<label style="display:block;font-size:11px;font-weight:700;margin:14px 0 6px">Default currency code</label><input id="wlIndustryCurrency" required maxlength="3" value="SLE" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #dfe5ee;border-radius:10px;text-transform:uppercase">' +
@@ -1284,7 +1299,8 @@
     const txRows = [...await all('sales'), ...await all('purchases')];
     const txPending = txRows.filter(row => row.cloudSyncedFor !== activeBusiness.id).length;
     const returnPending = (await all('returns')).filter(row => row.cloudSyncedFor !== activeBusiness.id).length;
-    syncStatus(pending + ' master/expense records, ' + txPending + ' sales/purchases and ' + returnPending + ' returns pending for this workspace.');
+    const awaitingApproval = [...await all('expenses'),...await all('purchases'),...await all('returns')].filter(row => row.localBusinessId === activeBusiness.id && row.approvalStatus && row.approvalStatus !== 'completed').length;
+    syncStatus(pending + ' master/expense records, ' + txPending + ' sales/purchases and ' + returnPending + ' returns pending for this workspace · ' + awaitingApproval + ' awaiting approval.');
   }
 
   async function downloadCloudRecords() {
@@ -1320,7 +1336,9 @@
           name:cloud.name,sku:cloud.sku||'',category:cloud.category||'',unit:cloud.unit||'unit',
           cost:Number(cloud.cost_price||0),price:Number(cloud.selling_price||0),reorder:Number(cloud.reorder_level||0),
           stock:selectedStock.get(cloud.id)||0,active:cloud.is_active,barcode:cloud.barcode||''};
-        await put('products',row);productMap.set(cloud.id,row.id);old?updated++:added++;
+        await put('products',row);
+        if(selectedBranch?.id){await put('branchInventory',{id:String(selectedBranch.id)+'|'+String(row.id),businessId,branchId:selectedBranch.id,productId:row.id,quantity:selectedStock.get(cloud.id)||0});}
+        productMap.set(cloud.id,row.id);old?updated++:added++;
       }
       const syncSimple=async(type,rows,localRows,mapRow)=>{
         for(const cloud of rows||[]){
@@ -1330,6 +1348,7 @@
           const row={...(old||{}),id:old?.id||('cloud-'+type+'-'+cloud.client_record_id),
             cloudClientRecordId:cloud.client_record_id,localBusinessId:businessId,cloudSyncedFor:businessId,
             cloudSyncedAt:new Date().toISOString(),...mapRow(cloud)};
+          if(type==='expenses'&&row.approvalStatus&&row.approvalStatus!=='completed')row.approvalStatus='completed';
           await put(type,row);old?updated++:added++;
         }
       };
@@ -1363,6 +1382,7 @@
             receipt:cloud.receipt||('PUR-'+cloud.client_transaction_id.slice(0,10)),
             date:cloud.transaction_date,customer:cloud.customer_name||'',supplier:cloud.supplier_name||'',
             payment:cloud.payment_method||'cash',subtotal:Number(cloud.subtotal??cloud.total??0),discount:Number(cloud.discount||0),tax:Number(cloud.tax||0),total:Number(cloud.total||0),items};
+          if(type==='purchases'&&row.approvalRequestId)row.approvalStatus='completed';
           await put(type,row);old?updated++:added++;
         }
       };
@@ -1392,7 +1412,7 @@
           saleReceipt:sale?.receipt||old?.saleReceipt||'',branchId:cloud.branch_id,localBusinessId:businessId,
           cloudSyncedFor:businessId,reason:cloud.reason,method:cloud.refund_method,
           refundTotal:Number(cloud.refund_total||0),items,date:(cloud.created_at||'').slice(0,10),
-          createdAt:cloud.created_at,restock:items.some(x=>x.restock)};
+          createdAt:cloud.created_at,restock:items.some(x=>x.restock),approvalStatus:'completed'};
         await put('returns',row);old?updated++:added++;
       }
       syncStatus('Download complete: '+added+' new, '+updated+' refreshed, '+skipped+' local unsynced records preserved, '+conflicts+' conflicts awaiting your choice.');
@@ -1411,8 +1431,9 @@
     const button = $('wlSyncNow');
     if (button) { button.disabled = true; button.textContent = 'Syncing…'; }
     const types = ['products','customers','suppliers','expenses'];
-    let total = 0, transactionTotal = 0;
+    let total = 0, transactionTotal = 0, approvalPending = 0;
     try {
+      const liveApprovalSettings = await refreshApprovalSettings();
       const localBranchStocks = await all('branchInventory');
       for (const type of types) {
         const rows = await all(type);
@@ -1420,6 +1441,17 @@
           const localId = String(row.id);
           if ((row.localBusinessId && row.localBusinessId !== activeBusiness.id) || (row.cloudSyncedFor && row.cloudSyncedFor !== activeBusiness.id)) {
             throw new Error(type + ' record ' + localId + ' is linked to a different business workspace. Export a separate copy before importing it elsewhere.');
+          }
+          if (type === 'expenses' && row.approvalRequestId) {
+            const posted = await client.from('expenses').select('id')
+              .eq('business_id',activeBusiness.id).eq('client_record_id',row.cloudClientRecordId||'').maybeSingle();
+            if(posted.error)throw new Error('Could not verify approved expense: '+posted.error.message);
+            if(posted.data){row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;row.cloudSyncedAt=new Date().toISOString();row.approvalStatus='completed';await put(type,row);continue;}
+            const prior = await client.from('business_approval_requests').select('status,executed_at')
+              .eq('id',row.approvalRequestId).eq('business_id',activeBusiness.id).maybeSingle();
+            if(prior.error)throw new Error('Could not verify expense approval request: '+prior.error.message);
+            if(prior.data && prior.data.status==='pending'){approvalPending++;continue;}
+            if(prior.data && ['rejected','cancelled'].includes(prior.data.status)){row.approvalStatus=prior.data.status;await put(type,row);continue;}
           }
           let stableId = row.cloudClientRecordId;
           if (!stableId) {
@@ -1445,6 +1477,37 @@
             client_record_id:stableId, name:row.name || (type === 'customers' ? 'Unnamed customer':'Unnamed supplier'),
             phone:row.phone || null, email:row.email || null, address:row.address || null, notes:row.notes || null
           };
+          if (type === 'expenses' && liveApprovalSettings.require_expense_approvals) {
+            const existingExpense = await client.from('expenses').select('id')
+              .eq('business_id',activeBusiness.id).eq('client_record_id',stableId).maybeSingle();
+            if (existingExpense.error) throw new Error('Could not verify expense approval status: '+existingExpense.error.message);
+            if (existingExpense.data) {
+              row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;
+              row.cloudSyncedAt=new Date().toISOString();await put(type,row);continue;
+            }
+            row.approvalClientRequestId=row.approvalClientRequestId||crypto.randomUUID();
+            const approval = await client.rpc('create_business_operation_approval',{
+              p_business_id:activeBusiness.id,
+              p_client_request_id:row.approvalClientRequestId,
+              p_request_type:'expense',
+              p_title:(row.category||'Expense')+' · '+(row.description||'Expense'),
+              p_description:row.description||'Expense',
+              p_amount:Number(row.amount||0),
+              p_currency_code:activeBusiness.currency_code||'SLE',
+              p_payload:{
+                operation:'expense',client_record_id:stableId,
+                branch_id:row.branchId||selectedBranch?.id||null,
+                category:row.category||'General',description:row.description||'Expense',
+                amount:Number(row.amount||0),payment_method:row.payment||'cash',
+                expense_date:row.date||new Date().toISOString().slice(0,10)
+              }
+            });
+            if (approval.error) throw new Error('Expense approval request failed: '+approval.error.message);
+            row.localBusinessId=activeBusiness.id;
+            row.approvalRequestId=approval.data?.request_id||row.approvalRequestId;
+            row.approvalStatus='pending';row.approvalSubmittedAt=new Date().toISOString();
+            await put(type,row);approvalPending++;continue;
+          }
           const {data,error} = await client.rpc('sync_local_records', {
             p_business_id:activeBusiness.id,
             p_event_id:type + ':' + stableId,
@@ -1468,6 +1531,17 @@
         for (const row of rows) {
           if ((row.localBusinessId && row.localBusinessId !== activeBusiness.id) || (row.cloudSyncedFor && row.cloudSyncedFor !== activeBusiness.id)) {
             throw new Error(type + ' transaction ' + (row.receipt || row.id) + ' belongs to a different business workspace.');
+          }
+          if (type === 'purchases' && row.approvalRequestId) {
+            const posted = row.cloudTransactionId ? await client.from('offline_purchases').select('id')
+              .eq('business_id',activeBusiness.id).eq('client_transaction_id',row.cloudTransactionId).maybeSingle() : {data:null,error:null};
+            if(posted.error)throw new Error('Could not verify approved purchase: '+posted.error.message);
+            if(posted.data){row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;row.cloudSyncedAt=new Date().toISOString();row.approvalStatus='completed';await put(type,row);continue;}
+            const prior = await client.from('business_approval_requests').select('status,executed_at')
+              .eq('id',row.approvalRequestId).eq('business_id',activeBusiness.id).maybeSingle();
+            if(prior.error)throw new Error('Could not verify purchase approval request: '+prior.error.message);
+            if(prior.data && prior.data.status==='pending'){approvalPending++;continue;}
+            if(prior.data && ['rejected','cancelled'].includes(prior.data.status)){row.approvalStatus=prior.data.status;await put(type,row);continue;}
           }
           if (row.cloudSyncedFor === activeBusiness.id) { if (!row.localBusinessId) { row.localBusinessId=activeBusiness.id; await put(type,row); } continue; }
           if (!row.branchId) throw new Error('Transaction ' + (row.receipt || row.id) + ' has no saved branch. Select a branch when recording new transactions; older transactions must be assigned deliberately before syncing.');
@@ -1503,6 +1577,43 @@
             total:Number(row.total || 0),
             items
           };
+          if (type === 'purchases' && liveApprovalSettings.require_purchase_approvals) {
+            const existingPurchase = await client.from('offline_purchases').select('id')
+              .eq('business_id',activeBusiness.id).eq('client_transaction_id',row.cloudTransactionId).maybeSingle();
+            if (existingPurchase.error) throw new Error('Could not verify purchase approval status: '+existingPurchase.error.message);
+            if (existingPurchase.data) {
+              row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;
+              row.cloudSyncedAt=new Date().toISOString();row.cloudApprovalExecuted=true;
+              await put(type,row);continue;
+            }
+            row.approvalClientRequestId=row.approvalClientRequestId||crypto.randomUUID();
+            const approval = await client.rpc('create_business_operation_approval',{
+              p_business_id:activeBusiness.id,
+              p_client_request_id:row.approvalClientRequestId,
+              p_request_type:'purchase',
+              p_title:'Purchase · '+(row.supplier||'Supplier')+' · '+(row.receipt||row.cloudTransactionId),
+              p_description:'Stock purchase awaiting approval before receipt.',
+              p_amount:Number(row.total||0),
+              p_currency_code:activeBusiness.currency_code||'SLE',
+              p_payload:{
+                operation:'purchase',branch_id:row.branchId,
+                client_transaction_id:row.cloudTransactionId,
+                transaction_date:row.date||new Date().toISOString().slice(0,10),
+                supplier_name:row.supplier||null,
+                items:items.map(item=>({
+                  product_client_record_id:item.product_client_record_id,
+                  product_name:item.product_name,
+                  quantity:item.quantity,
+                  unit_cost:item.unit_cost
+                }))
+              }
+            });
+            if (approval.error) throw new Error('Purchase approval request failed: '+approval.error.message);
+            row.localBusinessId=activeBusiness.id;
+            row.approvalRequestId=approval.data?.request_id||row.approvalRequestId;
+            row.approvalStatus='pending';row.approvalSubmittedAt=new Date().toISOString();
+            await put(type,row);approvalPending++;continue;
+          }
           const {data,error} = await client.rpc('sync_branch_transaction', {
             p_business_id:activeBusiness.id,
             p_branch_id:row.branchId,
@@ -1548,6 +1659,17 @@
       let returnTotal=0;
       for(const row of returnsToSync){
         if(row.cloudSyncedFor===activeBusiness.id)continue;
+        if(row.approvalRequestId){
+          const posted=await client.from('offline_sale_returns').select('id')
+            .eq('business_id',activeBusiness.id).eq('client_return_id',row.clientReturnId||String(row.id)).maybeSingle();
+          if(posted.error)throw new Error('Could not verify approved refund: '+posted.error.message);
+          if(posted.data){row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;row.cloudReturnId=posted.data.id;row.cloudSyncedAt=new Date().toISOString();row.approvalStatus='completed';await put('returns',row);returnTotal++;continue;}
+          const prior=await client.from('business_approval_requests').select('status,executed_at')
+            .eq('id',row.approvalRequestId).eq('business_id',activeBusiness.id).maybeSingle();
+          if(prior.error)throw new Error('Could not verify refund approval request: '+prior.error.message);
+          if(prior.data&&prior.data.status==='pending'){approvalPending++;continue;}
+          if(prior.data&&['rejected','cancelled'].includes(prior.data.status)){row.approvalStatus=prior.data.status;await put('returns',row);continue;}
+        }
         if((row.localBusinessId&&row.localBusinessId!==activeBusiness.id)||(row.cloudSyncedFor&&row.cloudSyncedFor!==activeBusiness.id))
           throw new Error('Return '+(row.clientReturnId||row.id)+' belongs to a different business workspace.');
         const sale=localSalesForReturns.find(s=>String(s.id)===String(row.saleId));
@@ -1563,6 +1685,39 @@
           return {product_client_record_id:product.cloudClientRecordId,product_name:item.name||product.name,
             quantity:Number(item.quantity||0),restock:!!item.restock};
         });
+        if (liveApprovalSettings.require_refund_approvals) {
+          const existingReturn=await client.from('offline_sale_returns').select('id')
+            .eq('business_id',activeBusiness.id).eq('client_return_id',row.clientReturnId||String(row.id)).maybeSingle();
+          if(existingReturn.error)throw new Error('Could not verify refund approval status: '+existingReturn.error.message);
+          if(existingReturn.data){
+            row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;
+            row.cloudReturnId=existingReturn.data.id;row.cloudSyncedAt=new Date().toISOString();
+            await put('returns',row);returnTotal++;continue;
+          }
+          row.approvalClientRequestId=row.approvalClientRequestId||crypto.randomUUID();
+          const approval=await client.rpc('create_business_operation_approval',{
+            p_business_id:activeBusiness.id,
+            p_client_request_id:row.approvalClientRequestId,
+            p_request_type:'refund',
+            p_title:'Refund · '+(row.saleReceipt||row.clientReturnId||row.id),
+            p_description:row.reason||'Customer refund request',
+            p_amount:Number(row.refundTotal||0),
+            p_currency_code:activeBusiness.currency_code||'SLE',
+            p_payload:{
+              operation:'refund',branch_id:row.branchId,
+              client_return_id:row.clientReturnId||String(row.id),
+              sale_client_transaction_id:saleTransactionId,
+              reason:row.reason||'Customer return',
+              refund_method:row.method||'cash',
+              items:returnItems
+            }
+          });
+          if(approval.error)throw new Error('Refund approval request failed: '+approval.error.message);
+          row.localBusinessId=activeBusiness.id;
+          row.approvalRequestId=approval.data?.request_id||row.approvalRequestId;
+          row.approvalStatus='pending';row.approvalSubmittedAt=new Date().toISOString();
+          await put('returns',row);approvalPending++;continue;
+        }
         const {data,error}=await client.rpc('sync_sale_return',{
           p_business_id:activeBusiness.id,p_branch_id:row.branchId,
           p_client_return_id:row.clientReturnId||String(row.id),
@@ -1574,9 +1729,9 @@
         row.cloudReturnId=data?.return_id||row.cloudReturnId;row.cloudSyncedAt=new Date().toISOString();
         await put('returns',row);returnTotal++;
       }
-      syncStatus('Sync complete: ' + total + ' master/expense records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns uploaded or confirmed.');
+      syncStatus('Sync complete: ' + total + ' master/expense records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns uploaded or confirmed; ' + approvalPending + ' operation(s) submitted for approval.');
 
-      say('Cloud sync completed: ' + total + ' records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns.');
+      say('Cloud sync completed: ' + total + ' records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns; ' + approvalPending + ' approval request(s) submitted.');
     } catch (error) {
       syncStatus('Sync paused: ' + error.message + '. Local records are preserved; retry when ready.');
     } finally {
@@ -1623,7 +1778,9 @@
         getSession: () => session,
         getActiveBusiness: () => activeBusiness,
         getSelectedBranch: () => selectedBranch,
-        getBranches: () => (window.__wlBranches || []).filter(b => b.is_active)
+        getBranches: () => (window.__wlBranches || []).filter(b => b.is_active),
+        getApprovalSettings: () => ({...approvalSettings}),
+        refreshApprovalSettings
       };
       window.dispatchEvent(new CustomEvent('whiteLionCloudReady'));
     } catch (error) {

@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#123d2b">
-<link rel="manifest" href="./parent-portal.webmanifest?v=1">
+<link rel="manifest" href="./parent-portal.webmanifest?v=2">
 <link rel="apple-touch-icon" href="./icons/white-lion-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Parent Portal">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Parent & Guardian Portal | White Lion School Management</title>
+<title>Parent & Guardian Portal | Koroma Leone Tech School Management</title>
 <style>
 :root{color-scheme:light;--green:#14583d;--deep:#103426;--gold:#d4b46b;--ink:#20372d;--muted:#718078;--line:#e3ece5;--bg:#f3f7f3}*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px/1.55 Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}button,input{font:inherit}.shell{max-width:1050px;margin:auto;padding:22px 16px 50px}.hero{background:linear-gradient(120deg,#102f25,#14583d 60%,#18745a);border:1px solid #d5c18a55;color:white;border-radius:22px;padding:25px;display:flex;align-items:center;gap:18px;box-shadow:0 16px 35px #123d2b20}.crest{width:72px;height:72px;border-radius:16px;background:#fff;display:grid;place-items:center;overflow:hidden;flex:none}.crest img{width:100%;height:100%;object-fit:contain}.crest span{font-size:27px;color:var(--green)}.hero h1{margin:0 0 5px;font-size:clamp(22px,4vw,30px)}.hero p{margin:0;color:#d9e8de}.school-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#e6d29a;font-weight:800}.card{background:white;border:1px solid var(--line);border-radius:17px;padding:20px;margin-top:16px;box-shadow:0 7px 22px #193b2808}.card h2,.card h3{margin:0 0 8px;color:#214634}.muted{color:var(--muted);font-size:12px}.auth{max-width:440px;margin:20px auto}.field{display:grid;gap:6px;margin:12px 0}.field label{font-size:11px;font-weight:800;color:#52665a}.field input{width:100%;padding:12px;border:1px solid #dce7df;border-radius:10px;background:#fff}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.btn{border:1px solid #d7bf7d;background:linear-gradient(135deg,#ead69c,#c9a65a);color:#263a2e;padding:11px 15px;border-radius:10px;font-weight:850;cursor:pointer}.btn.alt{background:#fff;border-color:#dce9df;color:#28533e}.btn:disabled{opacity:.6;cursor:wait}.status{margin-top:12px;padding:11px 13px;border-radius:10px;background:#f4f8f4;color:#45624f;font-size:12px;overflow-wrap:anywhere}.hidden{display:none!important}.child{border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}.child-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.pill{background:#eaf5ed;color:#24734e;border-radius:30px;padding:5px 9px;font-size:10px;font-weight:800}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:13px 0}.metric{background:#f7faf7;border:1px solid #edf1ed;border-radius:11px;padding:11px}.metric small{display:block;color:var(--muted);font-size:10px}.metric b{display:block;color:#183c2c;font-size:18px;margin-top:4px}.section{margin-top:15px}.section h4{margin:0 0 8px;color:#315640}.table-wrap{overflow:auto;border:1px solid #edf1ed;border-radius:10px}table{width:100%;border-collapse:collapse;min-width:450px}th,td{text-align:left;padding:10px;border-bottom:1px solid #edf1ed;font-size:11px}th{background:#f7faf7;color:#718078;text-transform:uppercase;letter-spacing:.6px;font-size:9px}tr:last-child td{border-bottom:0}.foot{text-align:center;color:#829087;font-size:10px;margin-top:20px}@media(max-width:600px){.hero{padding:18px;border-radius:17px}.crest{width:58px;height:58px}.card{padding:15px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.child-head{align-items:flex-start;flex-direction:column}}
 </style>
@@ -22,7 +22,7 @@
 <section id="portalContent" class="hidden">
 <div class="card"><div class="child-head"><div><h2>Family dashboard</h2><p class="muted" id="parentIdentity"></p></div><button class="btn alt" id="signOutBtn">Sign out</button></div><div class="status">Your account can only see students that this school has explicitly linked to your authenticated account.</div><div id="children"></div></div>
 </section>
-<div class="foot">White Lion School Management · Secure parent access</div>
+<div class="foot">Koroma Leone Tech School Management · Secure parent access</div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./parent-portal.js?v=4"></script>

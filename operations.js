@@ -516,9 +516,55 @@
   }
   async function saveCashbook(){
     const amount=Number(document.getElementById('wlOpsCashAmount').value),category=document.getElementById('wlOpsCashCategory').value.trim(),description=document.getElementById('wlOpsCashDescription').value.trim();
+    const entryType=document.getElementById('wlOpsCashType').value;
+    const paymentMethod=document.getElementById('wlOpsCashPayment').value;
+    const entryDate=document.getElementById('wlOpsCashDate').value||new Date().toISOString().slice(0,10);
+    const bankAccountId=document.getElementById('wlOpsCashBankAccount').value||null;
+    const branch=api.getSelectedBranch?.();
     if(!Number.isFinite(amount)||amount<=0||!category||!description)return say('Enter a category, description and positive amount.',true);
-    const {error}=await client.from('cashbook_entries').insert({business_id:business.id,branch_id:api.getSelectedBranch?.()?.id||null,bank_account_id:document.getElementById('wlOpsCashBankAccount').value||null,entry_type:document.getElementById('wlOpsCashType').value,category,description,amount,payment_method:document.getElementById('wlOpsCashPayment').value,entry_date:document.getElementById('wlOpsCashDate').value||new Date().toISOString().slice(0,10)});
-    if(error)return say(error.message,true);document.getElementById('wlOpsCashAmount').value='';say('Cashbook entry saved.');await Promise.all([renderFinance(),renderCashbookRegister()]);
+    const button=document.getElementById('wlOpsCashSave');
+    if(button)button.disabled=true;
+    try{
+      let settings=api.getApprovalSettings?.()||{};
+      if(api.refreshApprovalSettings){
+        try{settings=await api.refreshApprovalSettings()||settings;}
+        catch(error){return say('Approval rules could not be verified. Nothing was saved: '+error.message,true);}
+      }
+      if(entryType==='expense'&&settings.require_expense_approvals){
+        const requestId=window.crypto?.randomUUID?.();
+        if(!requestId)return say('Secure request ID generation is unavailable on this device. Update your browser before submitting.',true);
+        const reference='CASH-'+requestId;
+        const {error}=await client.rpc('create_business_operation_approval',{
+          p_business_id:business.id,
+          p_client_request_id:requestId,
+          p_request_type:'expense',
+          p_title:category+' · '+description,
+          p_description:description,
+          p_amount:amount,
+          p_currency_code:business.currency_code||'SLE',
+          p_payload:{
+            operation:'cashbook_expense',
+            client_record_id:reference,
+            branch_id:branch?.id||null,
+            bank_account_id:bankAccountId,
+            category,description,amount,
+            payment_method:paymentMethod,entry_date:entryDate
+          }
+        });
+        if(error)return say(error.message,true);
+        document.getElementById('wlOpsCashAmount').value='';
+        say('Cashbook expense submitted for approval. No cashbook or ledger entry has been posted yet.');
+        return;
+      }
+      const {error}=await client.from('cashbook_entries').insert({
+        business_id:business.id,branch_id:branch?.id||null,bank_account_id:bankAccountId,
+        entry_type:entryType,category,description,amount,payment_method:paymentMethod,entry_date:entryDate
+      });
+      if(error)return say(error.message,true);
+      document.getElementById('wlOpsCashAmount').value='';
+      say('Cashbook entry saved.');
+      await Promise.all([renderFinance(),renderCashbookRegister()]);
+    }finally{if(button)button.disabled=false;}
   }
   async function saveObligation(){
     const party=document.getElementById('wlOpsParty').value.trim(),description=document.getElementById('wlOpsObligationDesc').value.trim(),amount=Number(document.getElementById('wlOpsObligationAmount').value);
@@ -527,11 +573,46 @@
     if(error)return say(error.message,true);document.getElementById('wlOpsObligationAmount').value='';say('Financial obligation saved.');await renderFinance();
   }
   async function recordPayment(id,balance){
-    const raw=prompt('Enter payment amount in '+(business?.currency_code||'SLE')+'. Outstanding: '+money(balance));
-    if(raw===null)return;const amount=Number(raw);if(!Number.isFinite(amount)||amount<=0||amount>balance)return say('Enter a valid payment not exceeding the outstanding balance.',true);
-    const method=prompt('Payment method (cash, mobile money, bank transfer, card):','cash');if(method===null)return;
-    const {error}=await client.rpc('record_obligation_payment',{p_obligation_id:id,p_amount:amount,p_payment_method:method,p_payment_date:new Date().toISOString().slice(0,10),p_reference:null});
-    if(error)return say(error.message,true);say('Payment recorded and posted to cashbook.');await Promise.all([renderFinance(),renderCashbookRegister()]);
+    const {data:obligation,error:obligationError}=await client.from('financial_obligations')
+      .select('id,obligation_type,party_name,description,amount,amount_paid,status')
+      .eq('business_id',business.id).eq('id',id).maybeSingle();
+    if(obligationError)return say('Could not verify this payable or receivable: '+obligationError.message,true);
+    if(!obligation)return say('The payable or receivable record was not found.',true);
+    const outstanding=Math.max(0,Number(obligation.amount||0)-Number(obligation.amount_paid||0));
+    const raw=prompt('Enter payment amount in '+(business?.currency_code||'SLE')+'. Outstanding: '+money(outstanding||balance));
+    if(raw===null)return;
+    const amount=Number(raw);
+    if(!Number.isFinite(amount)||amount<=0||amount>(outstanding||Number(balance||0)))return say('Enter a valid payment not exceeding the outstanding balance.',true);
+    const method=prompt('Payment method (cash, mobile money, bank transfer, card):','cash');
+    if(method===null)return;
+    let settings=api.getApprovalSettings?.()||{};
+    if(api.refreshApprovalSettings){
+      try{settings=await api.refreshApprovalSettings()||settings;}
+      catch(error){return say('Approval rules could not be verified. No payment was recorded: '+error.message,true);}
+    }
+    if(obligation.obligation_type==='payable'&&settings.require_expense_approvals){
+      const requestId=window.crypto?.randomUUID?.();
+      if(!requestId)return say('Secure request ID generation is unavailable on this device. Update your browser before submitting.',true);
+      const {error}=await client.rpc('create_business_payable_payment_approval',{
+        p_business_id:business.id,
+        p_client_request_id:requestId,
+        p_obligation_id:obligation.id,
+        p_amount:amount,
+        p_payment_method:method,
+        p_payment_date:new Date().toISOString().slice(0,10)
+      });
+      if(error)return say('Payable payment approval was not submitted: '+error.message,true);
+      say('Payable payment submitted for approval. The payable balance and cashbook will change only after approval.');
+      await Promise.all([renderFinance(),renderCashbookRegister()]);
+      return;
+    }
+    const {error}=await client.rpc('record_obligation_payment',{
+      p_obligation_id:id,p_amount:amount,p_payment_method:method,
+      p_payment_date:new Date().toISOString().slice(0,10),p_reference:null
+    });
+    if(error)return say(error.message,true);
+    say('Payment recorded and posted to cashbook.');
+    await Promise.all([renderFinance(),renderCashbookRegister()]);
   }
   async function renderFinance(){
     const summary=document.getElementById('wlOpsFinanceSummary'),list=document.getElementById('wlOpsObligations');if(!summary||!list)return;
@@ -571,12 +652,63 @@
   }
   function stopScanner(){if(scannerStream){scannerStream.getTracks().forEach(t=>t.stop());scannerStream=null;}const v=document.getElementById('wlOpsVideo');if(v){v.pause();v.srcObject=null;v.hidden=true;}}
   async function receiveBatch(){
-    const productId=document.getElementById('wlOpsBatchProduct').value,batch=document.getElementById('wlOpsBatchNo').value.trim(),qty=Number(document.getElementById('wlOpsBatchQty').value),cost=Number(document.getElementById('wlOpsBatchCost').value);
+    const actionButton=document.getElementById('wlOpsBatchSave');
+    if(actionButton?.disabled)return;
+    if(actionButton)actionButton.disabled=true;
+    try{
+    const productId=document.getElementById('wlOpsBatchProduct').value;
+    const product=products.find(x=>String(x.id)===String(productId));
+    const batch=document.getElementById('wlOpsBatchNo').value.trim();
+    const qty=Number(document.getElementById('wlOpsBatchQty').value);
+    const cost=Number(document.getElementById('wlOpsBatchCost').value);
+    const branch=api.getSelectedBranch?.();
     if(!productId||!batch||!Number.isFinite(qty)||qty<=0||!Number.isFinite(cost)||cost<0)return say('Enter a product, batch number, positive quantity and valid unit cost.',true);
-    const {error}=await client.rpc('receive_product_batch',{p_business_id:business.id,p_branch_id:api.getSelectedBranch?.()?.id,p_product_id:productId,p_batch_number:batch,p_expiry_date:document.getElementById('wlOpsExpiry').value||null,p_quantity:qty,p_unit_cost:cost});
-    if(error)return say(error.message,true);document.getElementById('wlOpsBatchQty').value='';say('Batch received and branch stock increased atomically.');await renderBatches();
-  }
-  async function renderBatches(){
+    if(!branch?.id)return say('Select an active cloud branch before receiving a stock batch.',true);
+    let settings=api.getApprovalSettings?.()||{};
+    if(api.refreshApprovalSettings){try{settings=await api.refreshApprovalSettings()||settings;}catch(error){return say('Approval rules could not be verified. Nothing was received: '+error.message,true);}}
+    if(settings.require_purchase_approvals){
+      if(!product?.client_record_id)return say('Sync this product to the selected business before submitting its batch receipt for approval.',true);
+      const requestId=window.crypto?.randomUUID?.();
+      if(!requestId)return say('Secure request ID generation is unavailable on this device. Update your browser before submitting.',true);
+      const payload={
+        operation:'batch_receipt',
+        branch_id:branch.id,
+        product_client_record_id:product.client_record_id,
+        product_name:product.name,
+        batch_number:batch,
+        expiry_date:document.getElementById('wlOpsExpiry').value||null,
+        quantity:qty,
+        unit_cost:cost
+      };
+      const {data,error}=await client.rpc('create_business_operation_approval',{
+        p_business_id:business.id,
+        p_client_request_id:requestId,
+        p_request_type:'purchase',
+        p_title:'Batch receipt · '+product.name+' · '+batch,
+        p_description:'Stock batch receipt awaiting approval.',
+        p_amount:Math.round(qty*cost*100)/100,
+        p_currency_code:business.currency_code||'SLE',
+        p_payload:payload
+      });
+      if(error)return say(error.message,true);
+      document.getElementById('wlOpsBatchQty').value='';
+      document.getElementById('wlOpsBatchNo').value='';
+      document.getElementById('wlOpsBatchCost').value='';
+      say('Batch receipt submitted for approval. Branch stock and batch quantities will remain unchanged until it is approved.');
+      return;
+    }
+    const {error}=await client.rpc('receive_product_batch',{
+      p_business_id:business.id,p_branch_id:branch.id,p_product_id:productId,
+      p_batch_number:batch,p_expiry_date:document.getElementById('wlOpsExpiry').value||null,
+      p_quantity:qty,p_unit_cost:cost
+    });
+    if(error)return say(error.message,true);
+    document.getElementById('wlOpsBatchQty').value='';
+    say('Batch received and branch stock increased atomically.');
+    await renderBatches();
+  
+    }finally{if(actionButton)actionButton.disabled=false;}
+  }  async function renderBatches(){
     const el=document.getElementById('wlOpsBatches');if(!el)return;
     const branch=api.getSelectedBranch?.();if(!branch){el.textContent='Select a branch to view batches.';return;}
     const {data,error}=await client.from('product_batches').select('batch_number,expiry_date,quantity_on_hand,unit_cost,product_id').eq('business_id',business.id).eq('branch_id',branch.id).order('expiry_date',{ascending:true}).limit(50);
@@ -585,12 +717,17 @@
     el.innerHTML=(data||[]).map(x=>{const days=x.expiry_date?Math.ceil((new Date(x.expiry_date+'T00:00:00')-new Date(new Date().toISOString().slice(0,10)+'T00:00:00'))/86400000):null;const alert=days===null?'':days<0?' · EXPIRED':days<=30?' · EXPIRING SOON':'';return '<div class="ops-row">'+esc(names.get(x.product_id)||'Product')+' · '+esc(x.batch_number)+' · Qty '+Number(x.quantity_on_hand).toLocaleString()+' · Expiry '+esc(x.expiry_date||'Not set')+'<strong>'+alert+'</strong></div>';}).join('')||'No batch records for this branch.';
   }
   async function requestAdjustment(){
+    const actionButton=document.getElementById('wlOpsAdjustRequest');
+    if(actionButton?.disabled)return;
+    if(actionButton)actionButton.disabled=true;
+    try{
     const productId=document.getElementById('wlOpsAdjustProduct').value,type=document.getElementById('wlOpsAdjustType').value,qty=Number(document.getElementById('wlOpsAdjustQty').value),reason=document.getElementById('wlOpsAdjustReason').value.trim();
     if(!productId||!Number.isFinite(qty)||qty<=0||reason.length<3)return say('Select a product, enter a positive quantity and a reason.',true);
     const {error}=await client.rpc('request_stock_adjustment',{p_business_id:business.id,p_branch_id:api.getSelectedBranch?.()?.id,p_product_id:productId,p_adjustment_type:type,p_quantity:qty,p_reason:reason});
     if(error)return say(error.message,true);document.getElementById('wlOpsAdjustQty').value='';document.getElementById('wlOpsAdjustReason').value='';say('Adjustment submitted for manager approval.');await renderAdjustments();
-  }
-  async function renderAdjustments(){
+  
+    }finally{if(actionButton)actionButton.disabled=false;}
+  }  async function renderAdjustments(){
     const el=document.getElementById('wlOpsAdjustments');if(!el)return;
     const branch=api.getSelectedBranch?.();if(!branch){el.textContent='Select a branch to view adjustments.';return;}
     const {data,error}=await client.from('stock_adjustments').select('id,product_id,adjustment_type,quantity,reason,status,created_at').eq('business_id',business.id).eq('branch_id',branch.id).order('created_at',{ascending:false}).limit(30);

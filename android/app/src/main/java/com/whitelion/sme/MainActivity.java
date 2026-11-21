@@ -26,7 +26,7 @@ public class MainActivity extends Activity {
     private static final String APP_ASSET_URL =
             "https://appassets.androidplatform.net/assets/site/index.html";
     private static final String APP_URL =
-            "https://koromaalhajiabu.github.io/white-lion-sme-business-os/";
+            "https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/";
     private static final int FILE_PICKER_REQUEST = 4102;
 
     private WebView webView;
@@ -117,13 +117,13 @@ public class MainActivity extends Activity {
                     return false;
                 }
 
-                // Keep links back to the hosted White Lion app inside the bundled local app.
+                // Keep links back to the hosted Koroma Leone app inside the bundled local app.
                 if ("https".equalsIgnoreCase(scheme)
                         && "koromaalhajiabu.github.io".equalsIgnoreCase(host)
                         && uri.getPath() != null
-                        && uri.getPath().startsWith("/white-lion-sme-business-os/")) {
+                        && uri.getPath().startsWith("/koroma-leone-sme-business-os/")) {
                     String relative = uri.getPath().substring(
-                            "/white-lion-sme-business-os/".length());
+                            "/koroma-leone-sme-business-os/".length());
                     String localPath = APP_ASSET_URL.substring(0, APP_ASSET_URL.lastIndexOf('/') + 1)
                             + (relative.isEmpty() ? "index.html" : relative);
                     if (uri.getQuery() != null) localPath += "?" + uri.getQuery();
@@ -173,7 +173,7 @@ public class MainActivity extends Activity {
         page.setBackgroundColor(Color.WHITE);
 
         TextView title = new TextView(this);
-        title.setText("White Lion SME");
+        title.setText("Koroma Leone SME");
         title.setTextColor(Color.rgb(16, 26, 45));
         title.setTextSize(24);
         title.setTypeface(null, android.graphics.Typeface.BOLD);

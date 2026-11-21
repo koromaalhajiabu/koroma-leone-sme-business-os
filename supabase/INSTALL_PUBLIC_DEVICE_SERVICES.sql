@@ -1,8 +1,8 @@
--- White Lion Device Services public guest ordering installer.
+-- Koroma Leone Device Services public guest ordering installer.
 -- Run this entire file once in Supabase Dashboard > SQL Editor.
 -- Enables public guest checkout and tracking; only the registered platform developer can administer services, prices, provider access, orders, payments, refunds and approvals.
 
--- Public guest ordering for the single-operator White Lion Device Services storefront.
+-- Public guest ordering for the single-operator Koroma Leone Device Services storefront.
 -- Customers can browse published services, submit orders without accounts, and track
 -- their own order using the order reference plus the phone number they supplied.
 begin;
@@ -10,7 +10,7 @@ begin;
 create table if not exists public.phone_unlocking_storefronts (
   business_id uuid primary key references public.businesses(id) on delete cascade,
   slug text not null unique check (slug ~ '^[a-z0-9][a-z0-9-]{2,59}$'),
-  display_name text not null default 'White Lion Device Services',
+  display_name text not null default 'Koroma Leone Device Services',
   description text,
   contact_phone text,
   contact_email text,
@@ -48,7 +48,7 @@ declare v_row public.phone_unlocking_storefronts%rowtype;
 begin
   if auth.uid() is null then raise exception 'Sign in required'; end if;
   if not public.is_platform_developer() then
-    raise exception 'Only the registered White Lion platform developer can publish and manage this device-services store';
+    raise exception 'Only the registered Koroma Leone platform developer can publish and manage this device-services store';
   end if;
   if coalesce(p_slug,'') !~ '^[a-z0-9][a-z0-9-]{2,59}$' then
     raise exception 'Store link must use 3–60 lowercase letters, numbers or hyphens';

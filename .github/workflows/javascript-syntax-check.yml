@@ -6,6 +6,7 @@ on:
     paths:
       - '**/*.js'
       - '**/*.mjs'
+      - '**/*.py'
       - '**/*.html'
       - 'manifest.webmanifest'
       - 'android/**'
@@ -36,6 +37,13 @@ jobs:
           done
       - name: Check release and migration integrity
         run: node scripts/release-integrity.mjs
+      - name: Validate Python backup and recovery utilities
+        run: |
+          python3 -m py_compile \
+            scripts/backup_supabase_api.py \
+            scripts/backup_supabase_database.py \
+            scripts/backup_supabase_storage.py \
+            scripts/restore_supabase_storage.py
       - name: Validate inline scripts in index.html
         run: |
           node <<'NODE'

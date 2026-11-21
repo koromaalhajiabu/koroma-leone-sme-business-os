@@ -10,7 +10,7 @@ import android.graphics.Color;
 import android.view.Gravity;
 
 public class MainActivity extends Activity {
-    private static final String HOME = "https://koromaalhajiabu.github.io/white-lion-sme-business-os/public-leagues.html";
+    private static final String HOME = "https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/public-leagues.html";
     private WebView webView;
     private LinearLayout errorPanel;
 

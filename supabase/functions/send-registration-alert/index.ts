@@ -88,14 +88,14 @@ Deno.serve(async (req) => {
     "",
     ...details.map(([label, value]) => `${label}: ${String(value ?? "Not provided")}`),
     "",
-    "White Lion SME Business Operating System",
+    "Koroma Leone SME Business Operating System",
   ].join("\n");
 
   const htmlRows = details.map(([label, value]) =>
     `<tr><td style="padding:10px 12px;color:#64748b;border-bottom:1px solid #e2e8f0">${escapeHtml(label)}</td><td style="padding:10px 12px;font-weight:600;border-bottom:1px solid #e2e8f0">${escapeHtml(value ?? "Not provided")}</td></tr>`
   ).join("");
 
-  const htmlBody = `<!doctype html><html><body style="margin:0;padding:24px;background:#f1f5f9;font-family:Arial,sans-serif;color:#0f172a"><div style="max-width:600px;margin:auto;background:#fff;border-radius:14px;padding:28px"><div style="font-size:12px;letter-spacing:2px;color:#64748b;font-weight:bold">WHITE LION · PLATFORM ALERT</div><h1 style="font-size:22px;margin:12px 0 8px">${escapeHtml(title)}</h1><p style="color:#64748b;margin:0 0 20px">A new registration has been recorded on your platform.</p><table style="width:100%;border-collapse:collapse">${htmlRows}</table><p style="font-size:12px;color:#94a3b8;margin-top:24px">Automated notification from White Lion SME Business Operating System.</p></div></body></html>`;
+  const htmlBody = `<!doctype html><html><body style="margin:0;padding:24px;background:#f1f5f9;font-family:Arial,sans-serif;color:#0f172a"><div style="max-width:600px;margin:auto;background:#fff;border-radius:14px;padding:28px"><div style="font-size:12px;letter-spacing:2px;color:#64748b;font-weight:bold">KOROMA LEONE · PLATFORM ALERT</div><h1 style="font-size:22px;margin:12px 0 8px">${escapeHtml(title)}</h1><p style="color:#64748b;margin:0 0 20px">A new registration has been recorded on your platform.</p><table style="width:100%;border-collapse:collapse">${htmlRows}</table><p style="font-size:12px;color:#94a3b8;margin-top:24px">Automated notification from Koroma Leone SME Business Operating System.</p></div></body></html>`;
 
   const resendResponse = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: `[White Lion] ${title}`,
+      subject: `[Koroma Leone] ${title}`,
       text: textBody,
       html: htmlBody,
     }),

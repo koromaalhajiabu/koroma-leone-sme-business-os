@@ -1,4 +1,4 @@
-name: Deploy White Lion SME to GitHub Pages
+name: Deploy Koroma Leone Tech to GitHub Pages
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Build and publish White Lion SME Android APK
+name: Build and publish Koroma Leone Tech Android APK
 
 on:
   push:
@@ -62,7 +62,7 @@ jobs:
             --exclude='*.aab'
 
       # Keep the debug signing key stable between builds so future APK updates
-      # can install over the previous White Lion SME v2 app without data loss.
+      # can install over the previous Koroma Leone SME v2 app without data loss.
       - name: Restore or create persistent Android signing key
         uses: actions/cache@v4
         with:
@@ -81,7 +81,7 @@ jobs:
       - name: Keep workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: White-Lion-SME-Android-APK
+          name: Koroma-Leone-Tech-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
@@ -91,9 +91,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-apk-build-${{ github.run_number }}
-          name: White Lion SME Android APK ${{ github.run_number }}
+          name: Koroma Leone Tech Android APK ${{ github.run_number }}
           body: |
-            Installable Android APK built from the White Lion SME Business Operating System repository.
+            Installable Android APK built from the Koroma Leone Tech Business Operating System repository.
             Package: com.whitelion.sme
             Build type: Debug-signed APK for direct installation.
           files: android/app/build/outputs/apk/debug/app-debug.apk

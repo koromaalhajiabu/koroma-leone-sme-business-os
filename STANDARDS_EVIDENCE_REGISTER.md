@@ -1,10 +1,10 @@
 # Standards Evidence Register
 
-**Product:** White Lion SME Business Operating System  
-**Repository:** `koromaalhajiabu/white-lion-sme-business-os`  
+**Product:** Koroma Leone SME Business Operating System  
+**Repository:** `koromaalhajiabu/koroma-leone-sme-business-os`  
 **Register version:** 1.0  
 **Created:** 2026-11-12  
-**Register owner:** White Lion Tech Solutions  
+**Register owner:** Koroma Leone Tech  
 **Assessment type:** Internal evidence register; not a certification or independent audit.
 
 ## 1. Purpose and evidence rules
@@ -32,10 +32,10 @@ The entries below preserve previously reported results. Where an exact date, tes
 | EV-003 | Offline transaction sync | ISO/IEC 25010 reliability; data integrity practices | DEVELOPER-ATTESTED | Developer reported creating offline test transactions and successfully syncing them. Relevant workflow includes `sync_local_records`, `sync_local_transaction` and offline sync receipt/transaction tables. Detailed run evidence was not attached here. |
 | EV-004 | Migration 045 accounting objects installed | Accounting controls; change and data-integrity practices | DEVELOPER-ATTESTED | Supabase SQL results previously showed the migration marker and the expected accounting reversal, period-close, backfill, opening-balance and guard objects. This verifies object presence, not a complete accounting outcome. |
 | EV-005 | Four automatic accounting triggers enabled | Accounting automation and completeness | DEVELOPER-ATTESTED | Supabase SQL output previously confirmed triggers for offline sales, offline purchases, expenses and offline sale returns. No live transactions were available at the time, so posting and reconciliation behavior was not end-to-end tested. |
-| EV-006 | JavaScript syntax validation | ISO/IEC 25010 maintainability / reliability | PASS — retained evidence | GitHub Actions run for commit `c52a62409b2e4b92a9d0fd69bae5ac646b206f23`: [Syntax validation run](https://github.com/koromaalhajiabu/white-lion-sme-business-os/actions/runs/43229338092). |
-| EV-007 | GitHub Pages deployment | ISO/IEC 25010 reliability / deployability | PASS — retained evidence | GitHub Actions run for commit `c52a62409b2e4b92a9d0fd69bae5ac646b206f23`: [Pages deployment run](https://github.com/koromaalhajiabu/white-lion-sme-business-os/actions/runs/43229336400). |
-| EV-008 | Browser interaction smoke test | ISO/IEC 25010 functional suitability | PASS — retained evidence | Earlier CI run for commit `8b828b62425fd91b70e28ff9c5feb083a8cc8354`: [Browser smoke test run](https://github.com/koromaalhajiabu/white-lion-sme-business-os/actions/runs/43226796275). This is a smoke test, not proof of every workflow. |
-| EV-009 | Android APK build | ISO/IEC 25010 compatibility / portability | PASS — retained evidence | Earlier CI run for commit `8b828b62425fd91b70e28ff9c5feb083a8cc8354`: [Android build run](https://github.com/koromaalhajiabu/white-lion-sme-business-os/actions/runs/43226796134). A successful build does not by itself prove installation and runtime behavior on every Android device. |
+| EV-006 | JavaScript syntax validation | ISO/IEC 25010 maintainability / reliability | PASS — retained evidence | GitHub Actions run for commit `c52a62409b2e4b92a9d0fd69bae5ac646b206f23`: [Syntax validation run](https://github.com/koromaalhajiabu/koroma-leone-sme-business-os/actions/runs/43229338092). |
+| EV-007 | GitHub Pages deployment | ISO/IEC 25010 reliability / deployability | PASS — retained evidence | GitHub Actions run for commit `c52a62409b2e4b92a9d0fd69bae5ac646b206f23`: [Pages deployment run](https://github.com/koromaalhajiabu/koroma-leone-sme-business-os/actions/runs/43229336400). |
+| EV-008 | Browser interaction smoke test | ISO/IEC 25010 functional suitability | PASS — retained evidence | Earlier CI run for commit `8b828b62425fd91b70e28ff9c5feb083a8cc8354`: [Browser smoke test run](https://github.com/koromaalhajiabu/koroma-leone-sme-business-os/actions/runs/43226796275). This is a smoke test, not proof of every workflow. |
+| EV-009 | Android APK build | ISO/IEC 25010 compatibility / portability | PASS — retained evidence | Earlier CI run for commit `8b828b62425fd91b70e28ff9c5feb083a8cc8354`: [Android build run](https://github.com/koromaalhajiabu/koroma-leone-sme-business-os/actions/runs/43226796134). A successful build does not by itself prove installation and runtime behavior on every Android device. |
 | EV-010 | Backup restoration | Availability, recoverability and continuity | OPEN | Repository workflow documents encrypted logical backups and retention. A successful restore into a separate test project has not yet been evidenced. |
 | EV-011 | Independent application security assessment | OWASP ASVS; ISO/IEC 27001 security assurance | OPEN | No independent penetration-test report or completed ASVS verification record is currently referenced by this register. |
 | EV-012 | IFRS for SMEs accounting treatment review | IFRS for SMEs (Third Edition, 2025) | OPEN | Accounting code and ledger controls exist, but no qualified accountant's review/sign-off of the accounting mappings and financial statements has been recorded. Confirm Sierra Leone's applicable adoption and statutory requirements separately. |
@@ -94,6 +94,6 @@ This register is an internal engineering evidence record. It is not an ISO certi
 
 Approved description while assurance work remains in progress:
 
-> White Lion SME Business Operating System is developed with reference to recognised software quality, application security and accounting frameworks. Its reported functional tests and available repository evidence are being documented through an ongoing internal assurance process. No formal certification or independent compliance assessment is claimed.
+> Koroma Leone SME Business Operating System is developed with reference to recognised software quality, application security and accounting frameworks. Its reported functional tests and available repository evidence are being documented through an ongoing internal assurance process. No formal certification or independent compliance assessment is claimed.
 
 **Change control:** Update this register when evidence is added, tests are repeated, controls change, or a new release materially affects a recorded result. Preserve prior results and identify the release to which each result applies.

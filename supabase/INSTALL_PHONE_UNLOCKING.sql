@@ -1,5 +1,5 @@
--- White Lion Phone Unlocking: consolidated database installer
--- Run once in the Supabase SQL Editor after the core White Lion SME OS database migrations.
+-- Koroma Leone Phone Unlocking: consolidated database installer
+-- Run once in the Supabase SQL Editor after the core Koroma Leone SME OS database migrations.
 -- This combines migrations 033, 034 and 035 in dependency order.
 -- It creates the business-scoped service catalogue, orders, payment/refund records,
 -- provider catalogue, owner approval gate, and protected provider-submission RPCs.
@@ -8,7 +8,7 @@
 -- ============================================================
 -- SOURCE: supabase/migrations/033_phone_unlocking_services.sql
 -- ============================================================
--- White Lion SME OS: phone unlocking and device services module.
+-- Koroma Leone SME OS: phone unlocking and device services module.
 -- Run this migration once in Supabase SQL Editor after merging the matching application PR.
 begin;
 

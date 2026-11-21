@@ -1,0 +1,119 @@
+/* Koroma Leone SME — coordinated colour palettes for a lively, consistent interface. */
+html[data-wl-accent] .sidebar{
+  background:linear-gradient(160deg,var(--wl-palette-primary) 0%,var(--wl-palette-deep) 58%,var(--wl-palette-deepest) 100%)!important;
+  border-right-color:rgba(255,255,255,.15)!important;
+}
+html[data-wl-accent] .sidebar:before{background:linear-gradient(90deg,var(--wl-palette-secondary),var(--wl-palette-secondary-soft))!important}
+html[data-wl-accent] .nav button:hover,
+html[data-wl-accent] .nav button.active{
+  background:var(--wl-palette-secondary)!important;
+  border-color:rgba(255,255,255,.18)!important;
+  color:#fff!important;
+}
+html[data-wl-accent] .nav button.active{
+  box-shadow:inset 3px 0 var(--wl-palette-secondary-soft),0 7px 18px rgba(0,0,0,.12)!important;
+}
+html[dir="rtl"][data-wl-accent] .nav button.active{box-shadow:inset -3px 0 var(--wl-palette-secondary-soft),0 7px 18px rgba(0,0,0,.12)!important}
+html[data-wl-accent] .nav .ico,
+html[data-wl-accent] .nav button:hover .ico,
+html[data-wl-accent] .nav button.active .ico{color:#fff!important}
+html[data-wl-accent] .topbar:after{background:linear-gradient(90deg,var(--wl-palette-primary),var(--wl-palette-secondary))!important}
+html[data-wl-accent] .eyebrow{color:var(--wl-palette-primary)!important}
+html[data-wl-accent] .btn.primary,
+html[data-wl-accent] #appearanceBarToggle,
+html[data-wl-accent] .wl-install-button,
+html[data-wl-accent] .pos-checkout #retailComplete{
+  background:linear-gradient(125deg,var(--wl-palette-primary),var(--wl-palette-deep))!important;
+  border-color:var(--wl-palette-deep)!important;color:#fff!important;
+}
+html[data-wl-accent] .btn.primary:hover,
+html[data-wl-accent] #appearanceBarToggle:hover,
+html[data-wl-accent] .wl-install-button:hover{filter:brightness(1.06)}
+html[data-wl-accent] .btn.gold{
+  background:linear-gradient(125deg,var(--wl-palette-secondary),var(--wl-palette-secondary-dark))!important;
+  border-color:var(--wl-palette-secondary-dark)!important;color:#fff!important;
+}
+html[data-wl-accent] .stat-icon,
+html[data-wl-accent] .inventory-product-mark{background:var(--wl-palette-soft)!important;color:var(--wl-palette-primary)!important}
+html[data-wl-accent] .quick:hover{border-color:var(--wl-palette-secondary)!important;background:var(--wl-palette-soft)!important}
+html[data-wl-accent] .field input:focus,
+html[data-wl-accent] .field select:focus,
+html[data-wl-accent] .field textarea:focus,
+html[data-wl-accent] .search:focus{
+  border-color:var(--wl-palette-secondary)!important;
+  box-shadow:0 0 0 3px var(--wl-palette-glow)!important;
+}
+html[data-wl-accent] .pill{background:var(--wl-palette-soft)!important;color:var(--wl-palette-deep)!important}
+html[data-wl-accent] .pos-command-strip{border-color:var(--wl-palette-line)!important;background:linear-gradient(105deg,var(--wl-palette-soft),#fff 60%,var(--wl-palette-secondary-soft))!important}
+html[data-wl-accent] .pos-command-mark{background:linear-gradient(145deg,var(--wl-palette-secondary),var(--wl-palette-primary))!important;color:#fff!important}
+html[data-wl-accent] .pos-checkout-actions{border-color:var(--wl-palette-line)!important;background:var(--wl-palette-soft)!important}
+html[data-wl-accent] .wl-install-banner{border-color:var(--wl-palette-line)!important;background:linear-gradient(110deg,var(--wl-palette-soft),#fff)!important}
+html[data-wl-accent] .wl-install-copy b{color:var(--wl-palette-deep)!important}
+html[data-wl-accent] .inventory-note{border-color:var(--wl-palette-line)!important;background:var(--wl-palette-soft)!important}
+html[data-wl-accent] .footer{border-color:var(--wl-palette-line)!important}
+html[data-wl-accent][data-theme="dark"] .stat-icon,
+html[data-wl-accent][data-theme="dark"] .inventory-product-mark{background:rgba(255,255,255,.09)!important;color:var(--wl-palette-secondary-soft)!important}
+html[data-wl-accent][data-theme="dark"] .quick:hover{background:#202d40!important;border-color:var(--wl-palette-secondary)!important}
+html[data-wl-accent][data-theme="dark"] .pill{background:rgba(255,255,255,.09)!important;color:var(--wl-palette-secondary-soft)!important}
+#appearanceBar .wl-appearance-summary{min-width:130px}
+#appearanceBar .wl-appearance-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+#appearanceBar .wl-accent-select-wrap{display:flex;align-items:center;gap:8px;color:var(--wl-palette-deep);font-size:11px;font-weight:800;white-space:nowrap}
+#appearanceBar #wlAccentSelect{
+  min-width:158px;min-height:40px;padding:8px 32px 8px 11px;
+  border:1px solid var(--wl-palette-secondary);border-radius:9px;
+  background:var(--wl-palette-soft);color:var(--wl-palette-deep);
+  font-size:11px;font-weight:750;outline:none;cursor:pointer;
+}
+#appearanceBar #wlAccentSelect:focus-visible{outline:3px solid var(--wl-palette-glow);outline-offset:2px}
+#appearanceBar #wlAccentName{display:block;color:var(--wl-palette-primary);font-size:10px;font-weight:750;margin-top:3px}
+html[data-theme="dark"][data-wl-accent] #appearanceBar .wl-accent-select-wrap{color:var(--wl-palette-secondary-soft)}
+html[data-theme="dark"][data-wl-accent] #appearanceBar #wlAccentSelect{background:#202d40;color:#e8edf5;border-color:var(--wl-palette-secondary)}
+html[data-wl-accent]:not([data-theme="dark"]) body{background:linear-gradient(180deg,var(--wl-palette-body),#fff 82%)!important}
+@media(max-width:600px){
+  #appearanceBar{align-items:flex-start;flex-wrap:wrap}
+  #appearanceBar .wl-appearance-summary{width:100%}
+  #appearanceBar .wl-appearance-actions{width:100%;justify-content:stretch}
+  #appearanceBar .wl-accent-select-wrap{flex:1 1 100%;justify-content:space-between;min-width:0}
+  #appearanceBar #wlAccentSelect{flex:1 1 auto;min-width:0;max-width:100%}
+  #appearanceBar #appearanceBarToggle{flex:1 1 100%;width:100%;padding:9px 8px;font-size:11px}
+}
+@media(prefers-reduced-motion:no-preference){
+  html[data-wl-accent] .sidebar,
+  html[data-wl-accent] .nav button,
+  html[data-wl-accent] .btn,
+  html[data-wl-accent] .stat-icon,
+  html[data-wl-accent] #appearanceBarToggle,
+  html[data-wl-accent] .wl-install-button{transition:background .45s ease,border-color .45s ease,color .35s ease,box-shadow .35s ease,transform .2s ease}
+}
+
+/* Apply the selected palette to the signed-out login experience too. */
+html[data-wl-accent] .wl-auth-shell{
+ background:
+  radial-gradient(ellipse at 12% 90%,var(--wl-palette-glow),transparent 40%),
+  linear-gradient(125deg,var(--wl-palette-deepest) 0%,var(--wl-palette-deep) 53%,var(--wl-palette-primary) 100%)!important;
+ border-color:rgba(255,255,255,.18)!important;
+}
+html[data-wl-accent] .wl-auth-story h1 em,
+html[data-wl-accent] .wl-auth-kicker,
+html[data-wl-accent] .wl-auth-orbit,
+html[data-wl-accent] .wl-auth-feature-list>div>span,
+html[data-wl-accent] .wl-auth-bottom span:first-child{color:var(--wl-palette-secondary-soft)!important}
+html[data-wl-accent] .wl-auth-live-dot{background:var(--wl-palette-secondary)!important;box-shadow:0 0 0 5px var(--wl-palette-glow)!important}
+html[data-wl-accent] .wl-auth-glow-one{border-color:var(--wl-palette-glow)!important;box-shadow:0 0 0 28px var(--wl-palette-glow),0 0 0 58px var(--wl-palette-glow)!important}
+html[data-wl-accent] .wl-auth-glow-two{background:var(--wl-palette-glow)!important}
+html[data-wl-accent] .wl-auth-mark,
+html[data-wl-accent] .wl-auth-mini-mark{background:linear-gradient(145deg,var(--wl-palette-secondary-soft),var(--wl-palette-secondary))!important;color:#fff!important;box-shadow:0 7px 22px var(--wl-palette-glow)!important}
+html[data-wl-accent] #wlSignIn{
+ background:linear-gradient(110deg,var(--wl-palette-primary),var(--wl-palette-deep))!important;
+ border-color:var(--wl-palette-deep)!important;
+ box-shadow:0 8px 18px var(--wl-palette-glow)!important;
+}
+html[data-wl-accent] .wl-auth-input-wrap:focus-within{
+ border-color:var(--wl-palette-secondary)!important;
+ box-shadow:0 0 0 4px var(--wl-palette-glow)!important;
+}
+html[data-wl-accent] .wl-auth-status{background:var(--wl-palette-soft)!important;color:var(--wl-palette-deep)!important}
+html[data-wl-accent] .wl-auth-status-dot{background:var(--wl-palette-primary)!important}
+html[data-wl-accent] .wl-auth-access{color:var(--wl-palette-primary)!important}
+html[data-wl-accent] .wl-auth-card-foot{border-color:var(--wl-palette-line)!important}
+html[data-wl-accent] body:has(.wl-auth-shell){background:linear-gradient(135deg,var(--wl-palette-soft),#fff 55%,var(--wl-palette-secondary-soft))!important}

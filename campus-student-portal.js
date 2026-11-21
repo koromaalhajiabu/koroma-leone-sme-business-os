@@ -30,7 +30,7 @@ function exportTranscriptPdf(){
  const {jsPDF}=window.jspdf;
  const doc=new jsPDF();
  const s=data.student||{};
- doc.setFontSize(16);doc.text(data.campus_name||'White Lion Campus',14,18);
+ doc.setFontSize(16);doc.text(data.campus_name||'Koroma Leone Campus',14,18);
  doc.setFontSize(11);doc.text('Official Academic Transcript',14,26);
  doc.setFontSize(10);
  doc.text('Student: '+(s.first_name||'')+' '+(s.last_name||''),14,36);
@@ -60,7 +60,7 @@ $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const b=e.
 $('registerStudent').addEventListener('click',async()=>{const email=$('loginForm').elements.email.value.trim(),password=$('loginForm').elements.password.value;if(!email||password.length<8){message('loginMessage','Enter your student email and a password of at least 8 characters, then create your account.',true);return}const b=$('registerStudent');b.disabled=true;const {data:created,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.href}});b.disabled=false;if(error){message('loginMessage',error.message,true);return}message('loginMessage',created.session?'Account created. You can now sign in.':'Account created. Check your email to verify it, then return here to sign in.');});
 function downloadMyInformation(){
  if(!data){message('pageMessage','Load your records first.',true);return}
- const blob=new Blob([JSON.stringify({format:'White Lion Student Portal Export',exported_at:new Date().toISOString(),data},null,2)],{type:'application/json;charset=utf-8'});
+ const blob=new Blob([JSON.stringify({format:'Koroma Leone Student Portal Export',exported_at:new Date().toISOString(),data},null,2)],{type:'application/json;charset=utf-8'});
  const url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download=(data.student&&data.student.student_number||'my-student-record')+'-information.json';
  document.body.appendChild(a);a.click();a.remove();

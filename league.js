@@ -23,6 +23,19 @@
     '<label class="wl-league-field"><span>'+esc(label)+'</span><input name="'+esc(name)+'" type="'+type+'" '+(required?'required':'')+' '+extra+'></label>';
   const selectField = (label,name,options,required=true) =>
     '<label class="wl-league-field"><span>'+esc(label)+'</span><select name="'+esc(name)+'" '+(required?'required':'')+'>'+options+'</select></label>';
+  const imageField = (label,name,existing='') =>
+    '<label class="wl-league-field"><span>'+esc(label)+'</span><input type="file" name="'+esc(name)+'" accept="image/jpeg,image/png,image/webp" data-league-image><small class="wl-league-muted">JPG, PNG or WebP · Maximum 5 MB</small>'+
+    (existing?'<img class="wl-league-image-preview" src="'+esc(existing)+'" alt="'+esc(label)+' preview" loading="lazy">':'<img class="wl-league-image-preview" alt="'+esc(label)+' preview" hidden>')+'</label>';
+  async function uploadLeagueImage(file,kind,recordId){
+    if(!file||!file.size)return null;
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Choose a JPG, PNG or WebP image.');
+    if(file.size>5*1024*1024)throw new Error('Image must be 5 MB or smaller.');
+    const ext=({ 'image/jpeg':'jpg','image/png':'png','image/webp':'webp' })[file.type];
+    const path=business().id+'/'+competitionId+'/'+kind+'/'+recordId+'-'+crypto.randomUUID()+'.'+ext;
+    const {data,error}=await client().storage.from('league-media').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+    if(error)throw error;
+    return client().storage.from('league-media').getPublicUrl(data.path).data.publicUrl;
+  }
   const button = (label,kind='primary',extra='') => '<button class="wl-league-btn '+kind+'" '+extra+'>'+esc(label)+'</button>';
   const empty = text => '<div class="wl-league-empty">'+esc(text)+'</div>';
   const table = (heads, rows) => '<div class="wl-league-table-wrap"><table><thead><tr>'+heads.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+(rows||'<tr><td colspan="'+heads.length+'">'+empty('No records yet.')+'</td></tr>')+'</tbody></table></div>';
@@ -37,7 +50,7 @@
       .wl-league-tabs{display:flex;gap:6px;overflow:auto;padding:3px 2px 11px;margin-bottom:5px}.wl-league-tab{white-space:nowrap;border:1px solid #e0e9e3;background:#fff;color:#62766a;border-radius:30px;padding:9px 13px;font-size:10px;font-weight:800}.wl-league-tab.active{background:#087a43;border-color:#087a43;color:#fff}
       .wl-league-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}.wl-league-card{background:#fff;border:1px solid #e0eae3;border-radius:14px;padding:15px;box-shadow:0 6px 20px rgba(7,91,53,.045);min-width:0}.wl-league-card small{display:block;color:#718078;font-size:10px}.wl-league-card strong{display:block;color:#075b35;font-size:24px;margin:5px 0 2px}.wl-league-panel{background:#fff;border:1px solid #e0eae3;border-radius:14px;padding:16px;margin-bottom:13px;min-width:0}.wl-league-panel h3{margin:0 0 5px;color:#17432b;font-size:14px}.wl-league-sub{font-size:10px;color:#7b8b81;line-height:1.55;margin-bottom:12px}
       .wl-league-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.wl-league-field{display:grid;gap:5px;min-width:0}.wl-league-field.full{grid-column:1/-1}.wl-league-field span{font-size:10px;color:#526b5b;font-weight:800}.wl-league-field input,.wl-league-field select,.wl-league-field textarea{width:100%;min-width:0;min-height:39px;padding:9px 10px;border:1px solid #dce8df;border-radius:9px;background:#fff;color:#203b2b;font:inherit;font-size:11px}.wl-league-field textarea{min-height:70px;resize:vertical}.wl-league-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:11px}
-      .wl-league-table-wrap{width:100%;overflow:auto;border:1px solid #e8eee9;border-radius:10px;-webkit-overflow-scrolling:touch}.wl-league-table-wrap table{width:100%;border-collapse:collapse;white-space:nowrap}.wl-league-table-wrap th{background:#f3f8f4;color:#61776a;font-size:9px;padding:10px;text-align:left}.wl-league-table-wrap td{padding:10px;border-top:1px solid #edf2ee;color:#31483a;font-size:10px}.wl-league-empty{padding:22px 12px;text-align:center;color:#829087;font-size:11px}
+      .wl-league-image-preview{display:block;width:74px;height:74px;object-fit:contain;border:1px solid #e0eae3;border-radius:12px;background:#f7faf8;padding:5px;margin-top:6px}.wl-league-table-wrap{width:100%;overflow:auto;border:1px solid #e8eee9;border-radius:10px;-webkit-overflow-scrolling:touch}.wl-league-table-wrap table{width:100%;border-collapse:collapse;white-space:nowrap}.wl-league-table-wrap th{background:#f3f8f4;color:#61776a;font-size:9px;padding:10px;text-align:left}.wl-league-table-wrap td{padding:10px;border-top:1px solid #edf2ee;color:#31483a;font-size:10px}.wl-league-empty{padding:22px 12px;text-align:center;color:#829087;font-size:11px}
       .wl-league-notice{padding:11px 13px;border:1px solid #cfe5d5;border-radius:10px;background:#f1faf3;color:#23633c;font-size:11px;margin-bottom:12px}.wl-league-notice[hidden]{display:none}.wl-league-muted{color:#839087;font-size:10px;line-height:1.6}.wl-league-inline{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.wl-league-inline input{width:70px;min-height:33px;padding:5px;border:1px solid #dce8df;border-radius:7px}.wl-league-badge{display:inline-block;padding:4px 7px;border-radius:20px;background:#eaf6ed;color:#087a43;font-size:9px;font-weight:800}.wl-league-badge.warn{background:#fff4df;color:#986b1c}
       @media(max-width:900px){.wl-league-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.wl-league-hero{padding:15px}.wl-league-mark{width:39px;height:39px;flex-basis:39px}.wl-league-grid{gap:8px}.wl-league-card{padding:12px}.wl-league-card strong{font-size:21px}.wl-league-panel{padding:13px}.wl-league-form{grid-template-columns:1fr}.wl-league-field.full{grid-column:auto}.wl-league-toolbar select{width:100%;min-width:0}.wl-league-actions .wl-league-btn{flex:1}}
     `;document.head.appendChild(s);
@@ -92,17 +105,17 @@
   }
   function clubsView(){
     const frozen=currentCompetition()?.is_frozen;
-    const rows=(cache.clubs||[]).map(x=>'<tr><td><b>'+esc(x.name)+'</b><br><small>'+esc(x.short_name||'')+'</small></td><td>'+esc(x.home_venue||'—')+'</td><td>'+esc(x.manager_name||'—')+'</td><td><span class="wl-league-badge">'+esc(x.status)+'</span></td></tr>').join('');
-    return '<div class="wl-league-panel"><h3>Club register</h3><div class="wl-league-sub">Add clubs, home grounds and club contacts to this league.</div>'+(frozen?frozenNotice():'<form class="wl-league-form" data-league-form="club">'+field('Club name','name','text',true)+field('Short name / abbreviation','short_name')+field('Home venue','home_venue')+field('Club manager','manager_name')+field('Contact phone','contact_phone','tel')+field('Club crest URL (optional)','crest_url','url')+'<div class="wl-league-field full">'+button('Save club','primary')+'</div></form>')+'</div><div class="wl-league-panel"><h3>Registered clubs · '+(cache.clubs||[]).length+'</h3>'+table(['Club','Home venue','Manager','Status'],rows)+'</div>';
+    const rows=(cache.clubs||[]).map(x=>'<tr><td>'+(x.crest_url?'<img class="wl-league-image-preview" src="'+esc(x.crest_url)+'" alt="'+esc(x.name)+' crest">':'')+'<b>'+esc(x.name)+'</b><br><small>'+esc(x.short_name||'')+'</small></td><td>'+esc(x.home_venue||'—')+'</td><td>'+esc(x.manager_name||'—')+'</td><td><span class="wl-league-badge">'+esc(x.status)+'</span></td></tr>').join('');
+    return '<div class="wl-league-panel"><h3>Club register</h3><div class="wl-league-sub">Add clubs, home grounds, contacts and official team crests.</div>'+(frozen?frozenNotice():'<form class="wl-league-form" data-league-form="club">'+field('Club name','name','text',true)+field('Short name / abbreviation','short_name')+field('Home venue','home_venue')+field('Club manager','manager_name')+field('Contact phone','contact_phone','tel')+imageField('Team crest / badge','club_crest')+'<div class="wl-league-field full">'+button('Save club','primary')+'</div></form>')+'</div><div class="wl-league-panel"><h3>Registered clubs · '+(cache.clubs||[]).length+'</h3>'+table(['Club / crest','Home venue','Manager','Status'],rows)+'</div>';
   }
   function playersView(){
     const frozen=currentCompetition()?.is_frozen;
-    const rows=(cache.players||[]).map(p=>'<tr><td><b>'+esc(p.full_name)+'</b></td><td>'+esc((cache.clubs||[]).find(c=>c.id===p.club_id)?.name||'—')+'</td><td>'+esc(p.shirt_number??'—')+'</td><td>'+esc(p.position||'—')+'</td><td>'+esc(p.nationality||'—')+'</td><td>'+esc(p.status)+'</td></tr>').join('');
+    const rows=(cache.players||[]).map(p=>'<tr><td>'+(p.photo_url?'<img class="wl-league-image-preview" src="'+esc(p.photo_url)+'" alt="'+esc(p.full_name)+' photo">':'')+'<b>'+esc(p.full_name)+'</b></td><td>'+esc((cache.clubs||[]).find(c=>c.id===p.club_id)?.name||'—')+'</td><td>'+esc(p.shirt_number??'—')+'</td><td>'+esc(p.position||'—')+'</td><td>'+esc(p.nationality||'—')+'</td><td>'+esc(p.status)+'</td></tr>').join('');
     return '<div class="wl-league-panel"><h3>Player registration</h3><div class="wl-league-sub">Register players under their club. Shirt numbers must be between 1 and 99.</div>'+
       (frozen?frozenNotice():(cache.clubs?.length?'<form class="wl-league-form" data-league-form="player">'+field('Player full name','full_name','text',true)+selectField('Club','club_id',selectOptions(cache.clubs))+
       field('Shirt number','shirt_number','number',false,'min="1" max="99"')+selectField('Position','position',['<option value="">Select position…</option>',...['Goalkeeper','Defender','Midfielder','Forward'].map(x=>'<option>'+x+'</option>')].join(''))+
-      field('Date of birth','date_of_birth','date')+field('Nationality','nationality')+'<div class="wl-league-field full">'+button('Register player','primary')+'</div></form>':empty('Register a club before adding players.')))+'</div>'+
-      '<div class="wl-league-panel"><h3>Player register · '+(cache.players||[]).length+'</h3>'+table(['Player','Club','No.','Position','Nationality','Status'],rows)+'</div>';
+      field('Date of birth','date_of_birth','date')+field('Nationality','nationality')+imageField('Player photograph','player_photo')+'<div class="wl-league-field full">'+button('Register player','primary')+'</div></form>':empty('Register a club before adding players.')))+'</div>'+
+      '<div class="wl-league-panel"><h3>Player register · '+(cache.players||[]).length+'</h3>'+table(['Player / photo','Club','No.','Position','Nationality','Status'],rows)+'</div>';
   }
   function fixturesView(){
     const frozen=currentCompetition()?.is_frozen;
@@ -158,6 +171,7 @@
       field('Points for a draw','points_draw','number',true,'min="0" max="10" value="'+esc(c.points_draw)+'"')+
       field('Points for a loss','points_loss','number',true,'min="0" max="10" value="'+esc(c.points_loss)+'"')+
       selectField('League status','status',statusOpts)+
+      imageField('Competition crest / logo','competition_logo',c.logo_url||'')+
       '<div class="wl-league-field full">'+button('Save league details','primary')+'</div></form>';
   }
   function settingsView(){
@@ -222,6 +236,7 @@
       field('Points for a win','points_win','number',true,'min="0" max="10" value="3"')+
       field('Points for a draw','points_draw','number',true,'min="0" max="10" value="1"')+
       field('Points for a loss','points_loss','number',true,'min="0" max="10" value="0"')+
+      imageField('Competition crest / logo','competition_logo')+
       '<div class="wl-league-field full">'+button('Create league','primary')+'</div></form>';
   }
   function bind(){
@@ -253,6 +268,7 @@
     }));
   }
   function bindForms(){
+    document.querySelectorAll('[data-league-image]').forEach(input=>{if(input.dataset.previewBound==='1')return;input.dataset.previewBound='1';input.addEventListener('change',()=>{const file=input.files?.[0],img=input.parentElement.querySelector('.wl-league-image-preview');if(!img)return;if(!file){img.hidden=true;img.removeAttribute('src');return;}if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){input.value='';notice('Choose a JPG, PNG or WebP image no larger than 5 MB.');img.hidden=true;return;}img.src=URL.createObjectURL(file);img.hidden=false;});});
     document.querySelectorAll('[data-league-form="event"]').forEach(f=>{if(f.dataset.leagueEventBound==='1')return;f.dataset.leagueEventBound='1';const club=f.querySelector('[name="club_id"]'),player=f.querySelector('[name="player_id"]');club?.addEventListener('change',()=>{const rows=(cache.players||[]).filter(p=>p.club_id===club.value);player.innerHTML=selectOptions(rows,'id','full_name','Select player');});});
     document.querySelectorAll('[data-league-form]').forEach(f=>{if(f.dataset.leagueBound==='1')return;f.dataset.leagueBound='1';f.addEventListener('submit',async e=>{
       e.preventDefault();const kind=f.dataset.leagueForm,d=Object.fromEntries(new FormData(f).entries()),b=business(),c=client();
@@ -260,9 +276,15 @@
         await save(async()=>{
           const payload={name:d.name,competition_type:d.competition_type,region:d.region||null,organiser:d.organiser||null,points_win:Number(d.points_win),points_draw:Number(d.points_draw),points_loss:Number(d.points_loss),status:d.status};
           const {error}=await c.from('league_competitions').update(payload).eq('id',competitionId).eq('business_id',b.id);if(error)throw error;
-        },'League details updated.');
+          const image=f.querySelector('[name="competition_logo"]')?.files?.[0];
+          if(image){const url=await uploadLeagueImage(image,'competition',competitionId);const updated=await c.from('league_competitions').update({logo_url:url}).eq('id',competitionId).eq('business_id',b.id);if(updated.error)throw updated.error;}
+        },'League details and crest saved.');
         return;
       }
+      const competitionImage=f.querySelector('[name="competition_logo"]')?.files?.[0];
+      const clubImage=f.querySelector('[name="club_crest"]')?.files?.[0];
+      const playerImage=f.querySelector('[name="player_photo"]')?.files?.[0];
+      delete d.competition_logo;delete d.club_crest;delete d.player_photo;
       await save(async()=>{
         let payload={...d,business_id:b.id};
         if(kind==='competition'){payload.points_win=Number(d.points_win);payload.points_draw=Number(d.points_draw);payload.points_loss=Number(d.points_loss);payload.created_by=cloud().getSession()?.user?.id;payload.is_publicly_shared=true;payload.public_share_token=crypto.randomUUID()}
@@ -276,6 +298,9 @@
         const tableName=({competition:'league_competitions',season:'league_seasons',club:'league_clubs',player:'league_players',fixture:'league_fixtures',event:'league_match_events',discipline:'league_disciplinary_actions',access:'league_competition_members'})[kind];
         const {data:created,error}=await c.from(tableName).insert(payload).select('id').single();if(error)throw error;
         if(kind==='competition'){competitionId=created.id;seasonId='';activeTab='overview'}
+        if(kind==='club'&&clubImage){const url=await uploadLeagueImage(clubImage,'club',created.id);const updated=await c.from('league_clubs').update({crest_url:url}).eq('id',created.id).eq('business_id',b.id);if(updated.error)throw updated.error;}
+        if(kind==='player'&&playerImage){const url=await uploadLeagueImage(playerImage,'player',created.id);const updated=await c.from('league_players').update({photo_url:url}).eq('id',created.id).eq('business_id',b.id);if(updated.error)throw updated.error;}
+        if(kind==='competition'&&competitionImage){const url=await uploadLeagueImage(competitionImage,'competition',created.id);const updated=await c.from('league_competitions').update({logo_url:url}).eq('id',created.id).eq('business_id',b.id);if(updated.error)throw updated.error;}
         if(kind==='season')seasonId='';
       },({competition:'League created.',season:'Season created.',club:'Club registered.',player:'Player registered.',fixture:'Fixture scheduled.',event:'Match event saved.',discipline:'Disciplinary record saved.',access:'League role assigned.'})[kind]);
     });});

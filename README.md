@@ -1,15 +1,19 @@
-# White Lion SME Business Operating System
+# Koroma Leone Tech Business Operating System
 
-A multi-industry SME operations platform by White Lion Tech Solutions. The frontend is deployed as a static Progressive Web App through GitHub Pages; Supabase provides authentication, cloud data and tenant security.
+A multi-industry SME operations platform by Koroma Leone Tech. The frontend is deployed as a static Progressive Web App through GitHub Pages; Supabase provides authentication, cloud data and tenant security.
 
 **Developer:** Designed by Alhaji Abu Koroma  
-**Live application:** https://koromaalhajiabu.github.io/white-lion-sme-business-os/  
-**Repository:** https://github.com/koromaalhajiabu/white-lion-sme-business-os
+**Live application:** https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/  
+**Repository:** https://github.com/koromaalhajiabu/koroma-leone-sme-business-os
 
 ## Platform capabilities
 
-- Multi-industry business profiles and workspace membership.
+- Multi-industry business profiles and workspace membership. 
 - Sales/POS, products, purchasing, customers, suppliers and expenses.
+- Cloud HR employee directory, daily attendance register and payroll runs with draft review, approval, deductions and payment-reference recording.
+- Customer loyalty accounts, points ledger, redemption controls and balance-based reward tiers.
+- Online storefront and customer orders; delivery dispatch, rider management and public tracking.
+- Supplier portal and procurement intelligence; executive insights and business automation.
 - Supabase authentication, business membership and row-level security.
 - IndexedDB local persistence and offline transaction synchronisation.
 - Multi-branch operations, branch access and stock transfers.
@@ -37,7 +41,7 @@ Do not add a Supabase service-role key to browser code or the public repository.
 
 ## Database setup
 
-SQL migrations are in `supabase/migrations/`. The consolidated operations installer is:
+SQL migrations are in `supabase/migrations/`. The HR/payroll and customer-loyalty enhancement is recorded in `supabase/migrations/055_hr_loyalty_workflows.sql`; the business-scoped attendance register is in `supabase/migrations/056_employee_attendance_register.sql`, with least-privilege role policies refined in `supabase/migrations/057_attendance_policy_roles.sql`. It adds the transactional `apply_customer_loyalty_points` RPC; the employee and payroll tables were already present. The HR/payroll UI records payroll drafts and approvals but does not initiate bank/mobile-money transfers or calculate statutory tax automatically. Configure and review deductions under applicable local rules. Loyalty tiers use default balance thresholds (Bronze 100+, Silver 500+, Gold 1,000+) in this release.\n\nThe consolidated operations installer is:
 
 `supabase/INSTALL_ALL_OPERATIONS.sql`
 
@@ -79,10 +83,46 @@ This is a manual statement import and matching foundation. It does not connect d
 
 Run the read-only [production security audit](supabase/PRODUCTION_SECURITY_AUDIT.sql) in the Supabase SQL Editor before launch. It reports RLS coverage, public grants and SECURITY DEFINER functions for review; it does not modify data or certify tenant isolation.
 
-See [PROFESSIONAL_READINESS.md](PROFESSIONAL_READINESS.md) for the feature inventory, known gaps, new migration details and required acceptance tests.
+Migration 058 hardens the retained legacy device-services financial view by enabling invoker permissions and underlying-table RLS. Migration 059 restricts platform administration and branch transaction RPC grants to authenticated callers and disables the legacy auto-first-branch sync RPC. See [PROFESSIONAL_READINESS.md](PROFESSIONAL_READINESS.md) for the feature inventory, known gaps, security follow-up and required acceptance tests.
 
 See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for GitHub Actions secret setup, encrypted backups, integrity checks and recovery instructions.
 
 ## Local run
 
 Serve the repository over HTTPS or localhost for service-worker and PWA behaviour. Opening the HTML file directly with a `file://` URL does not provide the full PWA experience.
+
+
+### Financial integrity hardening
+
+Migration 063 adds database-level checks for sales discounts, payment limits and sale/purchase line arithmetic; tightens the canonical sale RPC; and restricts internal accounting journal helpers and selected finance RPCs to their intended API roles. It is applied to the connected Supabase project. See [PROFESSIONAL_READINESS.md](PROFESSIONAL_READINESS.md) for the verification results and remaining acceptance tests.
+
+
+### Financial ageing, commitments forecast and controlled period reopening
+
+Migration 064 adds business-scoped receivables/payables ageing and a 90-day contractual cash-commitments forecast to Business Intelligence. These reports include only entered, open or part-paid obligations; they are not forecasts of unentered sales or bank-confirmed cash. The migration also restricts bank statement import/matching RPC grants to authenticated users and adds owner/admin-controlled period reopening. Reopening requires a reason, reverses the original closing journal without editing it, and is audited; a re-closed period is locked again. Apply and acceptance-test migration 064 before using these controls on live accounting records.
+
+
+Business Intelligence also displays rule-based in-app financial anomaly alerts for overdue customer/supplier obligations and near-term contractual cash gaps. These are management alerts from recorded data, not push notifications, fraud detection or bank monitoring.
+
+
+### Subscription notification centre
+
+Migration 065 adds a private, owner-scoped in-app notification table and a daily scheduled generator for 7-day, 3-day and 1-day subscription renewal reminders, overdue unpaid invoices, verified payments, grace-period starts and expiry events. Notifications are visible only to the signed-in owner who owns the relevant workspace. Migration 066 restricts customer updates to the read-state field only. The notification centre is loaded from `subscription-notifications.js`; it uses the existing authenticated Supabase session and does not send SMS, email or provider push messages. The existing subscription expiry job and seven-day grace period are preserved.
+
+
+## External subscription notifications (migrations 067–069)
+
+- Added opt-in email, SMS and WhatsApp preferences with recorded consent timestamps. All external channels are OFF by default.
+- Added a private outbound delivery queue and delivery-attempt history. Queue and attempt tables are inaccessible to browser roles; only the service role can process them.
+- New in-app subscription/payment notifications are copied into the queue only for channels the recipient explicitly enabled and supplied a valid destination for.
+- Deployed Supabase Edge Function `dispatch-notifications`. It uses Resend for transactional email and Twilio Programmable Messaging for SMS and WhatsApp templates. Provider credentials are read only from Supabase Edge Function secrets; never place them in GitHub or frontend code.
+- The scheduled dispatcher runs every five minutes after the two Vault entries `notification_project_url` and `notification_dispatch_key` are created. Until those Vault entries and provider credentials are configured, no external messages are sent. Missing provider credentials block the affected delivery rather than exposing secrets or sending through a fallback.
+- Required Edge Function secrets: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, `TWILIO_WHATSAPP_FROM`, and `TWILIO_WHATSAPP_CONTENT_SID`. WhatsApp requires an approved Meta/Twilio template whose first two variables map to notification title and body.
+- To enable the schedule, create Vault secrets in Supabase SQL Editor (never share the service-role key in chat):
+  `select vault.create_secret('https://nclncqlgnxnijlumznnt.supabase.co','notification_project_url');`
+  `select vault.create_secret('<PASTE YOUR SUPABASE SERVICE ROLE KEY HERE>','notification_dispatch_key');`
+  Then confirm the `koroma-notification-dispatch` job exists in pg_cron. Keep the service-role key only in Vault; do not commit it.
+- Before live use, verify sender identity and SMS delivery on Africell, Orange, QCell and Sierratel. Twilio documents that two-way SMS is not supported for Sierra Leone and generic alphanumeric sender IDs may be filtered on Africell. WhatsApp is supported for +232 destinations, but template approval and Meta fees apply.
+- The in-app notification centre remains independent and continues to work when all external channels are disabled.
+
+- Delivery callbacks are enabled: Twilio SMS/WhatsApp status callbacks use the signed `twilio-status-webhook`; Resend delivery/bounce/complaint events use the signed `resend-status-webhook`. Configure the Resend webhook URL as `https://nclncqlgnxnijlumznnt.supabase.co/functions/v1/resend-status-webhook` and add `RESEND_WEBHOOK_SECRET` to Edge Function secrets. Twilio status callbacks are automatically attached by the dispatcher. Provider API acceptance and final delivery status are recorded separately.
