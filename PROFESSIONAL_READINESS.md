@@ -105,3 +105,12 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Eleven internal tables have RLS enabled with no direct API policies and no grants to anon/authenticated/PUBLIC; these are currently inaccessible through direct client table access. Keep them behind vetted RPCs with explicit authorization checks.
 - Auth leaked-password protection remains disabled in Supabase Auth settings; this needs enabling in the dashboard before production onboarding.
 - This review is not a penetration test. Cross-account isolation still requires a controlled two-account acceptance test in the live app.
+
+
+## Ownership protection — migration 060
+
+- Reviewed the developer-managed business membership RPC and found that it rejected assigning the `owner` role but did not reject changing an existing owner's role to a staff role.
+- Updated `set_platform_member_access` to lock and inspect the target membership and reject any staff-access change when the target is the existing business owner.
+- Added required-input validation and retained the developer authorization check, audit logging, and authenticated-only execution grant.
+- Applied migration 060 and verified the deployed function definition contains the owner-protection check. Verified `anon` cannot execute the RPC and `authenticated` can.
+- This is a source/catalog verification, not a live two-account UI test. A controlled test with two real customer accounts is still required to prove cross-business isolation end to end.
