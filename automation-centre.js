@@ -114,7 +114,7 @@
       '#wlAutomationCentre .wlac-policy-row{display:flex;gap:14px;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #e7eee8}',
       '#wlAutomationCentre .wlac-policy-row b{display:block;color:#183d29;font-size:12px}',
       '#wlAutomationCentre .wlac-policy-row small{display:block;color:#718078;font-size:10px;margin-top:4px;line-height:1.5}',
-      '#wlAutomationCentre .wlac-policy-row input{width:19px;height:19px;flex:0 0 auto;accent-color:#087a43}'
+      '#wlAutomationCentre .wlac-policy-row input{width:19px;height:19px;flex:0 0 auto;accent-color:#087a43}',
       '@media(max-width:850px){#wlAutomationCentre .wlac-grid{grid-template-columns:1fr}}',
       '@media(max-width:560px){#wlAutomationCentre .wlac-kpis{grid-template-columns:1fr 1fr}#wlAutomationCentre .wlac-kpi:last-child{grid-column:1/-1}#wlAutomationCentre .wlac-heading h1{font-size:21px}#wlAutomationCentre .wlac-panel{padding:14px}}'
     ].join('\n');
