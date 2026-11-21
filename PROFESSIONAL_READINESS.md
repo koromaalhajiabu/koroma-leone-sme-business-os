@@ -124,3 +124,17 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Verified the deployed function definitions contain the new authorization gates.
 - No transaction rows or customer records were modified by these migrations.
 - These checks establish database-side authorization, but do not replace a live acceptance test with two distinct customer accounts.
+
+
+## Financial integrity hardening — migration 063
+
+- Applied `supabase/migrations/063_harden_financial_integrity_and_rpc_grants.sql` to the connected Supabase project and verified its migration-history entry.
+- Added six database constraints: sales discounts cannot exceed subtotal; sales payments cannot exceed total; sale totals must equal subtotal less discount; sale-item line totals must equal rounded quantity × unit price; purchase payments cannot exceed purchase total; and purchase-item line totals must equal rounded quantity × unit cost.
+- Updated the canonical `post_sale` RPC to reject null/negative payment or discount values and discounts greater than the calculated subtotal before inventory or sales records are written.
+- Restricted internal `post_system_journal` and `seed_default_chart_of_accounts` helpers from API roles. They remain callable internally by their owning SECURITY DEFINER workflows.
+- Removed unnecessary anonymous execution from the accounting cash-flow, historical backfill, initialization, opening-balance, manual-journal, period-close and journal-reversal RPCs; authenticated execution remains enabled and their in-function business-role checks are retained.
+- Verified all six constraints are installed; verified the sales discount guard is present; verified anonymous execution is denied for the selected accounting RPCs and internal helpers, while authenticated execution remains enabled for the user-facing workflows.
+- Pre/post integrity checks found zero sales header mismatches, zero sale-line arithmetic mismatches, zero purchase payment mismatches, zero purchase-line arithmetic mismatches and zero unbalanced posted journals.
+- Security advisor count for anonymous-executable SECURITY DEFINER functions is now 126. Remaining findings include trigger helpers and other public/authenticated workflows across the wider platform; they require individual review and must not be bulk-revoked.
+- Supabase Auth leaked-password protection remains disabled and should be enabled in Auth security settings.
+- This migration does not constitute an independent audit or authenticated user acceptance test. Test normal sale discounts, full/partial payment, purchase posting, refunds, accounting reports and period controls in the live app before commercial use.
