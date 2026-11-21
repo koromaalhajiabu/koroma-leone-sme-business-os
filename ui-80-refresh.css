@@ -121,3 +121,88 @@ html[data-theme="dark"] #view .stat-head,html[data-theme="dark"] #view .stat sma
 html[data-theme="dark"] #view th{background:#202d40!important;color:#b7c4d6!important}
 html[data-theme="dark"] #view .empty{background:#172334!important;border-color:#33435a!important;color:#b7c4d6!important}
 html[data-theme="dark"] #view .field input,html[data-theme="dark"] #view .field select,html[data-theme="dark"] #view .field textarea,html[data-theme="dark"] #view .search{background:#172334!important;border-color:#35445a!important;color:#edf2f9!important}
+
+
+/* PASS 2 — consistent finance, inventory, forms and reporting surfaces */
+#view .report-kpis,#view .inventory-kpis,#view .stock-kpis,#view .return-kpis{gap:12px}
+#view .report-kpi,#view .inventory-kpi,#view .stock-kpi,#view .return-kpi{
+ border:1px solid var(--klt-border);border-radius:16px;
+ background:linear-gradient(150deg,#fff 0%,#fff 60%,var(--wl-palette-soft,#f4f8f5) 150%);
+ box-shadow:var(--klt-shadow);padding:17px;transition:transform .2s ease,box-shadow .2s ease
+}
+#view .report-kpi span,#view .inventory-kpi span,#view .stock-kpi span,#view .return-kpi span{
+ color:#748197;font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase
+}
+#view .report-kpi b,#view .inventory-kpi b,#view .stock-kpi b,#view .return-kpi b{
+ color:#1b2a40;font-size:clamp(19px,2vw,25px);font-weight:850;letter-spacing:-.8px;margin:9px 0 4px
+}
+#view .report-grid{gap:17px}
+#view .report-grid .panel,#view .report-lower .panel{height:100%}
+#view .sales-chart{padding:13px 5px 2px;gap:clamp(6px,1.4vw,14px)}
+#view .sales-chart-track{width:min(40px,78%);border-radius:10px 10px 4px 4px;background:#edf2f6}
+#view .sales-chart-bar{background:linear-gradient(180deg,var(--wl-palette-secondary-soft,#e6d5a9),var(--wl-palette-primary,#16845d));border-radius:10px 10px 3px 3px}
+#view .sales-chart-value{font-size:9px;font-weight:750;color:#5e6d83}
+#view .expense-item{padding:10px 0;border-bottom:1px solid #edf1f5}
+#view .expense-item:last-child{border-bottom:0}
+#view .expense-track{height:8px;border-radius:99px;background:#edf1f5}
+#view .expense-track i{background:linear-gradient(90deg,var(--wl-palette-primary,#16845d),var(--wl-palette-secondary,#d2ad61))}
+#view .health-list>div{padding:13px 2px;font-size:11px}
+#view .report-net{letter-spacing:-1.4px;font-size:clamp(28px,3vw,40px)}
+#view .form-grid{gap:16px}
+#view .field{gap:7px}
+#view .field label{font-size:10px;letter-spacing:.35px;color:#53637a}
+#view .field input,#view .field select,#view .field textarea,#view .inventory-filter,#view .search{
+ min-height:44px;border:1px solid #dfe6ef;border-radius:12px;background:#fff;color:#26364d;padding:11px 13px
+}
+#view .field textarea{min-height:100px;resize:vertical}
+#view .field input:focus,#view .field select:focus,#view .field textarea:focus,#view .search:focus,#view .inventory-filter:focus{
+ border-color:var(--wl-palette-primary,#16845d);box-shadow:0 0 0 4px var(--wl-palette-glow,rgba(22,132,93,.12));outline:0
+}
+#view .toolbar,#view .inventory-toolbar,#view .catalogue-toolbar{gap:10px;margin-bottom:14px}
+#view .toolbar .btn,#view .inventory-toolbar .btn{min-height:41px}
+#view .table-wrap{box-shadow:inset 0 0 0 1px rgba(20,40,65,.015)}
+#view table th{position:sticky;top:0;z-index:1}
+#view table tbody tr{transition:background .16s ease}
+#view .notice,#view .inventory-note,#view .intel-footnote{border-radius:13px;padding:14px 16px;line-height:1.65}
+#view .intel-insight{border-radius:13px;padding:14px 15px;background:linear-gradient(145deg,#fff,#f8fafc)}
+#view .finance-budget-row{border-radius:13px;padding:13px;border-color:#e7edf3;background:#fff}
+#view .finance-progress{height:9px;background:#edf1f5}
+#view .modal-back{backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#view .modal{border:1px solid rgba(255,255,255,.65);padding:clamp(17px,3vw,25px)}
+#view .modal-head h2{font-size:19px;font-weight:850;letter-spacing:-.45px}
+#view .x{width:36px;height:36px;border-radius:11px}
+@media(max-width:720px){
+ #view .report-kpis,#view .inventory-kpis,#view .stock-kpis,#view .return-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ #view .report-kpi,#view .inventory-kpi,#view .stock-kpi,#view .return-kpi{padding:13px;border-radius:14px}
+ #view .report-kpi b,#view .inventory-kpi b,#view .stock-kpi b,#view .return-kpi b{font-size:19px}
+ #view .report-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+ #view .form-grid{grid-template-columns:minmax(0,1fr);gap:13px}
+ #view .field.full{grid-column:auto}
+ #view .toolbar .search,#view .inventory-toolbar .search{width:100%;min-width:0;flex-basis:100%}
+ #view .sales-chart{height:185px;gap:5px}
+ #view .sales-chart-track{height:125px;width:70%}
+ #view .sales-chart-value{font-size:8px}
+ #view .health-list>div{align-items:flex-start}
+}
+@media(prefers-reduced-motion:no-preference){
+ #view .report-kpi:hover,#view .inventory-kpi:hover,#view .stock-kpi:hover,#view .return-kpi:hover{
+  transform:translateY(-2px);box-shadow:var(--klt-shadow-hover)
+ }
+ #view .btn{transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
+ #view .btn:active{transform:translateY(1px) scale(.985)}
+ #view .field input,#view .field select,#view .field textarea{transition:border-color .16s ease,box-shadow .16s ease}
+}
+html[data-theme="dark"] #view .report-kpi,html[data-theme="dark"] #view .inventory-kpi,
+html[data-theme="dark"] #view .stock-kpi,html[data-theme="dark"] #view .return-kpi,
+html[data-theme="dark"] #view .finance-budget-row,html[data-theme="dark"] #view .intel-insight{
+ background:#192536!important;border-color:#2b3a50!important
+}
+html[data-theme="dark"] #view .report-kpi b,html[data-theme="dark"] #view .inventory-kpi b,
+html[data-theme="dark"] #view .stock-kpi b,html[data-theme="dark"] #view .return-kpi b,
+html[data-theme="dark"] #view .finance-budget-row span b,html[data-theme="dark"] #view .intel-insight b{color:#e8edf5!important}
+html[data-theme="dark"] #view .report-kpi span,html[data-theme="dark"] #view .inventory-kpi span,
+html[data-theme="dark"] #view .stock-kpi span,html[data-theme="dark"] #view .return-kpi span,
+html[data-theme="dark"] #view .finance-budget-row span small,html[data-theme="dark"] #view .intel-insight p{color:#aab8cb!important}
+html[data-theme="dark"] #view .field input,html[data-theme="dark"] #view .field select,
+html[data-theme="dark"] #view .field textarea,html[data-theme="dark"] #view .inventory-filter,
+html[data-theme="dark"] #view .search{background:#172334!important;border-color:#35445a!important;color:#edf2f9!important}
