@@ -22,7 +22,7 @@
   function roleCanReview(type, role) {
     role = String(role || '').toLowerCase();
     if (type === 'payroll') return role === 'owner' || role === 'admin';
-    if (type === 'refund') return ['owner','admin','manager'].indexOf(role) !== -1;
+    if (type === 'purchase' || type === 'refund') return ['owner','admin','manager'].indexOf(role) !== -1;
     return ['owner', 'admin', 'manager', 'accountant'].indexOf(role) !== -1;
   }
 
