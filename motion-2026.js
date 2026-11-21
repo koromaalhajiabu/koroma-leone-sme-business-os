@@ -4,16 +4,15 @@
  if(window.__kltMotion2026Loaded)return;
  window.__kltMotion2026Loaded=true;
  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- var saveData=!!(navigator.connection&&navigator.connection.saveData);
  var smallScreen=window.matchMedia&&window.matchMedia('(max-width: 720px)').matches;
- if(reduce||saveData)return;
- var selector='.stat,.panel,.module-card,.quick,.report-box';
+ if(reduce)return;
+ var selector='.welcome,.stats,.grid-main,.stat,.panel,.module-card,.quick,.report-box';
  function reveal(root){
   if(!root||root.nodeType!==1)return;
   var nodes=[];
   if(root.matches&&root.matches(selector))nodes.push(root);
   if(root.querySelectorAll)nodes=nodes.concat(Array.from(root.querySelectorAll(selector)));
-  nodes.slice(0,smallScreen?8:18).forEach(function(node){
+  nodes.slice(0,smallScreen?12:28).forEach(function(node){
    if(node.dataset.kltMotionSeen)return;
    node.dataset.kltMotionSeen='1';
    node.classList.add('klt-enter');
