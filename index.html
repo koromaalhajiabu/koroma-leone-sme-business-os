@@ -1458,7 +1458,7 @@ async function render(){
  }
  const kpi=(label,value,note)=>'<div class="report-kpi"><span>'+label+'</span><b>'+money(value)+'</b><small>'+note+'</small></div>';
 
- let advancedFinancePanel='';
+ let advancedFinancePanel='',advancedAgingRows=[],advancedForecastRows=[];
  if(ledgerClient&&businessId){
   try{
    const advDate=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -1469,7 +1469,7 @@ async function render(){
    ]);
    if(agingResult.error)throw agingResult.error;
    if(forecastResult.error)throw forecastResult.error;
-   const agingRows=agingResult.data||[],forecastRows=forecastResult.data||[];
+   const agingRows=agingResult.data||[],forecastRows=forecastResult.data||[];advancedAgingRows=agingRows;advancedForecastRows=forecastRows;
    const advKpi=(label,value,note)=>'<div class="report-kpi"><span>'+label+'</span><b>'+money(value)+'</b><small>'+note+'</small></div>';
    const buckets=['Not due','1–30 days','31–60 days','61–90 days','Over 90 days'];
    const bucketHtml=buckets.map(bucket=>{const rows=agingRows.filter(x=>x.aging_bucket===bucket);return '<tr><td>'+esc(bucket)+'</td><td>'+rows.length+'</td><td>'+money(rows.reduce((n,x)=>n+Number(x.outstanding||0),0))+'</td></tr>';}).join('');
@@ -1489,6 +1489,7 @@ async function render(){
    if(dueSoonPayables>0)alertItems.push({tone:'neutral',title:'Payables due in the next 7 days',body:money(dueSoonPayables)+' is scheduled for payment based on recorded due dates.'});
    if(next30Out>next30In)alertItems.push({tone:'warn',title:'30-day commitments gap',body:'Recorded payables exceed recorded receivables by '+money(next30Out-next30In)+' over the next 30 days.'});
    if(!alertItems.length)alertItems.push({tone:'good',title:'No rule-based exceptions detected',body:'No overdue balances or near-term contractual cash gaps were detected in the available obligation records.'});
+   advancedFinancePanel+='<div class="toolbar" style="margin-top:10px"><button class="btn primary" id="advancedFinanceExport">Export ageing & cash forecast CSV</button></div>';
    advancedFinancePanel+='<div class="panel"><div class="panel-head"><div><h3>Financial anomaly alerts</h3><div class="panel-sub">Rule-based in-app alerts from live obligations · refreshes with Business Intelligence</div></div><span class="pill neutral">Monitoring</span></div><div class="intel-insights">'+alertItems.map(x=>'<div class="intel-insight '+x.tone+'"><b>'+esc(x.title)+'</b><p>'+esc(x.body)+'</p></div>').join('')+'</div><p class="panel-sub">These alerts flag recorded overdue obligations and due-date gaps. They are not push notifications, fraud detection or a substitute for reviewing source transactions.</p></div>';
   }catch(financeIntelligenceError){console.warn('Financial intelligence unavailable:',financeIntelligenceError);advancedFinancePanel='<div class="panel"><h3>Financial ageing & commitments forecast</h3><p class="panel-sub">Could not load live data. Check the connection, finance role and migration 064.</p></div>';}
  }
@@ -1527,6 +1528,18 @@ async function render(){
   });
  }
  document.getElementById('intelPeriod').onchange=e=>{const u=new URL(location.href);u.searchParams.set('wlperiod',e.target.value);history.replaceState(null,'',u);render()};
+
+ document.getElementById('advancedFinanceExport')?.addEventListener('click',()=>{
+  const rows=[
+   ...advancedAgingRows.map(x=>({type:'obligation_ageing',id:x.obligation_id,category:x.aging_bucket,obligation_type:x.obligation_type,party:x.party_name,due_date:x.due_date,amount:x.total_amount,paid:x.amount_paid,outstanding:x.outstanding,days_overdue:x.days_overdue})),
+   ...advancedForecastRows.map(x=>({type:'cash_commitment_forecast',due_date:x.due_date,expected_inflows:x.expected_inflows,expected_outflows:x.expected_outflows,receivable_count:x.receivable_count,payable_count:x.payable_count}))
+  ];
+  const headers=['type','id','category','obligation_type','party','due_date','amount','paid','outstanding','days_overdue','expected_inflows','expected_outflows','receivable_count','payable_count'];
+  const cell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const csv=[headers.join(','),...rows.map(x=>headers.map(h=>cell(x[h])).join(','))].join('\n');
+  const a=document.createElement('a'),url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.href=url;a.download='koroma-leone-financial-ageing-and-cash-forecast.csv';a.click();URL.revokeObjectURL(url);
+ });
  document.getElementById('intelExport').onclick=()=>{const rows=[{metric:'Local net sales',value:periodNet},{metric:'Operating expenses',value:periodExpenses},{metric:'Purchases recorded',value:periodPurchases},{metric:'Sales less expenses (not profit)',value:periodNet-periodExpenses},{metric:'Catalogue stock cost value',value:stockValue},{metric:'Customer opening balances',value:scoped.customers.reduce((n,x)=>n+Number(x.openingBalance||0),0)},{metric:'Supplier opening balances',value:scoped.suppliers.reduce((n,x)=>n+Number(x.openingBalance||0),0)},...ledgerExportRows];const lines=['Metric,Amount',...rows.map(x=>'"'+x.metric.replace(/"/g,'""')+'",'+(x.value===''?'':Number(x.value).toFixed(2)))];const a=document.createElement('a'),url=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));a.href=url;a.download='white-lion-business-analysis.csv';a.click();URL.revokeObjectURL(url)};
  document.getElementById('intelPrint').onclick=()=>window.print();return
  }
