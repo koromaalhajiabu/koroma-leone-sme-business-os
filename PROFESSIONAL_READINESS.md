@@ -88,7 +88,7 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Migration 058 changes the retained legacy `device_service_financial_summary` view to `security_invoker=true`. This makes access follow the calling user's privileges and the underlying `phone_unlocking_orders` RLS policies instead of running with the view owner's permissions.
 - The change was applied to the connected Supabase project and verified in PostgreSQL catalog metadata (`reloptions = security_invoker=true`). The migration is recorded in Supabase migration history.
 - The security advisor no longer reports the previous `security_definer_view` finding.
-- Eleven RLS-enabled platform/internal tables have no policies and no grants to `anon`, `authenticated`, or `PUBLIC`; this currently blocks direct Data API access and appears intentional for internal tables, but any RPCs that use them must continue to enforce developer/role checks.
+- Twelve RLS-enabled platform/internal tables have no policies and no grants to `anon`, `authenticated`, or `PUBLIC`; this currently blocks direct Data API access and appears intentional for internal tables, but any RPCs that use them must continue to enforce developer/role checks.
 - The security advisor still reports many `SECURITY DEFINER` functions executable by API roles, including trigger functions and selected public workflows. These require function-by-function review; do not revoke them in bulk because some are required for offline sync, approvals, storefront submissions, and controlled administration.
 - Supabase Auth leaked-password protection is currently disabled and should be enabled in the Auth security settings before production onboarding.
 
@@ -152,3 +152,11 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Updated Business Intelligence to show live obligation ageing and a 90-day due-date commitments forecast, with clear limitations displayed. Added rule-based in-app financial anomaly alerts for overdue receivables/payables and near-term contractual cash gaps. Added a controlled reopen action to the existing accounting workflow controls.
 - Updated the service-worker cache to v268 so clients fetch the new Business Intelligence interface.
 - Database migration and repository changes are applied/committed. Authenticated live acceptance is still required for import/match role denials, ageing bucket values, forecast totals, period reopen/reversal, backdated journal acceptance while reopened, and re-close/lock behaviour. Do not test period reopening on production books without a controlled test business and backup.
+
+
+### Migration 064 security follow-up
+
+- Security advisor now reports 124 anonymous-executable SECURITY DEFINER functions, down from 126 after restricting the two bank reconciliation RPCs. Remaining findings are still under function-by-function review; do not bulk-revoke trigger helpers.
+- The new `accounting_period_reopen_events` table is intentionally RLS-enabled with no direct policies and no grants to `anon`, `authenticated` or `PUBLIC`. It is written only by the owner/admin-authorized reopening RPC and is not directly exposed to the Data API.
+- Database catalog verification confirms all six new finance RPCs deny anonymous execution and allow authenticated execution, the closed-period guard references the reopen audit events, and migration 064 is recorded in Supabase migration history.
+- The Supabase advisor now lists twelve RLS-enabled tables without policies; this includes the new internal reopen-event table and the previously reviewed internal platform tables. The advisor's no-policy notice is intentional for these direct-client-inaccessible tables, but their privileged RPC access paths must continue to be reviewed.
