@@ -160,3 +160,15 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - The new `accounting_period_reopen_events` table is intentionally RLS-enabled with no direct policies and no grants to `anon`, `authenticated` or `PUBLIC`. It is written only by the owner/admin-authorized reopening RPC and is not directly exposed to the Data API.
 - Database catalog verification confirms all six new finance RPCs deny anonymous execution and allow authenticated execution, the closed-period guard references the reopen audit events, and migration 064 is recorded in Supabase migration history.
 - The Supabase advisor now lists twelve RLS-enabled tables without policies; this includes the new internal reopen-event table and the previously reviewed internal platform tables. The advisor's no-policy notice is intentional for these direct-client-inaccessible tables, but their privileged RPC access paths must continue to be reviewed.
+
+
+### Subscription in-app notifications — migrations 065–066
+
+- Added `business_notifications` with owner-recipient scoping, unique deduplication keys, RLS, and an index for recent/unread notices.
+- Added a privileged, non-client-callable generator. It creates one-time reminders 7, 3 and 1 days before the subscription period ends; overdue pending-invoice reminders; and notices for verified payments, grace-period starts and expirations.
+- Added a daily `pg_cron` job at 00:15 UTC. The existing 00:05 UTC subscription expiry job is unchanged.
+- Added the top-bar in-app notification centre with unread count, read-one and mark-all-read actions. It queries through the signed-in Supabase client; RLS restricts rows to the authenticated owner.
+- Migration 066 restricts authenticated updates to the `read_at` column; clients cannot edit notification titles, message bodies, recipient IDs or deduplication keys.
+- Supabase catalog verification: notification table exists, RLS is enabled, only own-row SELECT/UPDATE policies exist, the generator is SECURITY DEFINER with an empty search path, execution is denied to anon/authenticated and granted to service_role, and the daily cron job is active.
+- The notification table was empty at verification time. No real customer notification was sent or generated during deployment checks. The live UI still requires a signed-in owner acceptance test, and scheduled reminder content should be verified with controlled test subscription/invoice dates before production rollout.
+- This is in-app notification delivery only. SMS, email, WhatsApp and Orange Money provider callbacks are not included in this phase.
