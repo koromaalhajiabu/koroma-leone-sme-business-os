@@ -114,3 +114,13 @@ The Supabase security audit SQL is read-only. It reports tables without RLS, RLS
 - Added required-input validation and retained the developer authorization check, audit logging, and authenticated-only execution grant.
 - Applied migration 060 and verified the deployed function definition contains the owner-protection check. Verified `anon` cannot execute the RPC and `authenticated` can.
 - This is a source/catalog verification, not a live two-account UI test. A controlled test with two real customer accounts is still required to prove cross-business isolation end to end.
+
+
+## Refund and transfer authorization — migrations 061–062
+
+- Hardened `sync_sale_return` to use the shared `has_business_role` authorization gate. This checks approved customer status, active platform account, maintenance mode, active membership, business suspension/freeze state, and permitted role before a refund can be processed.
+- Hardened `cancel_branch_stock_transfer` to require an active, approved business membership before applying the existing manager/admin/owner or original-requester cancellation rule.
+- Restricted both RPCs to authenticated callers; verified anonymous execution is denied and authenticated execution is allowed.
+- Verified the deployed function definitions contain the new authorization gates.
+- No transaction rows or customer records were modified by these migrations.
+- These checks establish database-side authorization, but do not replace a live acceptance test with two distinct customer accounts.
