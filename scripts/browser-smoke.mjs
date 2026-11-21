@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
-const base = process.env.WHITE_LION_SMOKE_URL || 'https://koromaalhajiabu.github.io/white-lion-sme-business-os/';
+const base = process.env.WHITE_LION_SMOKE_URL || 'https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/';
 const testEmail = process.env.WHITE_LION_TEST_EMAIL || '';
 const testPassword = process.env.WHITE_LION_TEST_PASSWORD || '';
 const hasTestCredentials = Boolean(testEmail && testPassword);
