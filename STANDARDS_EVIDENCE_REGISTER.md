@@ -1,7 +1,7 @@
 # Standards Evidence Register
 
 **Product:** Koroma Leone SME Business Operating System  
-**Repository:** `koromaalhajiabu/white-lion-sme-business-os`  
+**Repository:** `koromaalhajiabu/koroma-leone-sme-business-os`  
 **Register version:** 1.0  
 **Created:** 2026-11-12  
 **Register owner:** Koroma Leone Tech  
