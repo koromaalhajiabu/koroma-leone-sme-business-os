@@ -1,6 +1,6 @@
 # Koroma Leone SME Business Operating System — Professional Readiness Review
 
-Last reviewed: 12 November 2026
+Last reviewed: 21 November 2026
 
 ## Existing capabilities found in the repository
 
@@ -12,7 +12,7 @@ Last reviewed: 12 November 2026
 - Inventory controls including barcode, batch/expiry tracking and controlled stock adjustments.
 - Private business document storage with signed downloads.
 - Sports and local-league competition, season, club, player, fixture, event and discipline schema.
-- Developer account controls and audit logging.
+- Developer account controls and audit logging.\n- Cloud HR employee records and payroll runs with draft/approval/payment-reference workflow.\n- Customer loyalty accounts, point adjustments/redemptions and a transaction ledger.\n- Online storefront, delivery dispatch/tracking, supplier portal and executive/automation workspaces.
 
 These are repository-level findings. They do not independently prove every feature is correctly configured or functioning in the live Supabase project.
 
@@ -27,7 +27,7 @@ These are repository-level findings. They do not independently prove every featu
 7. **Mobile/PWA quality needs device testing.** Test install/update behaviour, offline launch, theme persistence, language selection (including Arabic RTL), navigation, forms, keyboard handling, printing and small-screen tables on Android and iPhone.
 8. **Subscription capability is partly implemented.** The repository contains plan definitions, trials, invoice/payment records, manual payment submission and administrator verification, plus capacity and expiry enforcement migrations. Direct Orange Money/AfriMoney/bank API checkout and automated recurring collection are not implemented or independently verified. The numbered migration files also contain legacy duplicate version labels (022 and 026); do not rely on Supabase CLI migration history until those historical files are reconciled against the live project's migration history.
 
-## New changes in this release
+## New changes in this release\n\n- Added `premium-hr-loyalty.js` with separate HR & Payroll and Customer Loyalty navigation workspaces; the existing local Employees page and all prior modules remain in place.\n- HR & Payroll uses the existing business-scoped `employees`, `payroll_runs` and `payroll_items` tables. It supports employee create/update, draft payroll generation, editable draft deductions, approval, payslip printing and manual payment-reference recording. It does not calculate statutory tax automatically or initiate salary transfers.\n- Customer Loyalty uses the existing `customer_loyalty_accounts` and `customer_loyalty_ledger` tables. Migration 055 adds the `SECURITY INVOKER` transactional RPC `apply_customer_loyalty_points`, with business RLS still enforced, so account balance and ledger changes commit together. Default tiers are balance-based: Bronze 100+, Silver 500+, Gold 1,000+.\n- Added the new module to the service-worker app shell and incremented the cache version to v265.\n- Live schema inspection confirmed the HR/payroll and loyalty tables already existed with RLS enabled; no existing tables or business records were dropped or rewritten.\n
 
 - Added `supabase/migrations/018_double_entry_general_ledger.sql` and included it in `supabase/INSTALL_ALL_OPERATIONS.sql`.
 - Added `supabase/migrations/019_weighted_average_inventory_cogs.sql` and included it in the consolidated installer.
@@ -56,7 +56,7 @@ These are repository-level findings. They do not independently prove every featu
 - A cashbook entry cannot be reconciled more than once.
 - The scheduled backup workflow succeeds with the configured required secrets; the encrypted archive passes checksum and HMAC verification. The latest successful run visible in GitHub was on 10 November 2026 before the current release commit; run it again after this release and retain the artifact outside GitHub.
 - A full database and Storage restoration succeeds in a separate Supabase project, including document downloads.
-- Subscription plan/pricing, manual payment submission and verification, renewals, cancellation, failed-payment handling and entitlement enforcement are tested before commercial launch. Direct provider checkout must remain clearly marked unavailable until implemented and tested.
+- HR/payroll must be tested with an owner/admin/accountant account and a manager account; verify role-denial cases, payroll totals, deductions, approval and payment recording.\n- Customer loyalty must be tested with cashier/manager and unauthorised roles; verify award, redemption, insufficient-points rejection and ledger consistency.\n- Subscription plan/pricing, manual payment submission and verification, renewals, cancellation, failed-payment handling and entitlement enforcement are tested before commercial launch. Direct provider checkout must remain clearly marked unavailable until implemented and tested.
 - Android and iPhone PWA installation, offline launch, update and theme persistence are verified.
 
 ## Release status
