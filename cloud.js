@@ -1423,8 +1423,9 @@
     const button = $('wlSyncNow');
     if (button) { button.disabled = true; button.textContent = 'Syncing…'; }
     const types = ['products','customers','suppliers','expenses'];
-    let total = 0, transactionTotal = 0;
+    let total = 0, transactionTotal = 0, approvalPending = 0;
     try {
+      const liveApprovalSettings = await refreshApprovalSettings();
       const localBranchStocks = await all('branchInventory');
       for (const type of types) {
         const rows = await all(type);
@@ -1457,6 +1458,37 @@
             client_record_id:stableId, name:row.name || (type === 'customers' ? 'Unnamed customer':'Unnamed supplier'),
             phone:row.phone || null, email:row.email || null, address:row.address || null, notes:row.notes || null
           };
+          if (type === 'expenses' && liveApprovalSettings.require_expense_approvals) {
+            const existingExpense = await client.from('expenses').select('id')
+              .eq('business_id',activeBusiness.id).eq('client_record_id',stableId).maybeSingle();
+            if (existingExpense.error) throw new Error('Could not verify expense approval status: '+existingExpense.error.message);
+            if (existingExpense.data) {
+              row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;
+              row.cloudSyncedAt=new Date().toISOString();await put(type,row);continue;
+            }
+            row.approvalClientRequestId=row.approvalClientRequestId||crypto.randomUUID();
+            const approval = await client.rpc('create_business_operation_approval',{
+              p_business_id:activeBusiness.id,
+              p_client_request_id:row.approvalClientRequestId,
+              p_request_type:'expense',
+              p_title:(row.category||'Expense')+' · '+(row.description||'Expense'),
+              p_description:row.description||'Expense',
+              p_amount:Number(row.amount||0),
+              p_currency_code:activeBusiness.currency_code||'SLE',
+              p_payload:{
+                operation:'expense',client_record_id:stableId,
+                branch_id:row.branchId||selectedBranch?.id||null,
+                category:row.category||'General',description:row.description||'Expense',
+                amount:Number(row.amount||0),payment_method:row.payment||'cash',
+                expense_date:row.date||new Date().toISOString().slice(0,10)
+              }
+            });
+            if (approval.error) throw new Error('Expense approval request failed: '+approval.error.message);
+            row.localBusinessId=activeBusiness.id;
+            row.approvalRequestId=approval.data?.request_id||row.approvalRequestId;
+            row.approvalStatus='pending';row.approvalSubmittedAt=new Date().toISOString();
+            await put(type,row);approvalPending++;continue;
+          }
           const {data,error} = await client.rpc('sync_local_records', {
             p_business_id:activeBusiness.id,
             p_event_id:type + ':' + stableId,
@@ -1515,6 +1547,43 @@
             total:Number(row.total || 0),
             items
           };
+          if (type === 'purchases' && liveApprovalSettings.require_purchase_approvals) {
+            const existingPurchase = await client.from('offline_purchases').select('id')
+              .eq('business_id',activeBusiness.id).eq('client_transaction_id',row.cloudTransactionId).maybeSingle();
+            if (existingPurchase.error) throw new Error('Could not verify purchase approval status: '+existingPurchase.error.message);
+            if (existingPurchase.data) {
+              row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;
+              row.cloudSyncedAt=new Date().toISOString();row.cloudApprovalExecuted=true;
+              await put(type,row);continue;
+            }
+            row.approvalClientRequestId=row.approvalClientRequestId||crypto.randomUUID();
+            const approval = await client.rpc('create_business_operation_approval',{
+              p_business_id:activeBusiness.id,
+              p_client_request_id:row.approvalClientRequestId,
+              p_request_type:'purchase',
+              p_title:'Purchase · '+(row.supplier||'Supplier')+' · '+(row.receipt||row.cloudTransactionId),
+              p_description:'Stock purchase awaiting approval before receipt.',
+              p_amount:Number(row.total||0),
+              p_currency_code:activeBusiness.currency_code||'SLE',
+              p_payload:{
+                operation:'purchase',branch_id:row.branchId,
+                client_transaction_id:row.cloudTransactionId,
+                transaction_date:row.date||new Date().toISOString().slice(0,10),
+                supplier_name:row.supplier||null,
+                items:items.map(item=>({
+                  product_client_record_id:item.product_client_record_id,
+                  product_name:item.product_name,
+                  quantity:item.quantity,
+                  unit_cost:item.unit_cost
+                }))
+              }
+            });
+            if (approval.error) throw new Error('Purchase approval request failed: '+approval.error.message);
+            row.localBusinessId=activeBusiness.id;
+            row.approvalRequestId=approval.data?.request_id||row.approvalRequestId;
+            row.approvalStatus='pending';row.approvalSubmittedAt=new Date().toISOString();
+            await put(type,row);approvalPending++;continue;
+          }
           const {data,error} = await client.rpc('sync_branch_transaction', {
             p_business_id:activeBusiness.id,
             p_branch_id:row.branchId,
@@ -1575,6 +1644,39 @@
           return {product_client_record_id:product.cloudClientRecordId,product_name:item.name||product.name,
             quantity:Number(item.quantity||0),restock:!!item.restock};
         });
+        if (liveApprovalSettings.require_refund_approvals) {
+          const existingReturn=await client.from('offline_sale_returns').select('id')
+            .eq('business_id',activeBusiness.id).eq('client_return_id',row.clientReturnId||String(row.id)).maybeSingle();
+          if(existingReturn.error)throw new Error('Could not verify refund approval status: '+existingReturn.error.message);
+          if(existingReturn.data){
+            row.localBusinessId=activeBusiness.id;row.cloudSyncedFor=activeBusiness.id;
+            row.cloudReturnId=existingReturn.data.id;row.cloudSyncedAt=new Date().toISOString();
+            await put('returns',row);returnTotal++;continue;
+          }
+          row.approvalClientRequestId=row.approvalClientRequestId||crypto.randomUUID();
+          const approval=await client.rpc('create_business_operation_approval',{
+            p_business_id:activeBusiness.id,
+            p_client_request_id:row.approvalClientRequestId,
+            p_request_type:'refund',
+            p_title:'Refund · '+(row.saleReceipt||row.clientReturnId||row.id),
+            p_description:row.reason||'Customer refund request',
+            p_amount:Number(row.refundTotal||0),
+            p_currency_code:activeBusiness.currency_code||'SLE',
+            p_payload:{
+              operation:'refund',branch_id:row.branchId,
+              client_return_id:row.clientReturnId||String(row.id),
+              sale_client_transaction_id:saleTransactionId,
+              reason:row.reason||'Customer return',
+              refund_method:row.method||'cash',
+              items:returnItems
+            }
+          });
+          if(approval.error)throw new Error('Refund approval request failed: '+approval.error.message);
+          row.localBusinessId=activeBusiness.id;
+          row.approvalRequestId=approval.data?.request_id||row.approvalRequestId;
+          row.approvalStatus='pending';row.approvalSubmittedAt=new Date().toISOString();
+          await put('returns',row);approvalPending++;continue;
+        }
         const {data,error}=await client.rpc('sync_sale_return',{
           p_business_id:activeBusiness.id,p_branch_id:row.branchId,
           p_client_return_id:row.clientReturnId||String(row.id),
@@ -1586,9 +1688,9 @@
         row.cloudReturnId=data?.return_id||row.cloudReturnId;row.cloudSyncedAt=new Date().toISOString();
         await put('returns',row);returnTotal++;
       }
-      syncStatus('Sync complete: ' + total + ' master/expense records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns uploaded or confirmed.');
+      syncStatus('Sync complete: ' + total + ' master/expense records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns uploaded or confirmed; ' + approvalPending + ' operation(s) submitted for approval.');
 
-      say('Cloud sync completed: ' + total + ' records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns.');
+      say('Cloud sync completed: ' + total + ' records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns; ' + approvalPending + ' approval request(s) submitted.');
     } catch (error) {
       syncStatus('Sync paused: ' + error.message + '. Local records are preserved; retry when ready.');
     } finally {
