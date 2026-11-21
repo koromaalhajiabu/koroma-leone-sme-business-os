@@ -1,4 +1,4 @@
-/* White Lion SME — random accent palette controller. */
+/* White Lion SME — selectable colour palettes with a random launch option. */
 (function(){
  'use strict';
  if(window.__wlDynamicAccentLoaded)return;
@@ -11,12 +11,16 @@
   {id:'teal',name:'Teal',primary:'#087f83',deep:'#07595c',deepest:'#063d41',secondary:'#326a9b',secondaryDark:'#244d71',secondarySoft:'#dceaf5',soft:'#e8f7f6',line:'#cde9e6',glow:'rgba(50,106,155,.16)',body:'#f2faf9'},
   {id:'sapphire',name:'Sapphire',primary:'#35529e',deep:'#263d79',deepest:'#1c2d59',secondary:'#874875',secondaryDark:'#603252',secondarySoft:'#f0deeb',soft:'#edf1fc',line:'#d7def3',glow:'rgba(135,72,117,.16)',body:'#f4f6fd'}
  ];
- var root=document.documentElement,bar=document.getElementById('appearanceBar');
+ var root=document.documentElement;
+ var select=document.getElementById('wlAccentSelect');
+ var choiceKey='wl-sme-accent-choice',lastKey='wl-sme-last-accent';
+ function paletteById(id){return palettes.find(function(item){return item.id===id})||null}
  function randomPalette(except){
   var options=palettes.filter(function(item){return item.id!==except});
+  if(!options.length)options=palettes;
   return options[Math.floor(Math.random()*options.length)];
  }
- function applyPalette(palette){
+ function applyPalette(palette,choice){
   if(!palette)return;
   root.setAttribute('data-wl-accent',palette.id);
   var vars={
@@ -26,41 +30,55 @@
    '--wl-palette-soft':palette.soft,'--wl-palette-line':palette.line,
    '--wl-palette-glow':palette.glow,'--wl-palette-body':palette.body,
    '--navy':palette.primary,'--navy2':palette.deep,'--green':palette.primary,
-   '--blue':palette.secondary,'--gold':palette.secondary,'--gold2':palette.secondarySoft
+   '--blue':palette.secondary,'--gold':palette.secondary,'--gold2':palette.secondarySoft,
+   '--bg':palette.body
   };
   Object.keys(vars).forEach(function(key){root.style.setProperty(key,vars[key])});
-  try{localStorage.setItem('wl-sme-last-accent',palette.id)}catch(e){}
+  try{localStorage.setItem(lastKey,palette.id)}catch(e){}
+  if(select&&select.value!==choice)select.value=choice;
   var name=document.getElementById('wlAccentName');
-  if(name)name.textContent='Colour palette: '+palette.name;
+  if(name)name.textContent='Current palette: '+palette.name+(choice==='random'?' · Random on launch':'');
   var meta=document.querySelector('meta[name="theme-color"]');
   if(meta)meta.setAttribute('content',root.getAttribute('data-theme')==='dark'?'#101722':palette.primary);
   window.wlCurrentAccent=palette.name;
-  window.dispatchEvent(new CustomEvent('whiteLionAccentChanged',{detail:{id:palette.id,name:palette.name}}));
+  window.dispatchEvent(new CustomEvent('whiteLionAccentChanged',{detail:{id:palette.id,name:palette.name,choice:choice}}));
  }
- function installShuffleControl(){
-  if(!bar||document.getElementById('wlAccentShuffle'))return;
-  var modeButton=document.getElementById('appearanceBarToggle');
-  var actions=document.createElement('div');
-  actions.className='wl-appearance-actions';
-  var name=document.createElement('small');
-  name.id='wlAccentName';name.setAttribute('aria-live','polite');
-  var copy=bar.firstElementChild;
-  if(copy)copy.appendChild(name);
-  if(modeButton){bar.appendChild(actions);actions.appendChild(modeButton)}
-  else{bar.appendChild(actions)}
-  var shuffle=document.createElement('button');
-  shuffle.id='wlAccentShuffle';shuffle.type='button';shuffle.className='wl-accent-shuffle';
-  shuffle.textContent='✦ Shuffle colours';
-  shuffle.setAttribute('aria-label','Choose a new random colour theme');
-  shuffle.addEventListener('click',function(){
-   var current=root.getAttribute('data-wl-accent');
-   applyPalette(randomPalette(current));
-  });
-  actions.appendChild(shuffle);
+ function applyChoice(choice,persist){
+  var selected;
+  if(choice==='random'){
+   var last='';try{last=localStorage.getItem(lastKey)||''}catch(e){}
+   selected=randomPalette(last);
+  }else{
+   selected=paletteById(choice);
+   if(!selected)return;
+  }
+  if(persist){try{localStorage.setItem(choiceKey,choice)}catch(e){}}
+  applyPalette(selected,choice);
  }
- var last='';try{last=localStorage.getItem('wl-sme-last-accent')||''}catch(e){}
- var selected=randomPalette(last);
- applyPalette(selected);
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installShuffleControl,{once:true});
- else installShuffleControl();
+ function installSelector(){
+  select=document.getElementById('wlAccentSelect');
+  if(!select)return;
+  var saved='random';
+  try{
+   var stored=localStorage.getItem(choiceKey);
+   if(stored==='random'||paletteById(stored))saved=stored;
+   else localStorage.setItem(choiceKey,'random');
+  }catch(e){}
+  select.value=saved;
+  select.addEventListener('change',function(){applyChoice(select.value,true)});
+ }
+ var savedChoice='random';
+ try{
+  var storedChoice=localStorage.getItem(choiceKey);
+  if(storedChoice==='random'||paletteById(storedChoice))savedChoice=storedChoice;
+  else localStorage.setItem(choiceKey,'random');
+ }catch(e){}
+ applyChoice(savedChoice,false);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installSelector,{once:true});
+ else installSelector();
+ window.wlSetAccentTheme=function(choice){if(choice==='random'||paletteById(choice)){applyChoice(choice,true);if(select)select.value=choice}};
+ window.wlGetAccentTheme=function(){try{return localStorage.getItem(choiceKey)||'random'}catch(e){return 'random'}};
+ window.addEventListener('storage',function(event){
+  if(event.key===choiceKey&&(event.newValue==='random'||paletteById(event.newValue)))applyChoice(event.newValue,false);
+ });
 })();

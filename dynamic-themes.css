@@ -55,21 +55,27 @@ html[data-wl-accent][data-theme="dark"] .stat-icon,
 html[data-wl-accent][data-theme="dark"] .inventory-product-mark{background:rgba(255,255,255,.09)!important;color:var(--wl-palette-secondary-soft)!important}
 html[data-wl-accent][data-theme="dark"] .quick:hover{background:#202d40!important;border-color:var(--wl-palette-secondary)!important}
 html[data-wl-accent][data-theme="dark"] .pill{background:rgba(255,255,255,.09)!important;color:var(--wl-palette-secondary-soft)!important}
-#appearanceBar .wl-appearance-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-#appearanceBar .wl-accent-shuffle{
-  min-height:40px;padding:9px 13px;border:1px solid var(--wl-palette-secondary);
-  border-radius:9px;background:var(--wl-palette-soft);color:var(--wl-palette-deep);
-  font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer;
-  transition:background .25s ease,transform .2s ease,border-color .25s ease;
+#appearanceBar .wl-appearance-summary{min-width:130px}
+#appearanceBar .wl-appearance-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+#appearanceBar .wl-accent-select-wrap{display:flex;align-items:center;gap:8px;color:var(--wl-palette-deep);font-size:11px;font-weight:800;white-space:nowrap}
+#appearanceBar #wlAccentSelect{
+  min-width:158px;min-height:40px;padding:8px 32px 8px 11px;
+  border:1px solid var(--wl-palette-secondary);border-radius:9px;
+  background:var(--wl-palette-soft);color:var(--wl-palette-deep);
+  font-size:11px;font-weight:750;outline:none;cursor:pointer;
 }
-#appearanceBar .wl-accent-shuffle:hover{transform:translateY(-1px);background:var(--wl-palette-secondary-soft)}
-#appearanceBar .wl-accent-shuffle:focus-visible{outline:3px solid var(--wl-palette-glow);outline-offset:2px}
+#appearanceBar #wlAccentSelect:focus-visible{outline:3px solid var(--wl-palette-glow);outline-offset:2px}
 #appearanceBar #wlAccentName{display:block;color:var(--wl-palette-primary);font-size:10px;font-weight:750;margin-top:3px}
-html[data-theme="dark"][data-wl-accent] #appearanceBar .wl-accent-shuffle{background:#202d40;color:var(--wl-palette-secondary-soft);border-color:var(--wl-palette-secondary)}
+html[data-theme="dark"][data-wl-accent] #appearanceBar .wl-accent-select-wrap{color:var(--wl-palette-secondary-soft)}
+html[data-theme="dark"][data-wl-accent] #appearanceBar #wlAccentSelect{background:#202d40;color:#e8edf5;border-color:var(--wl-palette-secondary)}
+html[data-wl-accent]:not([data-theme="dark"]) body{background:linear-gradient(180deg,var(--wl-palette-body),#fff 82%)!important}
 @media(max-width:600px){
   #appearanceBar{align-items:flex-start;flex-wrap:wrap}
+  #appearanceBar .wl-appearance-summary{width:100%}
   #appearanceBar .wl-appearance-actions{width:100%;justify-content:stretch}
-  #appearanceBar .wl-appearance-actions button{flex:1 1 0;padding:9px 8px;font-size:10px}
+  #appearanceBar .wl-accent-select-wrap{flex:1 1 100%;justify-content:space-between;min-width:0}
+  #appearanceBar #wlAccentSelect{flex:1 1 auto;min-width:0;max-width:100%}
+  #appearanceBar #appearanceBarToggle{flex:1 1 100%;width:100%;padding:9px 8px;font-size:11px}
 }
 @media(prefers-reduced-motion:no-preference){
   html[data-wl-accent] .sidebar,
