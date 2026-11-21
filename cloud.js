@@ -1194,6 +1194,9 @@
       p_name: setup.name, p_industry: setup.industry, p_currency_code: setup.currency
     });
     if (error) return say('Could not create workspace: ' + error.message);
+    if (typeof window.whiteLionLinkPlatformReferral === 'function') {
+      window.whiteLionLinkPlatformReferral(data).catch(() => {});
+    }
     const { data: subscription, error: subscriptionError } = await client.from('business_subscriptions')
       .select('status,trial_ends_at')
       .eq('business_id', data)
