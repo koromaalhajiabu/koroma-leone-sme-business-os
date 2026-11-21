@@ -83,7 +83,7 @@ This is a manual statement import and matching foundation. It does not connect d
 
 Run the read-only [production security audit](supabase/PRODUCTION_SECURITY_AUDIT.sql) in the Supabase SQL Editor before launch. It reports RLS coverage, public grants and SECURITY DEFINER functions for review; it does not modify data or certify tenant isolation.
 
-See [PROFESSIONAL_READINESS.md](PROFESSIONAL_READINESS.md) for the feature inventory, known gaps, new migration details and required acceptance tests.
+Migration 058 hardens the retained legacy device-services financial view by enabling invoker permissions and underlying-table RLS. See [PROFESSIONAL_READINESS.md](PROFESSIONAL_READINESS.md) for the feature inventory, known gaps, security follow-up and required acceptance tests.
 
 See [BACKUP_GUIDE.md](BACKUP_GUIDE.md) for GitHub Actions secret setup, encrypted backups, integrity checks and recovery instructions.
 
