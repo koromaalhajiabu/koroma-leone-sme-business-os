@@ -17,7 +17,7 @@ The workflow encrypts the collected files before uploading an artifact to GitHub
 ## One-time GitHub configuration
 
 Open:
-https://github.com/koromaalhajiabu/white-lion-sme-business-os/settings/secrets/actions
+https://github.com/koromaalhajiabu/koroma-leone-sme-business-os/settings/secrets/actions
 
 Required Actions secrets (the current workflow reads exactly these two):
 1. `SUPABASE_SERVICE_ROLE_KEY` — service-role key for this project. It is used only inside the GitHub-hosted runner; never put it in frontend code or repository files.
