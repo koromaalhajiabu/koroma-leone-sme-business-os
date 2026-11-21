@@ -1296,7 +1296,8 @@
     const txRows = [...await all('sales'), ...await all('purchases')];
     const txPending = txRows.filter(row => row.cloudSyncedFor !== activeBusiness.id).length;
     const returnPending = (await all('returns')).filter(row => row.cloudSyncedFor !== activeBusiness.id).length;
-    syncStatus(pending + ' master/expense records, ' + txPending + ' sales/purchases and ' + returnPending + ' returns pending for this workspace.');
+    const awaitingApproval = [...await all('expenses'),...await all('purchases'),...await all('returns')].filter(row => row.localBusinessId === activeBusiness.id && row.approvalStatus && row.approvalStatus !== 'completed').length;
+    syncStatus(pending + ' master/expense records, ' + txPending + ' sales/purchases and ' + returnPending + ' returns pending for this workspace · ' + awaitingApproval + ' awaiting approval.');
   }
 
   async function downloadCloudRecords() {
