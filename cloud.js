@@ -1332,7 +1332,9 @@
           name:cloud.name,sku:cloud.sku||'',category:cloud.category||'',unit:cloud.unit||'unit',
           cost:Number(cloud.cost_price||0),price:Number(cloud.selling_price||0),reorder:Number(cloud.reorder_level||0),
           stock:selectedStock.get(cloud.id)||0,active:cloud.is_active,barcode:cloud.barcode||''};
-        await put('products',row);productMap.set(cloud.id,row.id);old?updated++:added++;
+        await put('products',row);
+        if(selectedBranch?.id){await put('branchInventory',{id:String(selectedBranch.id)+'|'+String(row.id),businessId,branchId:selectedBranch.id,productId:row.id,quantity:selectedStock.get(cloud.id)||0});}
+        productMap.set(cloud.id,row.id);old?updated++:added++;
       }
       const syncSimple=async(type,rows,localRows,mapRow)=>{
         for(const cloud of rows||[]){
@@ -1342,6 +1344,7 @@
           const row={...(old||{}),id:old?.id||('cloud-'+type+'-'+cloud.client_record_id),
             cloudClientRecordId:cloud.client_record_id,localBusinessId:businessId,cloudSyncedFor:businessId,
             cloudSyncedAt:new Date().toISOString(),...mapRow(cloud)};
+          if(type==='expenses'&&row.approvalStatus&&row.approvalStatus!=='completed')row.approvalStatus='completed';
           await put(type,row);old?updated++:added++;
         }
       };
@@ -1375,6 +1378,7 @@
             receipt:cloud.receipt||('PUR-'+cloud.client_transaction_id.slice(0,10)),
             date:cloud.transaction_date,customer:cloud.customer_name||'',supplier:cloud.supplier_name||'',
             payment:cloud.payment_method||'cash',subtotal:Number(cloud.subtotal??cloud.total??0),discount:Number(cloud.discount||0),tax:Number(cloud.tax||0),total:Number(cloud.total||0),items};
+          if(type==='purchases'&&row.approvalRequestId)row.approvalStatus='completed';
           await put(type,row);old?updated++:added++;
         }
       };
@@ -1404,7 +1408,7 @@
           saleReceipt:sale?.receipt||old?.saleReceipt||'',branchId:cloud.branch_id,localBusinessId:businessId,
           cloudSyncedFor:businessId,reason:cloud.reason,method:cloud.refund_method,
           refundTotal:Number(cloud.refund_total||0),items,date:(cloud.created_at||'').slice(0,10),
-          createdAt:cloud.created_at,restock:items.some(x=>x.restock)};
+          createdAt:cloud.created_at,restock:items.some(x=>x.restock),approvalStatus:'completed'};
         await put('returns',row);old?updated++:added++;
       }
       syncStatus('Download complete: '+added+' new, '+updated+' refreshed, '+skipped+' local unsynced records preserved, '+conflicts+' conflicts awaiting your choice.');
