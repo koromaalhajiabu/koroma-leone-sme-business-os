@@ -1,4 +1,4 @@
-# Koroma Leone SME Business Operating System
+# Koroma Leone Tech Business Operating System
 
 A multi-industry SME operations platform by Koroma Leone Tech. The frontend is deployed as a static Progressive Web App through GitHub Pages; Supabase provides authentication, cloud data and tenant security.
 
