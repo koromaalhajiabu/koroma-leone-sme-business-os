@@ -18,7 +18,7 @@
 .tools{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 15px}.tools input,.tools select{flex:1;min-width:180px;min-height:44px;padding:10px 12px;border:1px solid #d9e8df;border-radius:10px;background:white;color:#203b2b;font:inherit}
 .count{font-size:12px;color:#718078;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
 .league{background:#fff;border:1px solid #e0eae3;border-radius:15px;padding:17px;box-shadow:0 6px 20px #075b350a;min-width:0}
-.league h2{font-size:17px;color:#075b35;margin:0 0 7px}.meta{font-size:12px;color:#718078;margin-bottom:13px}.tag{display:inline-block;background:#eaf6ed;color:#087a43;border-radius:20px;padding:4px 8px;font-size:10px;font-weight:800;margin-bottom:10px}
+.league h2{font-size:17px;color:#075b35;margin:0 0 7px}.league-logo{width:62px;height:62px;object-fit:contain;border:1px solid #e0eae3;border-radius:12px;background:#f8fbf8;padding:5px;margin-bottom:8px}.meta{font-size:12px;color:#718078;margin-bottom:13px}.tag{display:inline-block;background:#eaf6ed;color:#087a43;border-radius:20px;padding:4px 8px;font-size:10px;font-weight:800;margin-bottom:10px}
 .open{display:inline-block;padding:10px 14px;border-radius:9px;background:#087a43;color:white;text-decoration:none;font-size:12px;font-weight:800}
 .state{background:white;border:1px solid #e0eae3;border-radius:14px;padding:25px;text-align:center;color:#718078;font-size:13px}.foot{text-align:center;color:#8b9a92;font-size:11px;margin-top:22px}.foot a{color:#087a43;font-weight:700}
 @media(max-width:620px){.grid{grid-template-columns:1fr}.hero{padding:20px 17px}.tools input,.tools select{min-width:100%}}
@@ -40,7 +40,7 @@ function render(){
  const q=document.getElementById('search').value.trim().toLowerCase(),type=document.getElementById('type').value;
  const shown=leagues.filter(x=>(!type||x.competition_type===type)&&[x.name,x.region,x.organiser,x.competition_type].join(' ').toLowerCase().includes(q));
  document.getElementById('count').textContent=shown.length+' published '+(shown.length===1?'league':'leagues');
- document.getElementById('grid').innerHTML=shown.length?shown.map(x=>'<article class="league"><span class="tag">PUBLIC LEAGUE</span><h2>'+esc(x.name)+'</h2><div class="meta">'+esc(x.competition_type||'Football competition')+'<br>'+esc(x.region||'Region not specified')+(x.organiser?' · '+esc(x.organiser):'')+'</div><a class="open" href="./public-league.html?t='+encodeURIComponent(x.public_share_token)+'">View league</a></article>').join(''):'<div class="state">No published leagues match your search.</div>';
+ document.getElementById('grid').innerHTML=shown.length?shown.map(x=>'<article class="league">'+(x.logo_url?'<img class="league-logo" src="'+esc(x.logo_url)+'" alt="'+esc(x.name)+' logo" loading="lazy">':'')+'<span class="tag">PUBLIC LEAGUE</span><h2>'+esc(x.name)+'</h2><div class="meta">'+esc(x.competition_type||'Football competition')+'<br>'+esc(x.region||'Region not specified')+(x.organiser?' · '+esc(x.organiser):'')+'</div><a class="open" href="./public-league.html?t='+encodeURIComponent(x.public_share_token)+'">View league</a></article>').join(''):'<div class="state">No published leagues match your search.</div>';
 }
 async function load(){
  const grid=document.getElementById('grid');
