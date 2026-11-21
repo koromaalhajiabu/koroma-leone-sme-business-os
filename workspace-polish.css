@@ -256,7 +256,8 @@ body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  .topbar{padding:8px 10px;min-height:56px}
  .crumb{font-size:13px;white-space:normal;line-height:1.25}
  .top-actions{gap:5px}
- .top-actions .wl-language-control{display:none}
+ .top-actions .wl-language-control{display:flex;align-items:center;flex:0 0 auto;min-width:0}
+ .top-actions .wl-language-control select{min-width:74px;max-width:84px}
  .top-actions .theme-toggle{padding:7px 9px;font-size:10px}
  .top-actions .theme-toggle #themeLabel{display:none}
  .content{padding:14px 10px calc(28px + env(safe-area-inset-bottom))}
