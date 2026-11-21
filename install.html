@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#087a43">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Koroma Leone SME">
+<meta name="apple-mobile-web-app-title" content="Koroma Leone Tech">
 <meta name="apple-touch-icon" href="./icons/white-lion-180.png">
-<title>Install Koroma Leone SME</title>
-<link rel="manifest" href="./manifest.webmanifest?v=48">
+<title>Install Koroma Leone Tech</title>
+<link rel="manifest" href="./manifest.webmanifest?v=49">
 <link rel="icon" href="./icons/white-lion-icon.svg">
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:22px;background:linear-gradient(145deg,#075b35,#0c8f52);font:16px/1.5 system-ui,Arial;color:#203b2b}.card{width:min(440px,100%);background:#fff;border-radius:22px;padding:28px;box-shadow:0 24px 70px #0005;text-align:center}.logo{width:82px;height:82px;object-fit:contain;border-radius:20px;margin:0 auto 14px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:2px;color:#075b35}.card h1{font-size:25px;margin:7px 0}.card p{color:#718078;font-size:14px}.install{display:block;width:100%;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#087a43,#075b35);color:#fff;font-size:16px;font-weight:800;margin:22px 0 12px}.open{display:block;padding:12px;color:#075b35;font-weight:700;text-decoration:none}.steps{margin-top:18px;padding:14px;background:#f5faf6;border-radius:12px;text-align:left;font-size:13px;color:#718078}.steps b{color:#203b2b}.foot{font-size:11px;color:#718078;margin-top:20px}
@@ -16,13 +16,13 @@
 </head>
 <body>
 <main class="card">
-<img class="logo" src="./icons/koroma-leone-tech-crest.svg?v=2" alt="Koroma Leone logo">
+<img class="logo" src="./icons/koroma-leone-tech-crest.svg?v=2" alt="Koroma Leone Tech logo">
 <div class="eyebrow">Koroma Leone Tech</div>
-<h1>Install Koroma Leone SME</h1>
-<p>Add Koroma Leone SME to your phone's home screen. It opens in its own app window. Your business records remain in the app's local storage and sync when connected.</p>
+<h1>Install Koroma Leone Tech</h1>
+<p>Add Koroma Leone Tech to your phone's home screen. It opens in its own app window. Your business records remain in the app's local storage and sync when connected.</p>
 <button class="install" id="installBtn" type="button">Preparing installation…</button>
 <a class="open" href="./?app=white-lion-sme-v4">Open the business system</a>
-<div class="steps" id="help"><b>Android (Chrome):</b><br>1. Tap <b>Install Koroma Leone SME</b> if the button is available.<br>2. If not, open Chrome menu ⋮ and choose <b>Install app</b> or <b>Add to Home screen</b>.<br>3. Confirm, then open Koroma Leone SME from your home screen or app list.<br><br><b>iPhone (Safari):</b><br>1. Open this page in Safari.<br>2. Tap the <b>Share</b> icon.<br>3. Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.<br><br><b>If it says already installed:</b> open the existing Koroma Leone SME icon. Do not create another shortcut.</div>
+<div class="steps" id="help"><b>Android (Chrome):</b><br>1. Tap <b>Install Koroma Leone Tech</b> if the button is available.<br>2. If not, open Chrome menu ⋮ and choose <b>Install app</b> or <b>Add to Home screen</b>.<br>3. Confirm, then open Koroma Leone Tech from your home screen or app list.<br><br><b>iPhone (Safari):</b><br>1. Open this page in Safari.<br>2. Tap the <b>Share</b> icon.<br>3. Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.<br><br><b>If it says already installed:</b> open the existing Koroma Leone Tech icon. Do not create another shortcut.</div>
 <div class="foot">Designed by Alhaji Abu Koroma</div>
 </main>
 <script>
@@ -39,12 +39,12 @@ window.addEventListener('beforeinstallprompt',event=>{
  event.preventDefault();
  deferredPrompt=event;
  btn.disabled=false;
- btn.textContent='Install Koroma Leone SME';
+ btn.textContent='Install Koroma Leone Tech';
 });
 window.addEventListener('appinstalled',()=>{
  deferredPrompt=null;
  btn.disabled=true;
- btn.textContent='Koroma Leone SME installed';
+ btn.textContent='Koroma Leone Tech installed';
 });
 btn.addEventListener('click',async()=>{
  if(!deferredPrompt){showManual(/iPad|iPhone|iPod/.test(navigator.userAgent)?'On iPhone or iPad, use Safari Share → Add to Home Screen.':'Use the browser menu and choose Install app or Add to Home screen.');return;}
@@ -53,7 +53,7 @@ btn.addEventListener('click',async()=>{
   await deferredPrompt.prompt();
   const choice=await deferredPrompt.userChoice;
   if(choice?.outcome==='accepted'){btn.textContent='Installation accepted';}
-  else{btn.disabled=false;btn.textContent='Install Koroma Leone SME';}
+  else{btn.disabled=false;btn.textContent='Install Koroma Leone Tech';}
  }catch(e){showManual('Automatic installation is unavailable. Use the Chrome menu steps below.');}
  deferredPrompt=null;
 });
