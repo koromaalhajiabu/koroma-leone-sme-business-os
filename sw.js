@@ -1,5 +1,5 @@
 /* Koroma Leone SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='koroma-leone-sme-v285';
+const CACHE_NAME='koroma-leone-sme-v286';
 const APP_SHELL=[
   './',
   './index.html',
@@ -39,7 +39,7 @@ const APP_SHELL=[
   './external-affiliate-networks.js?v=2',
   './platform-referrals.js?v=1',
   './i18n.js?v=11',
-  './cloud.js?v=62',
+  './cloud.js?v=63',
   './operations.js?v=25',
   './documents.js?v=3',
   './phone-unlocking.js?v=2',
@@ -81,7 +81,7 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys
-      .filter(key => key.startsWith('white-lion-sme-') && key !== CACHE_NAME)
+      .filter(key => (key.startsWith('white-lion-sme-') || key.startsWith('koroma-leone-sme-')) && key !== CACHE_NAME)
       .map(key => caches.delete(key)));
     await self.clients.claim();
   })());
