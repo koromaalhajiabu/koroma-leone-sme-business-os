@@ -96,6 +96,9 @@
   function photoExtension(file) {
     return file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
   }
+  function photoToken() {
+    return window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,12);
+  }
   async function uploadHospitalPhoto(file,path) {
     validateHospitalPhoto(file);
     var result=await client().storage.from('hospital-people-photos').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});
@@ -665,14 +668,31 @@
     function nullable(name){return data[name] ? data[name] : null;}
     try {
       if(kind==='patient'){
+        var patientPhoto=validateHospitalPhoto(data.patient_photo);
         Object.assign(payload,{patient_number:'PAT-'+Date.now().toString(36).toUpperCase()+'-'+Math.floor(Math.random()*90+10),
           first_name:data.first_name.trim(),last_name:data.last_name.trim(),date_of_birth:nullable('date_of_birth'),
           gender:nullable('gender'),phone:nullable('phone'),email:nullable('email'),address:nullable('address'),
           blood_group:nullable('blood_group'),allergies:nullable('allergies'),emergency_contact_name:nullable('emergency_contact_name'),
           emergency_contact_phone:nullable('emergency_contact_phone'),notes:nullable('notes'),created_by:user});
-        var p=await client().from('hospital_patients').insert(payload);
+        var p=await client().from('hospital_patients').insert(payload).select('id').single();
         if(p.error) throw p.error;
-        toast('Patient registered successfully.');
+        if(patientPhoto){
+          try{
+            var patientPath=b.id+'/patients/'+p.data.id+'/'+photoToken()+'.'+photoExtension(patientPhoto);
+            await uploadHospitalPhoto(patientPhoto,patientPath);
+            var patientPhotoSave=await client().from('hospital_patients').update({photo_path:patientPath}).eq('id',p.data.id).eq('business_id',b.id);
+            if(patientPhotoSave.error){
+              await client().storage.from('hospital-people-photos').remove([patientPath]);
+              throw patientPhotoSave.error;
+            }
+            currentPatientPhotoUrls={};
+            toast('Patient registered and photograph saved securely.');
+          }catch(photoError){
+            toast('Patient registered, but the photograph could not be saved: '+photoError.message,true);
+          }
+        }else{
+          toast('Patient registered successfully.');
+        }
       } else if(kind==='appointment'){
         Object.assign(payload,{patient_id:data.patient_id,department_id:nullable('department_id'),doctor_staff_id:nullable('doctor_staff_id'),
           appointment_at:new Date(data.appointment_at).toISOString(),reason:nullable('reason'),notes:nullable('notes'),status:'scheduled'});
@@ -734,6 +754,7 @@
         if(inv.error) throw inv.error;
         toast('Invoice created.');
       } else if(kind==='staff'){
+        var staffPhoto=validateHospitalPhoto(data.staff_photo);
         var st=await client().rpc('hospital_assign_staff_by_email',{
           p_business_id:b.id,
           p_staff_email:data.staff_email.trim().toLowerCase(),
@@ -746,7 +767,23 @@
           p_phone:nullable('phone')
         });
         if(st.error) throw st.error;
-        toast('Account linked and hospital role assigned. The workspace role was not changed.');
+        if(staffPhoto){
+          try{
+            var staffPath=b.id+'/staff/'+st.data+'/'+photoToken()+'.'+photoExtension(staffPhoto);
+            await uploadHospitalPhoto(staffPhoto,staffPath);
+            var staffPhotoSave=await client().from('hospital_staff').update({photo_path:staffPath}).eq('id',st.data).eq('business_id',b.id);
+            if(staffPhotoSave.error){
+              await client().storage.from('hospital-people-photos').remove([staffPath]);
+              throw staffPhotoSave.error;
+            }
+            currentStaffPhotoUrls={};
+            toast('Staff account linked, role assigned and photograph saved securely.');
+          }catch(photoError){
+            toast('Staff account linked and role assigned, but the photograph could not be saved: '+photoError.message,true);
+          }
+        }else{
+          toast('Account linked and hospital role assigned. The workspace role was not changed.');
+        }
       } else if(kind==='department'){
         Object.assign(payload,{name:data.name.trim(),description:nullable('description')});
         var dep=await client().from('hospital_departments').insert(payload);
