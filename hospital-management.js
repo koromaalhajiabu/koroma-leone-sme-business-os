@@ -282,7 +282,7 @@
       '.wlh-badge{display:inline-block;border-radius:30px;padding:4px 8px;font-size:9px;font-weight:850;text-transform:capitalize;white-space:nowrap}.wlh-badge.good{background:#e8f6ed;color:#167447}.wlh-badge.warn{background:#fff4df;color:#956917}.wlh-badge.bad{background:#fff0f0;color:#ae3d49}.wlh-badge.neutral{background:#eef2f0;color:#637168}',
       '.wlh-search{width:min(280px,100%);padding:9px 11px;border:1px solid #dce6df;border-radius:9px;font-size:11px}.wlh-footer{text-align:center;color:#9aa79e;font-size:9px;padding:18px 0 5px}',
       '.wlh-avatar{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#e6f3ea;color:#17633d;font-size:11px;font-weight:900;vertical-align:middle;flex:none}.wlh-avatar img{width:100%;height:100%;object-fit:cover}',
-      '.wlh-portal-hero{display:flex;align-items:center;gap:14px;padding:18px;border-radius:14px;background:linear-gradient(120deg,#075b35,#0b7546);color:#fff;margin-bottom:14px}.wlh-portal-hero h2{margin:2px 0 4px;font-size:20px}.wlh-portal-hero p{margin:0;color:#d8eee0;font-size:11px}.wlh-portal-hero .wlh-avatar{width:62px;height:62px;background:#ffffff28;color:#fff;border:2px solid #ffffff66}.wlh-portal-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.wlh-portal-link{text-align:left;border:1px solid #e3ebe4;border-radius:12px;padding:14px;background:#fff;color:#244432;cursor:pointer;font-size:12px;font-weight:800}.wlh-portal-link small{display:block;color:#7c8d82;font-size:10px;font-weight:500;margin-top:5px}',
+      '.wlh-portal-hero{display:flex;align-items:center;gap:14px;padding:18px;border-radius:14px;background:linear-gradient(120deg,#075b35,#0b7546);color:#fff;margin-bottom:14px}.wlh-portal-hero h2{margin:2px 0 4px;font-size:20px}.wlh-portal-hero p{margin:0;color:#d8eee0;font-size:11px}.wlh-portal-hero .wlh-avatar{width:62px;height:62px;background:#ffffff28;color:#fff;border:2px solid #ffffff66}.wlh-hospital-crest{width:68px;height:68px;flex:0 0 68px;object-fit:contain;object-position:center;background:#fff;border:2px solid #ffffff99;border-radius:14px;padding:5px;box-sizing:border-box}.wlh-portal-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.wlh-portal-link{text-align:left;border:1px solid #e3ebe4;border-radius:12px;padding:14px;background:#fff;color:#244432;cursor:pointer;font-size:12px;font-weight:800}.wlh-portal-link small{display:block;color:#7c8d82;font-size:10px;font-weight:500;margin-top:5px}',
       '@media(max-width:560px){.wlh-portal-links{grid-template-columns:repeat(2,minmax(0,1fr))}}',
       '.wlh-note{font-size:10px;color:#849187;line-height:1.6}.wlh-empty-state{padding:22px;text-align:center;color:#839087;font-size:11px;background:#f8fbf8;border:1px dashed #dce8df;border-radius:10px}',
       '@media(max-width:850px){.wlh-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wlh-two{grid-template-columns:1fr}}',
@@ -330,6 +330,16 @@
     var roleLabel=isStaffPortal?staffRole.replaceAll('_',' ').replace(/\b\w/g,function(x){return x.toUpperCase();}):membershipRole.replaceAll('_',' ').replace(/\b\w/g,function(x){return x.toUpperCase();});
     var department=isStaffPortal && currentStaff ? (departments.find(function(d){return d.id===currentStaff.department_id;})||{}).name : '';
     var photoUrl=isStaffPortal && currentStaff ? await signedPhotoUrl(currentStaff.photo_path) : '';
+    // Show the selected hospital/business crest on the approved-access portal.
+    // Prefer the workspace's uploaded crest; use the platform crest as a fallback.
+    var hospitalCrestUrl='icons/koroma-leone-tech-crest.svg?v=3';
+    try {
+      var activeBusiness=business();
+      var cloudApi=window.whiteLionCloud;
+      if(activeBusiness && activeBusiness.logo_path && cloudApi && typeof cloudApi.getBusinessLogoUrl==='function'){
+        hospitalCrestUrl=await cloudApi.getBusinessLogoUrl(activeBusiness.logo_path)||hospitalCrestUrl;
+      }
+    } catch(e) { console.warn('Hospital crest could not be loaded:',e); }
     var linksByRole={
       doctor:['clinical','patients','appointments','admissions','laboratory','pharmacy'],
       nurse:['patients','appointments','clinical','admissions','wards'],
@@ -367,7 +377,7 @@
       administrator:'You can access the hospital administration and operational functions assigned to your account.'
     };
     var intro=isStaffPortal?(roleDescription[staffRole]||'Your hospital role determines which sections you can access.'):'Manage the hospital workspace and review the authorised operational areas.';
-    var profile='<div class="wlh-portal-hero">'+avatar(photoUrl,displayName)+'<div><span class="wlh-kicker" style="color:#e1c77d">APPROVED HOSPITAL ACCESS</span><h2>'+esc(displayName)+'</h2><p>'+esc(roleLabel)+(department?' · '+esc(department):'')+'</p><p>'+esc((session()&&session().user&&session().user.email)||'')+'</p></div></div>';
+    var profile='<div class="wlh-portal-hero"><img class="wlh-hospital-crest" src="'+esc(hospitalCrestUrl)+'" alt="Hospital crest" onerror="this.onerror=null;this.src=\'icons/koroma-leone-tech-crest.svg?v=3\'"><div>'+avatar(photoUrl,displayName)+'<span class="wlh-kicker" style="color:#e1c77d">APPROVED HOSPITAL ACCESS</span><h2>'+esc(displayName)+'</h2><p>'+esc(roleLabel)+(department?' · '+esc(department):'')+'</p><p>'+esc((session()&&session().user&&session().user.email)||'')+'</p></div></div>';
     var accessCard=panel('Your approved access',intro+
       '<div class="wlh-actions" style="margin-top:10px"><span class="wlh-badge good">Active</span><span class="wlh-badge neutral">'+esc(roleLabel)+'</span></div>',
       '<div class="wlh-portal-links">'+(quick||'<div class="wlh-empty-state">No operational sections are assigned to this account. Contact the hospital administrator to review your role.</div>')+'</div>');
