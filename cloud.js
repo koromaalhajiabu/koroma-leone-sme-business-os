@@ -379,7 +379,7 @@
     const isDeveloper = !!access.data?.is_developer;
     $('wlCreateBusiness').hidden = !isDeveloper;
     const { data: memberships, error } = await client.from('business_members')
-      .select('business_id,role,is_active,businesses(id,name,industry,currency_code)')
+      .select('business_id,role,is_active,businesses(id,name,industry,currency_code,contact_email,contact_phone,address,website,tax_registration_number,receipt_footer)')
       .eq('user_id', session.user.id).eq('is_active', true);
     if (error) return say('Could not load workspaces: ' + error.message);
     document.querySelector('.app')?.classList.remove('wl-public-mode');
@@ -503,6 +503,49 @@
     window.dispatchEvent(new CustomEvent('whiteLionWorkspaceChanged', { detail: { business, modules: modules || [] } }));
     await loadBranches();
   }
+  async function updateBusinessProfile(profile) {
+    if (!client || !session || !activeBusiness) throw new Error('Sign in and select a business workspace first.');
+    const role = String(activeBusiness.role || '').toLowerCase();
+    if (!['owner','admin'].includes(role)) throw new Error('Only this business owner or an administrator can edit its business profile.');
+    const name = String(profile?.name || '').trim();
+    const industry = String(profile?.industry || 'Multi-industry').trim();
+    const currency = String(profile?.currency || profile?.currency_code || activeBusiness.currency_code || 'SLE').trim().toUpperCase();
+    if (name.length < 2) throw new Error('Business name must contain at least two characters.');
+    if (!/^[A-Z]{3}$/.test(currency)) throw new Error('Currency must be a valid three-letter code.');
+    const clean = value => String(value ?? '').trim() || null;
+    const payload = {
+      name,
+      industry: industry || 'Multi-industry',
+      currency_code: currency,
+      contact_email: clean(profile.email),
+      contact_phone: clean(profile.phone),
+      address: clean(profile.address),
+      website: clean(profile.website),
+      tax_registration_number: clean(profile.taxId),
+      receipt_footer: clean(profile.receiptFooter),
+      updated_at: new Date().toISOString()
+    };
+    const { data, error } = await client.from('businesses')
+      .update(payload)
+      .eq('id', activeBusiness.id)
+      .select('id,name,industry,currency_code,contact_email,contact_phone,address,website,tax_registration_number,receipt_footer,updated_at')
+      .single();
+    if (error) throw new Error('Business profile was not saved: ' + error.message);
+    activeBusiness = {...activeBusiness, ...data};
+    window.__wlBusinesses = (window.__wlBusinesses || []).map(b => b.id === data.id ? {...b, ...data} : b);
+    const selector = $('wlBusinessSelect');
+    if (selector) {
+      selector.innerHTML = (window.__wlBusinesses || []).map(b => '<option value="' + esc(b.id) + '">' + esc(b.name) + ' — ' + esc(b.role) + '</option>').join('');
+      selector.value = data.id;
+    }
+    const sideName = $('sideBusiness'), sideIndustry = $('sideIndustry');
+    if (sideName) sideName.textContent = data.name;
+    if (sideIndustry) sideIndustry.textContent = data.industry + ' · ' + data.currency_code;
+    window.dispatchEvent(new CustomEvent('whiteLionWorkspaceChanged', {detail:{business:activeBusiness, profileUpdated:true}}));
+    say('Business profile saved to ' + data.name + '.');
+    return activeBusiness;
+  }
+
   async function checkDeveloperAccess() {
     const panel = $('wlDeveloperBox');
     if (!panel || !session) return;
@@ -1781,6 +1824,7 @@
         getSelectedBranch: () => selectedBranch,
         getBranches: () => (window.__wlBranches || []).filter(b => b.is_active),
         getApprovalSettings: () => ({...approvalSettings}),
+        updateBusinessProfile,
         refreshApprovalSettings
       };
       window.dispatchEvent(new CustomEvent('whiteLionCloudReady'));
