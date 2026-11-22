@@ -20,10 +20,19 @@ A multi-industry SME operations platform by Koroma Leone Tech. The frontend is d
 - Returns/refunds, cashbook, receivables/payables and financial payment records.
 - Barcode, batch/expiry and controlled stock adjustment features.
 - Private business document storage.
+- Optional tenant-scoped Hospital Management for hospital and clinic workspaces: patient registration, appointments, clinical encounters, observations and diagnoses, admissions and bed occupancy, medicine stock and prescription dispensing, laboratory requests, invoices/payments, and staff/departments. Patient and clinical data is cloud-only and role-scoped; it is not stored in the offline cache.
 - Sports and local-league competition management.
 - Developer administration, account controls and business/platform audit logging.
 - English, French, Arabic (RTL), Spanish, Hindi and Simplified Chinese language options.
 - Responsive PWA shell, install support, service-worker caching and light/dark appearance.
+
+## Hospital Management module
+
+The Hospital Management workspace is an optional business module for hospital, clinic, medical-centre and diagnostic-facility workspaces. It is integrated with the active Koroma Leone Tech Supabase project and uses the current business workspace as its tenant boundary.
+
+Hospital access is restricted through Row Level Security and linked hospital staff roles. A hospital staff account must also be an active member of the relevant business workspace. Business owners, administrators and managers have workspace-level management access; clinical, reception, pharmacy, laboratory and billing actions are separated by role.
+
+**Development status:** this is an active development release, not a certified clinical record system. The current version provides the core records and workflow screens, but it still requires end-to-end testing with separate role accounts, independent security review, clinical workflow validation, backup/restore testing and review against applicable Sierra Leone health and privacy requirements before real patient information is used. Clinical data is deliberately excluded from offline local persistence.
 
 ## Retired device-provider integrations
 
