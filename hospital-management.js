@@ -317,6 +317,58 @@
     if(r.error) throw r.error;
     return r.count || 0;
   }
+  async function renderPortal() {
+    var isStaffPortal=!!staffRole;
+    var displayName=isStaffPortal && currentStaff ? currentStaff.first_name+' '+currentStaff.last_name : (business()&&business().name)||'Hospital workspace';
+    var roleLabel=isStaffPortal?staffRole.replaceAll('_',' ').replace(/\b\w/g,function(x){return x.toUpperCase();}):membershipRole.replaceAll('_',' ').replace(/\b\w/g,function(x){return x.toUpperCase();});
+    var department=isStaffPortal && currentStaff ? (departments.find(function(d){return d.id===currentStaff.department_id;})||{}).name : '';
+    var photoUrl=isStaffPortal && currentStaff ? await signedPhotoUrl(currentStaff.photo_path) : '';
+    var linksByRole={
+      doctor:['clinical','patients','appointments','admissions','laboratory','pharmacy'],
+      nurse:['patients','appointments','clinical','admissions','wards'],
+      receptionist:['patients','appointments'],
+      pharmacist:['pharmacy','patients'],
+      lab_technician:['laboratory','patients'],
+      cashier:['billing'],
+      administrator:['overview','patients','appointments','clinical','admissions','wards','pharmacy','laboratory','billing','staff'],
+      other:[]
+    };
+    var labels={
+      overview:['Hospital overview','Daily hospital activity and key summaries'],
+      patients:['Patient records','Find and register authorised patient records'],
+      appointments:['Appointments','Manage bookings and check-ins'],
+      clinical:['Clinical records','Record consultations, observations and care plans'],
+      admissions:['Admissions','Manage inpatient admissions and discharge'],
+      wards:['Wards and beds','View ward capacity and bed availability'],
+      pharmacy:['Pharmacy','Manage medicine inventory and prescriptions'],
+      laboratory:['Laboratory','Review test requests and record results'],
+      billing:['Billing','Create invoices and record patient payments'],
+      staff:['Staff and departments','Manage hospital staff roles and departments']
+    };
+    var routes=(isManager()?['overview','staff','patients','appointments','clinical','admissions','wards','pharmacy','laboratory','billing']:(linksByRole[staffRole]||[]))
+      .filter(function(key){return canAccessTab(key);});
+    var quick=routes.map(function(key){
+      return '<button type="button" class="wlh-portal-link" data-hospital-tab="'+key+'">'+esc(labels[key][0])+'<small>'+esc(labels[key][1])+'</small></button>';
+    }).join('');
+    var roleDescription={
+      doctor:'You can manage consultations, clinical notes, diagnoses, prescriptions and the patient services approved for your role.',
+      nurse:'You can review patient information, record observations and manage the nursing and admission tasks approved for your role.',
+      receptionist:'You can register patients and manage appointment bookings and check-ins.',
+      pharmacist:'You can access pharmacy stock and authorised prescriptions.',
+      lab_technician:'You can access laboratory requests and update test results.',
+      cashier:'You can access hospital billing, invoices and payment receipts.',
+      administrator:'You can access the hospital administration and operational functions assigned to your account.'
+    };
+    var intro=isStaffPortal?(roleDescription[staffRole]||'Your hospital role determines which sections you can access.'):'Manage the hospital workspace and review the authorised operational areas.';
+    var profile='<div class="wlh-portal-hero">'+avatar(photoUrl,displayName)+'<div><span class="wlh-kicker" style="color:#e1c77d">APPROVED HOSPITAL ACCESS</span><h2>'+esc(displayName)+'</h2><p>'+esc(roleLabel)+(department?' · '+esc(department):'')+'</p><p>'+esc((session()&&session().user&&session().user.email)||'')+'</p></div></div>';
+    var accessCard=panel('Your approved access',intro+
+      '<div class="wlh-actions" style="margin-top:10px"><span class="wlh-badge good">Active</span><span class="wlh-badge neutral">'+esc(roleLabel)+'</span></div>',
+      '<div class="wlh-portal-links">'+(quick||'<div class="wlh-empty-state">No operational sections are assigned to this account. Contact the hospital administrator to review your role.</div>')+'</div>');
+    var security=panel('Portal security','Your access is checked against your current signed-in account and active hospital staff assignment.',
+      '<p class="wlh-note">Do not share your password. Sign out when using a shared device. Patient and clinical records remain in private cloud storage and are not saved in the phone’s offline cache.</p>');
+    root().innerHTML=shell(isStaffPortal?'My Hospital Portal':'Hospital Management Portal',
+      'Your personalised entry point to the hospital services approved for your account.',profile+accessCard+security);
+  }
   async function renderOverview() {
     var counts=await Promise.all([
       statCount('hospital_patients',function(q){q.eq('status','active');}),
