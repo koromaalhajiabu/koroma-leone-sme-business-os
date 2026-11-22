@@ -1,5 +1,5 @@
 /* Koroma Leone SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='koroma-leone-sme-v288';
+const CACHE_NAME='koroma-leone-sme-v289';
 const APP_SHELL=[
   './',
   './index.html',
@@ -18,7 +18,7 @@ const APP_SHELL=[
   './student-portal.html',
   './student-portal.js?v=5',
   './campus-management.js?v=4',
-  './hospital-management.js?v=5',
+  './hospital-management.js?v=8',
   './parent-portal.html',
   './teacher-portal.html',
   './teacher-portal.js?v=2',
@@ -39,7 +39,7 @@ const APP_SHELL=[
   './external-affiliate-networks.js?v=2',
   './platform-referrals.js?v=1',
   './i18n.js?v=11',
-  './cloud.js?v=65',
+  './cloud.js?v=66',
   './operations.js?v=25',
   './documents.js?v=3',
   './phone-unlocking.js?v=2',
@@ -49,7 +49,7 @@ const APP_SHELL=[
   './icons/white-lion-official.webp',
   './icons/koroma-leone-tech-crest.svg?v=3',
   './league.js?v=6',
-  './billing.js?v=10',
+  './billing.js?v=11',
   './subscription-notifications.js?v=4',
   './executive-intelligence.js?v=2',
   './supplier-intelligence.js?v=1',
