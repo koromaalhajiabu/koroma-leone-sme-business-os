@@ -227,7 +227,7 @@
     var clinicalRead=isManager() || ['doctor','nurse','pharmacist','lab_technician','receptionist','administrator'].indexOf(staffRole)>=0;
     var staffRead=isManager() || ['doctor','nurse','pharmacist','lab_technician','receptionist','cashier','administrator','other'].indexOf(staffRole)>=0;
     var wardRead=isManager() || ['doctor','nurse','administrator'].indexOf(staffRole)>=0;
-    if(clinicalRead) tasks.push(loadList('patients','hospital_patients','id,patient_number,first_name,last_name,date_of_birth,gender,phone,email,address,blood_group,allergies,emergency_contact_name,emergency_contact_phone,status,created_at','created_at',false,250));
+    if(clinicalRead) tasks.push(loadList('patients','hospital_patients','id,patient_number,first_name,last_name,date_of_birth,gender,phone,email,address,blood_group,allergies,emergency_contact_name,emergency_contact_phone,status,photo_path,created_at','created_at',false,250));
     else { patients=[]; cache.patients=[]; }
     if(staffRead){
       tasks.push(loadList('staff','hospital_staff','id,staff_number,first_name,last_name,staff_role,specialization,department_id,phone,email,employment_status,user_id,photo_path','first_name',true,200));
@@ -400,12 +400,14 @@
     root().innerHTML=shell('Hospital overview','Monitor patient services and essential hospital activity.',body);
   }
   async function renderPatients() {
+    currentPatientPhotoUrls=await signedPhotoMap(patients);
     var rows=patients.map(function(p){
-      return '<tr><td><b>'+esc(p.patient_number)+'</b></td><td>'+esc(p.first_name+' '+p.last_name)+'</td><td>'+esc(dateOnly(p.date_of_birth))+'</td><td>'+esc(p.gender||'—')+'</td><td>'+esc(p.phone||'—')+'</td><td>'+badge(p.status)+'</td></tr>';
+      var name=p.first_name+' '+p.last_name;
+      return '<tr><td>'+avatar(currentPatientPhotoUrls[p.photo_path]||'',name)+'</td><td><b>'+esc(p.patient_number)+'</b></td><td>'+esc(name)+'</td><td>'+esc(dateOnly(p.date_of_birth))+'</td><td>'+esc(p.gender||'—')+'</td><td>'+esc(p.phone||'—')+'</td><td>'+badge(p.status)+'</td></tr>';
     }).join('');
     var form = hasRole(['doctor','nurse','receptionist','administrator']) ?
       panel('Register patient','Patient identity and emergency contact details','<form class="wlh-form" data-hospital-form="patient">'+
-        field('First name','first_name','text',true)+field('Last name','last_name','text',true)+
+        field('First name','first_name','text',true)+field('Last name','last_name','text',true)+photoField('Patient photograph','patient_photo')+
         field('Date of birth','date_of_birth','date',false)+selectField('Gender','gender',[
           {value:'female',label:'Female'},{value:'male',label:'Male'},{value:'other',label:'Other'},{value:'prefer_not_to_say',label:'Prefer not to say'}
         ],false)+field('Phone number','phone','tel',false)+field('Email address','email','email',false)+
@@ -415,7 +417,7 @@
         '<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Register patient</button></div></form>') : '';
     root().innerHTML=shell('Patient records','Register and search patient demographics for this hospital.',form+
       panel('Registered patients','Showing the latest 250 records','<div class="wlh-actions" style="margin:0 0 10px"><input class="wlh-search" id="wlhPatientSearch" placeholder="Search name, patient number or phone"></div>'+
-      '<div id="wlhPatientsTable">'+table(['Patient number','Full name','Date of birth','Gender','Phone','Status'],rows,'No patients registered yet.')+'</div>'));
+      '<div id="wlhPatientsTable">'+table(['Photo','Patient number','Full name','Date of birth','Gender','Phone','Status'],rows,'No patients registered yet.')+'</div>'));
   }
   async function renderAppointments() {
     var appts=await query('hospital_appointments','id,patient_id,doctor_staff_id,department_id,appointment_at,reason,status,notes','appointment_at',false,150);
@@ -575,8 +577,10 @@
         '<td>'+(linked?badge(a.hospital_role):badge('not_linked'))+'</td>'+
         '<td>'+(linked?badge(a.employment_status):'<span class="wlh-note">No hospital role assigned</span>')+'</td></tr>';
     }).join('');
+    currentStaffPhotoUrls=await signedPhotoMap(staff);
     var staffRows=staff.map(function(s){var d=departments.find(function(x){return x.id===s.department_id;})||{};
-      return '<tr><td><b>'+esc(s.staff_number)+'</b></td><td>'+esc(s.first_name+' '+s.last_name)+'</td><td>'+esc(s.staff_role.replaceAll('_',' '))+'</td><td>'+esc(d.name||'—')+'</td><td>'+esc(s.email||'—')+'</td><td>'+badge(s.employment_status)+'</td></tr>';
+      var name=s.first_name+' '+s.last_name;
+      return '<tr><td>'+avatar(currentStaffPhotoUrls[s.photo_path]||'',name)+'</td><td><b>'+esc(s.staff_number)+'</b></td><td>'+esc(name)+'</td><td>'+esc(s.staff_role.replaceAll('_',' '))+'</td><td>'+esc(d.name||'—')+'</td><td>'+esc(s.email||'—')+'</td><td>'+badge(s.employment_status)+'</td></tr>';
     }).join('');
     var deptRows=departments.map(function(d){return '<tr><td><b>'+esc(d.name)+'</b></td><td>'+esc(d.description||'—')+'</td></tr>';}).join('');
     var form=isManager()?panel('Assign hospital staff account','Use the email of an existing, email-confirmed Koroma Leone Tech account. If they are not yet in this workspace, they are added as a viewer; their hospital role is assigned separately. No password is requested.','<form class="wlh-form" data-hospital-form="staff">'+
@@ -584,14 +588,14 @@
       field('First name','first_name','text',true)+field('Last name','last_name','text',true)+
       selectField('Hospital role','staff_role',['doctor','nurse','pharmacist','lab_technician','receptionist','cashier','administrator','other'].map(function(x){return {value:x,label:x.replaceAll('_',' ')};}),true)+
       field('Specialisation','specialization','text',false)+selectField('Department','department_id',departmentOptions(),false)+
-      field('Phone','phone','tel',false)+
+      field('Phone','phone','tel',false)+photoField('Staff profile photograph','staff_photo')+
       '<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Link account and assign role</button></div></form><p class="wlh-note">The person must already have a registered and email-confirmed account. Workspace access still follows the platform account-approval process. Their general workspace role is not promoted by this action.</p>'):'';
     var deptForm=isManager()?panel('Add department','Create clinical or administrative departments','<form class="wlh-form" data-hospital-form="department">'+field('Department name','name','text',true)+
       field('Description','description','text',false)+'<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Add department</button></div></form>'):'';
     root().innerHTML=shell('Staff & departments','Link registered workspace accounts to hospital roles and manage departments.',form+
       panel('Workspace accounts','Only active workspace members are listed. Hospital roles are independent from general workspace roles.',table(['Account','Workspace role','Hospital role','Staff status'],accountRows,'No active workspace accounts found.'))+
       '<div class="wlh-two">'+deptForm+panel('Department register','Configured departments',table(['Department','Description'],deptRows,'No departments created.'))+'</div>'+
-      panel('Hospital staff directory','Staff profile and role register',table(['Staff number','Name','Role','Department','Email','Status'],staffRows,'No hospital staff profiles.')));
+      panel('Hospital staff directory','Staff profile and role register',table(['Photo','Staff number','Name','Role','Department','Email','Status'],staffRows,'No hospital staff profiles.')));
   }
   function wire(target) {
     target.querySelectorAll('[data-hospital-tab]').forEach(function(btn){btn.addEventListener('click',function(){activeTab=btn.getAttribute('data-hospital-tab');render();});});
@@ -599,9 +603,9 @@
     if(search) search.addEventListener('input',function(){
       var term=search.value.toLowerCase();
       var filtered=patients.filter(function(p){return [p.patient_number,p.first_name,p.last_name,p.phone].join(' ').toLowerCase().indexOf(term)>=0;});
-      var rows=filtered.map(function(p){return '<tr><td><b>'+esc(p.patient_number)+'</b></td><td>'+esc(p.first_name+' '+p.last_name)+'</td><td>'+esc(dateOnly(p.date_of_birth))+'</td><td>'+esc(p.gender||'—')+'</td><td>'+esc(p.phone||'—')+'</td><td>'+badge(p.status)+'</td></tr>';}).join('');
+      var rows=filtered.map(function(p){var name=p.first_name+' '+p.last_name;return '<tr><td>'+avatar(currentPatientPhotoUrls[p.photo_path]||'',name)+'</td><td><b>'+esc(p.patient_number)+'</b></td><td>'+esc(name)+'</td><td>'+esc(dateOnly(p.date_of_birth))+'</td><td>'+esc(p.gender||'—')+'</td><td>'+esc(p.phone||'—')+'</td><td>'+badge(p.status)+'</td></tr>';}).join('');
       var holder=document.getElementById('wlhPatientsTable');
-      if(holder) holder.innerHTML=table(['Patient number','Full name','Date of birth','Gender','Phone','Status'],rows,'No matching patients.');
+      if(holder) holder.innerHTML=table(['Photo','Patient number','Full name','Date of birth','Gender','Phone','Status'],rows,'No matching patients.');
     });
     target.querySelectorAll('[data-hospital-form]').forEach(function(form){
       form.addEventListener('submit',function(ev){ev.preventDefault();submitForm(form.getAttribute('data-hospital-form'),form);});
