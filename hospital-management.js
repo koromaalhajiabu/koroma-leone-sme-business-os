@@ -8,6 +8,10 @@
   var activeTab = 'overview';
   var activeBusinessId = null;
   var currentUserId = null;
+  var currentStaff = null;
+  var currentPatientPhotoUrls = {};
+  var currentStaffPhotoUrls = {};
+  var photoUrlCache = {};
   var membershipRole = 'viewer';
   var staffRole = '';
   var patients = [];
@@ -24,6 +28,7 @@
   var hasRole = function (roles) { return isManager() || roles.indexOf(staffRole) >= 0; };
   function canAccessTab(tab) {
     if (isManager()) return true;
+    if (tab==='portal') return !!staffRole;
     var roles = {
       overview:['doctor','nurse','administrator'],
       patients:['doctor','nurse','pharmacist','lab_technician','receptionist','administrator'],
@@ -79,6 +84,50 @@
     return '<label class="wlh-field"><span>'+esc(label)+'</span><input name="'+esc(name)+'" type="'+esc(type || 'text')+'" '+
       (required ? 'required ' : '')+(value != null ? 'value="'+esc(value)+'" ' : '')+(extra || '')+'></label>';
   }
+  function photoField(label,name) {
+    return '<label class="wlh-field wlh-wide"><span>'+esc(label)+'</span><input type="file" name="'+esc(name)+'" accept="image/jpeg,image/png,image/webp" capture="environment"><small class="wlh-note">JPG, PNG or WebP · maximum 4 MB · private hospital storage</small></label>';
+  }
+  function validateHospitalPhoto(file) {
+    if(!file || !file.size) return null;
+    if(['image/jpeg','image/png','image/webp'].indexOf(file.type)<0) throw new Error('Choose a JPG, PNG or WebP image.');
+    if(file.size>4*1024*1024) throw new Error('The photo must be 4 MB or smaller.');
+    return file;
+  }
+  function photoExtension(file) {
+    return file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+  }
+  async function uploadHospitalPhoto(file,path) {
+    validateHospitalPhoto(file);
+    var result=await client().storage.from('hospital-people-photos').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+    if(result.error) throw result.error;
+    return path;
+  }
+  async function signedPhotoUrl(path) {
+    if(!path) return '';
+    var cached=photoUrlCache[path];
+    if(cached && cached.expires>Date.now()) return cached.url;
+    var result=await client().storage.from('hospital-people-photos').createSignedUrl(path,600);
+    if(result.error || !result.data) return '';
+    photoUrlCache[path]={url:result.data.signedUrl,expires:Date.now()+540000};
+    return result.data.signedUrl;
+  }
+  async function signedPhotoMap(records) {
+    var paths=Array.from(new Set((records||[]).map(function(r){return r.photo_path;}).filter(Boolean)));
+    var out={};
+    for(var i=0;i<paths.length;i+=50){
+      var batch=paths.slice(i,i+50);
+      var result=await client().storage.from('hospital-people-photos').createSignedUrls(batch,600);
+      if(result.error) continue;
+      (result.data||[]).forEach(function(row){
+        if(row.path && row.signedUrl){out[row.path]=row.signedUrl;photoUrlCache[row.path]={url:row.signedUrl,expires:Date.now()+540000};}
+      });
+    }
+    return out;
+  }
+  function avatar(url,label) {
+    var initials=String(label||'?').trim().split(/\s+/).slice(0,2).map(function(x){return x.charAt(0);}).join('').toUpperCase()||'?';
+    return '<span class="wlh-avatar">'+(url?'<img src="'+esc(url)+'" alt="'+esc(label||'Profile photo')+'" loading="lazy">':'<span>'+esc(initials)+'</span>')+'</span>';
+  }
   function area(label, name, rows, extra) {
     return '<label class="wlh-field wlh-wide"><span>'+esc(label)+'</span><textarea name="'+esc(name)+'" rows="'+(rows || 3)+'" '+(extra || '')+'></textarea></label>';
   }
@@ -127,8 +176,9 @@
       (action || '')+'</div>';
   }
   function navTabs() {
+    var portalLabel=isManager()?'Management Portal':(staffRole?staffRole.replaceAll('_',' ').replace(/\b\w/g,function(x){return x.toUpperCase();})+' Portal':'Staff Portal');
     var tabs = [
-      ['overview','Overview','▦'],['patients','Patients','♙'],['appointments','Appointments','◷'],
+      ['portal',portalLabel,'🏥'],['overview','Overview','▦'],['patients','Patients','♙'],['appointments','Appointments','◷'],
       ['clinical','Clinical Records','✚'],['admissions','Admissions','▣'],['wards','Wards & Beds','▤'],
       ['pharmacy','Pharmacy','⚕'],['laboratory','Laboratory','⌕'],['billing','Billing','＄'],
       ['staff','Staff & Departments','♟']
@@ -168,18 +218,19 @@
     if (!membership.data || !membership.data.is_active) throw new Error('Your account does not have active access to this workspace.');
     membershipRole = membership.data.role || 'viewer';
     var ownStaff = await client().from('hospital_staff')
-      .select('id,staff_role,employment_status')
+      .select('id,staff_number,first_name,last_name,staff_role,employment_status,department_id,email,photo_path')
       .eq('business_id',b.id).eq('user_id',currentUserId).maybeSingle();
     if (ownStaff.error && ownStaff.error.code !== 'PGRST116') throw ownStaff.error;
-    staffRole = ownStaff.data && ownStaff.data.employment_status === 'active' ? ownStaff.data.staff_role : '';
+    currentStaff = ownStaff.data && ownStaff.data.employment_status === 'active' ? ownStaff.data : null;
+    staffRole = currentStaff ? currentStaff.staff_role : '';
     var tasks=[];
     var clinicalRead=isManager() || ['doctor','nurse','pharmacist','lab_technician','receptionist','administrator'].indexOf(staffRole)>=0;
-    var staffRead=isManager() || ['doctor','nurse','pharmacist','lab_technician','receptionist','administrator'].indexOf(staffRole)>=0;
+    var staffRead=isManager() || ['doctor','nurse','pharmacist','lab_technician','receptionist','cashier','administrator','other'].indexOf(staffRole)>=0;
     var wardRead=isManager() || ['doctor','nurse','administrator'].indexOf(staffRole)>=0;
     if(clinicalRead) tasks.push(loadList('patients','hospital_patients','id,patient_number,first_name,last_name,date_of_birth,gender,phone,email,address,blood_group,allergies,emergency_contact_name,emergency_contact_phone,status,created_at','created_at',false,250));
     else { patients=[]; cache.patients=[]; }
     if(staffRead){
-      tasks.push(loadList('staff','hospital_staff','id,staff_number,first_name,last_name,staff_role,specialization,department_id,phone,email,employment_status,user_id','first_name',true,200));
+      tasks.push(loadList('staff','hospital_staff','id,staff_number,first_name,last_name,staff_role,specialization,department_id,phone,email,employment_status,user_id,photo_path','first_name',true,200));
       tasks.push(loadList('departments','hospital_departments','id,name,description','name',true,100));
     } else { staff=[]; departments=[]; cache.staff=[]; cache.departments=[]; }
     if(wardRead){
@@ -187,8 +238,9 @@
       tasks.push(loadList('beds','hospital_beds','id,ward_id,bed_number,status','bed_number',true,250));
     } else { wards=[]; beds=[]; cache.wards=[]; cache.beds=[]; }
     await Promise.all(tasks);
+    if(activeTab==='overview' && !isManager() && staffRole) activeTab='portal';
     if(!canAccessTab(activeTab)){
-      activeTab=isManager()?'overview':(membershipRole==='accountant'||staffRole==='cashier'?'billing':staffRole==='pharmacist'?'pharmacy':staffRole==='lab_technician'?'laboratory':staffRole==='receptionist'?'appointments':'patients');
+      activeTab=isManager()?'overview':(staffRole?'portal':membershipRole==='accountant'?'billing':'overview');
     }
   }
   async function loadList(key, tableName, columns, orderColumn, ascending, limit) {
@@ -222,6 +274,9 @@
       '.wlh-table-wrap{overflow:auto;border:1px solid #edf1ed;border-radius:10px}table.wlh-table{width:100%;border-collapse:collapse;min-width:620px}table.wlh-table th{background:#f7faf7;color:#78877d;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.65px;padding:11px 10px;border-bottom:1px solid #e8eee9}table.wlh-table td{font-size:11px;color:#405348;padding:11px 10px;border-bottom:1px solid #edf1ed;vertical-align:middle}table.wlh-table tr:last-child td{border-bottom:0}.wlh-empty{text-align:center!important;padding:25px!important;color:#88958c!important}',
       '.wlh-badge{display:inline-block;border-radius:30px;padding:4px 8px;font-size:9px;font-weight:850;text-transform:capitalize;white-space:nowrap}.wlh-badge.good{background:#e8f6ed;color:#167447}.wlh-badge.warn{background:#fff4df;color:#956917}.wlh-badge.bad{background:#fff0f0;color:#ae3d49}.wlh-badge.neutral{background:#eef2f0;color:#637168}',
       '.wlh-search{width:min(280px,100%);padding:9px 11px;border:1px solid #dce6df;border-radius:9px;font-size:11px}.wlh-footer{text-align:center;color:#9aa79e;font-size:9px;padding:18px 0 5px}',
+      '.wlh-avatar{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#e6f3ea;color:#17633d;font-size:11px;font-weight:900;vertical-align:middle;flex:none}.wlh-avatar img{width:100%;height:100%;object-fit:cover}',
+      '.wlh-portal-hero{display:flex;align-items:center;gap:14px;padding:18px;border-radius:14px;background:linear-gradient(120deg,#075b35,#0b7546);color:#fff;margin-bottom:14px}.wlh-portal-hero h2{margin:2px 0 4px;font-size:20px}.wlh-portal-hero p{margin:0;color:#d8eee0;font-size:11px}.wlh-portal-hero .wlh-avatar{width:62px;height:62px;background:#ffffff28;color:#fff;border:2px solid #ffffff66}.wlh-portal-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.wlh-portal-link{text-align:left;border:1px solid #e3ebe4;border-radius:12px;padding:14px;background:#fff;color:#244432;cursor:pointer;font-size:12px;font-weight:800}.wlh-portal-link small{display:block;color:#7c8d82;font-size:10px;font-weight:500;margin-top:5px}',
+      '@media(max-width:560px){.wlh-portal-links{grid-template-columns:repeat(2,minmax(0,1fr))}}',
       '.wlh-note{font-size:10px;color:#849187;line-height:1.6}.wlh-empty-state{padding:22px;text-align:center;color:#839087;font-size:11px;background:#f8fbf8;border:1px dashed #dce8df;border-radius:10px}',
       '@media(max-width:850px){.wlh-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wlh-two{grid-template-columns:1fr}}',
       '@media(max-width:560px){.wlh-title{align-items:flex-start;flex-direction:column}.wlh-form{grid-template-columns:1fr}.wlh-grid{gap:8px}.wlh-stat{padding:12px}.wlh-stat strong{font-size:21px}.wlh-panel{padding:13px}.wlh-tabs{margin-right:-5px}}'
@@ -237,7 +292,8 @@
       await loadContext();
       if (!canAccessTab(activeTab)) {
         target.innerHTML=shell('Access restricted','Your current hospital role does not have access to this section.','<div class="wlh-empty-state">Ask your hospital administrator to review your staff role and workspace permissions.</div>');
-      } else if (activeTab==='overview') await renderOverview();
+      } else if (activeTab==='portal') await renderPortal();
+      else if (activeTab==='overview') await renderOverview();
       else if (activeTab==='patients') await renderPatients();
       else if (activeTab==='appointments') await renderAppointments();
       else if (activeTab==='clinical') await renderClinical();
