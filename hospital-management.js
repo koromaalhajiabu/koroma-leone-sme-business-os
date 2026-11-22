@@ -343,7 +343,7 @@
       field('Oxygen saturation (%)','oxygen_saturation','number',false,null,'min="1" max="100"')+
       field('Weight (kg)','weight','number',false,null,'step="0.1"')+
       field('Height (cm)','height','number',false,null,'step="0.1"')+
-      field('Diagnosis','diagnosis_text','text',false)+field('Diagnosis code (optional)','diagnosis_code','text',false)+
+      (hasRole(['doctor','administrator']) ? field('Diagnosis','diagnosis_text','text',false)+field('Diagnosis code (optional)','diagnosis_code','text',false) : '')+
       '<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Save clinical record</button></div></form>'):'';
     root().innerHTML=shell('Clinical records','Authorised clinical staff can create encounter notes, diagnoses and observations.',form+
       panel('Recent encounters','Clinical notes and consultation history',table(['Started','Patient','Clinician','Chief complaint','Assessment','Status'],rows,'No clinical encounters recorded.')));
@@ -394,6 +394,15 @@
       field('Reorder level','reorder_level','number',true,null,'step="0.01" min="0"')+
       field('Expiry date','expiry_date','date',false)+
       '<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Save medicine</button></div></form>'):'';
+    var canPrescribe=hasRole(['doctor','administrator']);
+    var prescriptionForm=canPrescribe?panel('Create prescription','Save a medicine order and its prescription line together','<form class="wlh-form" data-hospital-form="prescription">'+
+      selectField('Patient','patient_id',patientOptions(),true)+selectField('Doctor','doctor_staff_id',staffOptions('doctor'),true)+
+      selectField('Medicine','medicine_id',medicines.map(function(m){return {value:m.id,label:m.name+' · '+m.stock_quantity+' '+m.unit+' in stock'};}),true)+
+      field('Dosage','dosage','text',true)+field('Frequency','frequency','text',true)+field('Duration','duration','text',true)+
+      field('Quantity','quantity','number',true,null,'min="0.01" step="0.01"')+
+      field('Appointment ID (optional)','appointment_id','text',false)+field('Active admission ID (optional)','admission_id','text',false)+
+      area('Prescription notes','notes',2)+
+      '<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Create prescription</button></div></form>'):'';
     var prescriptions=await query('hospital_prescription_items','id,prescription_id,medicine_id,dosage,frequency,duration,quantity,quantity_dispensed','created_at',false,200);
     var rx=await query('hospital_prescriptions','id,patient_id,prescribed_at,status,notes','prescribed_at',false,150);
     var pMap={};rx.forEach(function(p){pMap[p.id]=p;});
@@ -401,7 +410,7 @@
       var remaining=Number(x.quantity)-Number(x.quantity_dispensed);
       return '<tr><td>'+esc((patient.first_name||'Patient')+' '+(patient.last_name||''))+'</td><td>'+esc(med.name||'Medicine')+'</td><td>'+esc(x.dosage||'—')+' · '+esc(x.frequency||'—')+'</td><td>'+esc(x.quantity_dispensed)+' / '+esc(x.quantity)+'</td><td>'+badge(p.status)+'</td><td>'+(remaining>0 && (canStock || isManager())?'<input class="wlh-search" style="width:75px" type="number" min="0.01" max="'+remaining+'" step="0.01" value="'+remaining+'" id="wlhQty-'+x.id+'"><button class="wlh-btn alt" type="button" data-dispense="'+x.id+'">Dispense</button>':'—')+'</td></tr>';
     }).join('');
-    root().innerHTML=shell('Pharmacy','Manage medicine inventory and dispense authorised prescriptions.',form+
+    root().innerHTML=shell('Pharmacy','Manage medicine inventory and dispense authorised prescriptions.',form+prescriptionForm+
       panel('Medicine inventory','Stock balances and reorder thresholds',table(['Medicine','Category','Unit','In stock','Reorder level','Unit price','Expiry'],mrows,'No medicines in the catalogue.'))+
       panel('Prescription dispensing','Dispensing decreases stock and updates the prescription atomically',table(['Patient','Medicine','Directions','Dispensed','Status','Action'],rows,'No prescriptions are waiting for dispensing.')));
   }
@@ -560,6 +569,13 @@
         var med=await client().from('hospital_medicines').insert(payload);
         if(med.error) throw med.error;
         toast('Medicine saved to pharmacy stock.');
+      } else if(kind==='prescription'){
+        var rx=await client().rpc('hospital_create_prescription',{p_business_id:b.id,p_patient_id:data.patient_id,
+          p_doctor_staff_id:data.doctor_staff_id,p_medicine_id:data.medicine_id,p_dosage:nullable('dosage'),
+          p_frequency:nullable('frequency'),p_duration:nullable('duration'),p_quantity:Number(data.quantity),
+          p_appointment_id:nullable('appointment_id'),p_admission_id:nullable('admission_id'),p_notes:nullable('notes')});
+        if(rx.error) throw rx.error;
+        toast('Prescription created with its medicine line.');
       } else if(kind==='lab'){
         Object.assign(payload,{patient_id:data.patient_id,doctor_staff_id:nullable('doctor_staff_id'),test_name:data.test_name.trim(),status:'ordered'});
         var lab=await client().from('hospital_lab_tests').insert(payload);
