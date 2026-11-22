@@ -1682,7 +1682,7 @@ function csv(rows){const keys=['receipt','date','customer','payment','total'];co
 window.addEventListener('whiteLionBranchChanged',()=>{if(state.page==='sales'||state.page==='purchases'||state.page==='intelligence'||state.page==='stockcontrol')render()});
 (async()=>{const v=document.getElementById('view');try{db=await openDB();state.business=await setting('business')||state.business;await setting('business',state.business);await render();window.__wlStartupComplete=true}catch(e){window.__wlStartupComplete=true;console.error('Koroma Leone startup failed:',e);v.innerHTML='<div class="panel"><h2>Koroma Leone could not finish starting</h2><p class="panel-sub">Your saved local records have not been deleted. The startup error is: '+esc(e&&e.message?e.message:String(e))+'</p><button class="btn primary" id="wlRetryStartup" type="button">Try again</button></div>';const b=document.getElementById('wlRetryStartup');if(b)b.onclick=()=>location.reload()}})();
 
-if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=117',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=118',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
 </script>
 <script id="wl-simple-pwa-install">
 (function(){
@@ -1759,7 +1759,7 @@ if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventLi
 <script src="./executive-intelligence.js?v=2" defer onerror="window.__wlScriptFail.push('executive-intelligence.js')"></script>
 <script src="./supplier-intelligence.js?v=1" defer onerror="window.__wlScriptFail.push('supplier-intelligence.js')"></script>
 <script src="./smart-reorder.js?v=2" defer onerror="window.__wlScriptFail.push('smart-reorder.js')"></script>
-<script src="./cloud.js?v=62" defer onerror="window.__wlScriptFail.push('cloud.js')"></script>
+<script src="./cloud.js?v=63" defer onerror="window.__wlScriptFail.push('cloud.js')"></script>
 <script src="./operations.js?v=25" defer onerror="window.__wlScriptFail.push('operations.js')"></script>
 <script src="./documents.js?v=3" defer onerror="window.__wlScriptFail.push('documents.js')"></script>
 <script src="./phone-unlocking.js?v=2" defer onerror="window.__wlScriptFail.push('phone-unlocking.js')"></script>
