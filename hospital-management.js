@@ -451,20 +451,31 @@
       panel('Payment history','Latest recorded receipts',table(['Receipt','Invoice','Amount','Method','Date'],payments.slice(0,50).map(function(p){return '<tr><td>'+esc(p.receipt_number)+'</td><td>'+esc(invoices.find(function(i){return i.id===p.invoice_id;})?.invoice_number||'—')+'</td><td>'+money(p.amount)+'</td><td>'+esc(p.payment_method)+'</td><td>'+esc(dateTime(p.paid_at))+'</td></tr>';}).join(''),'No payments recorded.')));
   }
   async function renderStaff() {
+    var accountResult=await client().rpc('hospital_list_workspace_members',{p_business_id:business().id});
+    if(accountResult.error) throw accountResult.error;
+    var accounts=accountResult.data||[];
+    var accountRows=accounts.map(function(a){
+      var linked=!!a.hospital_staff_id;
+      return '<tr><td><b>'+esc(a.full_name||a.email)+'</b><div class="wlh-note">'+esc(a.email)+'</div></td>'+
+        '<td>'+esc(a.workspace_role||'—')+'</td>'+
+        '<td>'+(linked?badge(a.hospital_role):badge('not_linked'))+'</td>'+
+        '<td>'+(linked?badge(a.employment_status):'<span class="wlh-note">No hospital role assigned</span>')+'</td></tr>';
+    }).join('');
     var staffRows=staff.map(function(s){var d=departments.find(function(x){return x.id===s.department_id;})||{};
       return '<tr><td><b>'+esc(s.staff_number)+'</b></td><td>'+esc(s.first_name+' '+s.last_name)+'</td><td>'+esc(s.staff_role.replaceAll('_',' '))+'</td><td>'+esc(d.name||'—')+'</td><td>'+esc(s.email||'—')+'</td><td>'+badge(s.employment_status)+'</td></tr>';
     }).join('');
     var deptRows=departments.map(function(d){return '<tr><td><b>'+esc(d.name)+'</b></td><td>'+esc(d.description||'—')+'</td></tr>';}).join('');
-    var form=isManager()?panel('Add staff profile','Link a staff member to a hospital role. To enable sign-in, use their existing workspace user ID.','<form class="wlh-form" data-hospital-form="staff">'+
-      field('Staff number','staff_number','text',true)+field('First name','first_name','text',true)+field('Last name','last_name','text',true)+
-      selectField('Staff role','staff_role',['doctor','nurse','pharmacist','lab_technician','receptionist','administrator','other'].map(function(x){return {value:x,label:x.replaceAll('_',' ')};}),true)+
+    var form=isManager()?panel('Assign hospital staff account','Use the email of an existing, email-confirmed Koroma Leone Tech account. If they are not yet in this workspace, they are added as a viewer; their hospital role is assigned separately. No password is requested.','<form class="wlh-form" data-hospital-form="staff">'+
+      field('Registered account email','staff_email','email',true)+field('Staff number','staff_number','text',true)+
+      field('First name','first_name','text',true)+field('Last name','last_name','text',true)+
+      selectField('Hospital role','staff_role',['doctor','nurse','pharmacist','lab_technician','receptionist','administrator','other'].map(function(x){return {value:x,label:x.replaceAll('_',' ')};}),true)+
       field('Specialisation','specialization','text',false)+selectField('Department','department_id',departmentOptions(),false)+
-      field('Phone','phone','tel',false)+field('Email','email','email',false)+field('Workspace user ID (optional)','user_id','text',false)+
-      selectField('Employment status','employment_status',[{value:'active',label:'Active'},{value:'on_leave',label:'On leave'},{value:'terminated',label:'Terminated'}],true)+
-      '<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Save staff profile</button></div></form>'):'';
+      field('Phone','phone','tel',false)+
+      '<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Link account and assign role</button></div></form><p class="wlh-note">The person must already have a registered and email-confirmed account. Workspace access still follows the platform account-approval process. Their general workspace role is not promoted by this action.</p>'):'';
     var deptForm=isManager()?panel('Add department','Create clinical or administrative departments','<form class="wlh-form" data-hospital-form="department">'+field('Department name','name','text',true)+
       field('Description','description','text',false)+'<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Add department</button></div></form>'):'';
-    root().innerHTML=shell('Staff & departments','Manage hospital personnel, roles, specialisations and departments.',form+
+    root().innerHTML=shell('Staff & departments','Link registered workspace accounts to hospital roles and manage departments.',form+
+      panel('Workspace accounts','Only active workspace members are listed. Hospital roles are independent from general workspace roles.',table(['Account','Workspace role','Hospital role','Staff status'],accountRows,'No active workspace accounts found.'))+
       '<div class="wlh-two">'+deptForm+panel('Department register','Configured departments',table(['Department','Description'],deptRows,'No departments created.'))+'</div>'+
       panel('Hospital staff directory','Staff profile and role register',table(['Staff number','Name','Role','Department','Email','Status'],staffRows,'No hospital staff profiles.')));
   }
@@ -605,12 +616,19 @@
         if(inv.error) throw inv.error;
         toast('Invoice created.');
       } else if(kind==='staff'){
-        Object.assign(payload,{staff_number:data.staff_number.trim(),first_name:data.first_name.trim(),last_name:data.last_name.trim(),
-          staff_role:data.staff_role,specialization:nullable('specialization'),department_id:nullable('department_id'),
-          phone:nullable('phone'),email:nullable('email'),user_id:nullable('user_id'),employment_status:data.employment_status});
-        var st=await client().from('hospital_staff').insert(payload);
+        var st=await client().rpc('hospital_assign_staff_by_email',{
+          p_business_id:b.id,
+          p_staff_email:data.staff_email.trim().toLowerCase(),
+          p_staff_number:data.staff_number.trim(),
+          p_first_name:data.first_name.trim(),
+          p_last_name:data.last_name.trim(),
+          p_staff_role:data.staff_role,
+          p_specialization:nullable('specialization'),
+          p_department_id:nullable('department_id'),
+          p_phone:nullable('phone')
+        });
         if(st.error) throw st.error;
-        toast('Hospital staff profile saved. Linked accounts must also be active business members.');
+        toast('Account linked and hospital role assigned. The workspace role was not changed.');
       } else if(kind==='department'){
         Object.assign(payload,{name:data.name.trim(),description:nullable('description')});
         var dep=await client().from('hospital_departments').insert(payload);
