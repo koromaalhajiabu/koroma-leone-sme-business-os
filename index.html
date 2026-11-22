@@ -1032,11 +1032,33 @@ const INDUSTRY_WORDING={
 };
 const BASE_WORDING={documents:'Business documents',inventory:'Inventory Management',stockcontrol:'Inventory Intelligence',sales:'Sales & POS',returns:'Returns & Refunds',products:'Products & Inventory',purchases:'Purchases',customers:'Customers',customerintel:'Customer Intelligence',suppliers:'Suppliers',supplierintel:'Supplier Intelligence',expenses:'Expenses',reports:'Reports',intelligence:'Business Intelligence',executive:'Executive Intelligence',finance:'Financial Planning',reorder:'Smart Reorder Planner'};
 function industryWording(){return {...BASE_WORDING,...(INDUSTRY_WORDING[state.business.industry]||{})}}
+function settingsDisplayName(){
+ const industry=String(state.business?.industry||'').toLowerCase();
+ const businessName=String(state.business?.name||'').toLowerCase();
+ const rules=[
+  [/health|hospital|clinic|medical/, 'Hospital'],
+  [/education|school|academy|college|university|campus/, 'School'],
+  [/pharmacy|chemist|drug store/, 'Pharmacy'],
+  [/restaurant|hospitality|cafe|catering|hotel/, 'Hospitality'],
+  [/retail|supermarket|grocery|provision|shop/, 'Retail'],
+  [/hardware|building material|construction/, 'Hardware'],
+  [/wholesale|distribution|warehouse/, 'Wholesale'],
+  [/transport|logistics|delivery|fleet/, 'Transport'],
+  [/sports|football|league|club/, 'Sports'],
+  [/finance|accounting|microfinance|bank/, 'Finance']
+ ];
+ for(const [pattern,label] of rules){if(pattern.test(industry)||pattern.test(businessName))return label;}
+ if(industry.includes('professional services'))return 'Company';
+ return String(state.business?.name||'Business').trim().split(/\\s+/)[0]||'Business';
+}
+function settingsLabel(){return settingsDisplayName()+' Settings'}
 function applyIndustryWording(){
- const labels={...industryWording(),league:'Sports & Local League'},icons={supplierintel:'◈',customerintel:'✦',dashboard:'▦',inventory:'▤',stockcontrol:'⌁',reorder:'↗',sales:'▣',returns:'↩',products:'◇',purchases:'⇩',customers:'♙',suppliers:'♧',expenses:'↗',reports:'▤',intelligence:'✦',finance:'◷',documents:'▧',league:'⚽',employees:'♟',settings:'⚙'};
- document.querySelectorAll('[data-page]').forEach(b=>{const p=b.dataset.page;if(labels[p]||p==='dashboard'||p==='employees'||p==='settings')b.innerHTML='<span class="ico">'+icons[p]+'</span>'+(labels[p]||({dashboard:'Overview',employees:'Employees',settings:'Business settings'}[p]))});
- if(state.page==='dashboard')document.getElementById('crumb').textContent='Overview';
- else document.getElementById('crumb').textContent=labels[state.page]||({employees:'Employees',settings:'Business settings'}[state.page]||state.page);
+ const labels={...industryWording(),league:'Sports & Local League',settings:settingsLabel()},icons={supplierintel:'◈',customerintel:'✦',dashboard:'▦',inventory:'▤',stockcontrol:'⌁',reorder:'↗',sales:'▣',returns:'↩',products:'◇',purchases:'⇩',customers:'♙',suppliers:'♧',expenses:'↗',reports:'▤',intelligence:'✦',finance:'◷',documents:'▧',league:'⚽',employees:'♟',settings:'⚙'};
+ document.querySelectorAll('[data-page]').forEach(b=>{const p=b.dataset.page;if(labels[p]||p==='dashboard'||p==='employees'||p==='settings')b.innerHTML='<span class="ico">'+icons[p]+'</span>'+(labels[p]||({dashboard:'Overview',employees:'Employees'}[p]))});
+ const crumb=document.getElementById('crumb');
+ if(crumb){if(state.page==='dashboard')crumb.textContent='Overview';else crumb.textContent=labels[state.page]||({employees:'Employees'}[state.page]||state.page);}
+ const global=document.getElementById('globalBusinessSettings');
+ if(global){global.setAttribute('aria-label','Open '+settingsLabel().toLowerCase());global.title='Open '+settingsLabel().toLowerCase();}
 }
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:state.business.currency||'SLE',maximumFractionDigits:2}).format(Number(n||0));
 function openDB(){return new Promise((resolve,reject)=>{let settled=false;const timer=setTimeout(()=>{if(!settled){settled=true;reject(new Error('Opening local storage timed out. Close any other open tabs of this app and try again.'))}},6000);const r=indexedDB.open(DB_NAME,DB_VERSION);r.onupgradeneeded=()=>{const d=r.result;stores.forEach(s=>{if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'id',autoIncrement:true})});if(!d.objectStoreNames.contains('settings'))d.createObjectStore('settings',{keyPath:'key'})};r.onsuccess=()=>{if(!settled){settled=true;clearTimeout(timer);resolve(r.result)}};r.onerror=()=>{if(!settled){settled=true;clearTimeout(timer);reject(r.error)}};r.onblocked=()=>{if(!settled){settled=true;clearTimeout(timer);reject(new Error('This app is open in another tab with an older version. Close that tab, then try again.'))}}})}
@@ -1092,7 +1114,7 @@ async function render(){
  const profileNotice=activeBusiness
   ? (canEditProfile?'Changes are saved to this cloud workspace only. Other businesses remain separate.':'You can view this business profile, but only its owner or an administrator can edit it.')
   : 'No cloud workspace is selected. Changes on this device are saved locally only.';
- v.innerHTML=pageHeader('Business settings','Manage this business identity, contact details, document information and data tools')+`<div class="panel"><div class="notice">${esc(profileNotice)}</div><form id="settingsForm"><div class="form-grid">
+ v.innerHTML=pageHeader(settingsLabel(),'Manage this business identity, contact details, document information and data tools')+`<div class="panel"><div class="notice">${esc(profileNotice)}</div><form id="settingsForm"><div class="form-grid">
  <div class="field"><label>Business name</label><input name="name" required minlength="2" maxlength="160" value="${esc(state.business.name)}" ${canEditProfile?'':'disabled'}></div>
  <div class="field full"><label>Business logo / profile photo</label><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div id="businessLogoPreviewWrap" style="width:88px;height:88px;border:1px dashed var(--line);border-radius:16px;display:grid;place-items:center;overflow:hidden;background:var(--surface-2)"><span id="businessLogoPlaceholder">Logo</span><img id="businessLogoPreview" alt="Business logo preview" hidden style="width:100%;height:100%;object-fit:contain"></div><div style="flex:1;min-width:190px"><input name="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" ${canEditProfile?'':'disabled'}><div class="panel-sub">PNG, JPG, WEBP or GIF. Maximum 2 MB. Used on business identity and documents.</div></div></div></div>
  <div class="field"><label>Industry profile</label><select name="industry" ${canEditProfile?'':'disabled'}>${['Multi-industry','Retail','Pharmacy','Wholesale & Distribution','Hardware & Building Materials','Restaurant & Hospitality','Professional Services','Healthcare','Education','Transport & Logistics','Sports & Local League Management','Other'].map(x=>`<option ${state.business.industry===x?'selected':''}>${x}</option>`).join('')}</select></div>
