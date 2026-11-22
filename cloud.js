@@ -523,12 +523,13 @@
       website: clean(profile.website),
       tax_registration_number: clean(profile.taxId),
       receipt_footer: clean(profile.receiptFooter),
+      logo_path: clean(profile.logoPath) || activeBusiness.logo_path || null,
       updated_at: new Date().toISOString()
     };
     const { data, error } = await client.from('businesses')
       .update(payload)
       .eq('id', activeBusiness.id)
-      .select('id,name,industry,currency_code,contact_email,contact_phone,address,website,tax_registration_number,receipt_footer,updated_at')
+      .select('id,name,industry,currency_code,contact_email,contact_phone,address,website,tax_registration_number,receipt_footer,logo_path,updated_at')
       .single();
     if (error) throw new Error('Business profile was not saved: ' + error.message);
     activeBusiness = {...activeBusiness, ...data};
@@ -546,6 +547,23 @@
     return activeBusiness;
   }
 
+  async function uploadBusinessLogo(file) {
+    if (!client || !session || !activeBusiness) throw new Error('Sign in and select a business workspace first.');
+    if (!['owner','admin'].includes(String(activeBusiness.role||'').toLowerCase())) throw new Error('Only the business owner or an administrator can change the logo.');
+    if (!(file instanceof File) || !['image/png','image/jpeg','image/webp','image/gif'].includes(file.type) || file.size > 2*1024*1024) throw new Error('Choose a PNG, JPG, WEBP or GIF image under 2 MB.');
+    const ext = ({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif'})[file.type];
+    const path = activeBusiness.id + '/business-logo-' + Date.now() + '.' + ext;
+    const {error} = await client.storage.from('business-documents').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+    if (error) throw new Error('Business logo upload failed: ' + error.message);
+    return path;
+  }
+  async function getBusinessLogoUrl(path) {
+    if (!client || !path || !activeBusiness) return null;
+    if (!String(path).startsWith(activeBusiness.id + '/')) throw new Error('Logo path does not belong to the selected business.');
+    const {data,error} = await client.storage.from('business-documents').createSignedUrl(path,3600);
+    if (error) throw new Error('Could not load business logo: ' + error.message);
+    return data?.signedUrl || null;
+  }
   async function checkDeveloperAccess() {
     const panel = $('wlDeveloperBox');
     if (!panel || !session) return;
@@ -1825,6 +1843,8 @@
         getBranches: () => (window.__wlBranches || []).filter(b => b.is_active),
         getApprovalSettings: () => ({...approvalSettings}),
         updateBusinessProfile,
+        uploadBusinessLogo,
+        getBusinessLogoUrl,
         refreshApprovalSettings
       };
       window.dispatchEvent(new CustomEvent('whiteLionCloudReady'));
