@@ -417,7 +417,10 @@
   async function renderLaboratory() {
     var tests=await query('hospital_lab_tests','id,patient_id,doctor_staff_id,appointment_id,admission_id,test_name,ordered_at,status,result,reported_at,reported_by','ordered_at',false,200);
     var rows=tests.map(function(t){var p=patients.find(function(x){return x.id===t.patient_id;})||{};
-      var statusControl=(hasRole(['lab_technician','administrator']) || isManager())?'<select class="wlh-search" data-lab-status="'+t.id+'"><option value="ordered" '+(t.status==='ordered'?'selected':'')+'>Ordered</option><option value="in_progress" '+(t.status==='in_progress'?'selected':'')+'>In progress</option><option value="completed" '+(t.status==='completed'?'selected':'')+'>Completed</option><option value="cancelled" '+(t.status==='cancelled'?'selected':'')+'>Cancelled</option></select>':'—';
+      var statusControl=(hasRole(['lab_technician','administrator']) || isManager())?
+        '<input class="wlh-search" style="width:180px" id="wlhResult-'+t.id+'" value="'+esc(t.result||'')+'" placeholder="Enter test result">'+
+        '<select class="wlh-search" data-lab-status="'+t.id+'"><option value="ordered" '+(t.status==='ordered'?'selected':'')+'>Ordered</option><option value="in_progress" '+(t.status==='in_progress'?'selected':'')+'>In progress</option><option value="completed" '+(t.status==='completed'?'selected':'')+'>Completed</option><option value="cancelled" '+(t.status==='cancelled'?'selected':'')+'>Cancelled</option></select>'+
+        '<button class="wlh-btn alt" type="button" data-save-lab="'+t.id+'">Save result</button>':'—';
       return '<tr><td>'+esc((p.first_name||'Patient')+' '+(p.last_name||''))+'</td><td>'+esc(t.test_name)+'</td><td>'+esc(dateTime(t.ordered_at))+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.result||'Awaiting result')+'</td><td>'+statusControl+'</td></tr>';
     }).join('');
     var form=hasRole(['doctor','nurse','administrator'])?panel('Order laboratory test','Create a test request for a registered patient','<form class="wlh-form" data-hospital-form="lab">'+
@@ -483,10 +486,24 @@
         if(r.error) toast(r.error.message,true); else {toast('Appointment updated.');render();}});
     });
     target.querySelectorAll('[data-lab-status]').forEach(function(el){
-      el.addEventListener('change',async function(){var patch={status:el.value};
-        if(el.value==='completed'){patch.reported_at=new Date().toISOString();patch.reported_by=currentUserId;}
+      el.addEventListener('change',async function(){
+        var resultInput=document.getElementById('wlhResult-'+el.getAttribute('data-lab-status'));
+        var patch={status:el.value,result:resultInput&&resultInput.value.trim()?resultInput.value.trim():null};
+        if(el.value==='completed' && patch.result){patch.reported_at=new Date().toISOString();patch.reported_by=currentUserId;}
         var r=await client().from('hospital_lab_tests').update(patch).eq('id',el.getAttribute('data-lab-status')).eq('business_id',business().id);
-        if(r.error) toast(r.error.message,true); else {toast('Laboratory status updated.');render();}});
+        if(r.error) toast(r.error.message,true); else {toast('Laboratory status updated.');render();}
+      });
+    });
+    target.querySelectorAll('[data-save-lab]').forEach(function(btn){
+      btn.addEventListener('click',async function(){
+        var id=btn.getAttribute('data-save-lab'),input=document.getElementById('wlhResult-'+id),status=target.querySelector('[data-lab-status="'+id+'"]');
+        var result=input&&input.value.trim();
+        if(!result){toast('Enter the laboratory result before saving.',true);return;}
+        var patch={result:result};
+        if(status&&status.value==='completed'){patch.reported_at=new Date().toISOString();patch.reported_by=currentUserId;}
+        var r=await client().from('hospital_lab_tests').update(patch).eq('id',id).eq('business_id',business().id);
+        if(r.error) toast(r.error.message,true); else {toast('Laboratory result saved.');render();}
+      });
     });
     target.querySelectorAll('[data-discharge]').forEach(function(btn){
       btn.addEventListener('click',async function(){var note=prompt('Discharge notes (optional):');if(note===null)return;
