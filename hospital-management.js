@@ -433,13 +433,19 @@
   async function renderBilling() {
     var invoices=await query('hospital_invoices','id,patient_id,admission_id,invoice_number,description,amount,due_date,status,created_at','created_at',false,200);
     var payments=await query('hospital_invoice_payments','id,invoice_id,receipt_number,amount,payment_method,paid_at,note','paid_at',false,300);
-    var pmap={};patients.forEach(function(p){pmap[p.id]=p;});
+    var billingPatients=patients;
+    if(!isManager()){
+      var billingDirectory=await client().rpc('hospital_list_billing_patients',{p_business_id:business().id});
+      if(billingDirectory.error) throw billingDirectory.error;
+      billingPatients=billingDirectory.data||[];
+    }
+    var pmap={};billingPatients.forEach(function(p){pmap[p.id||p.patient_id]=p;});
     var paidMap={};payments.forEach(function(p){paidMap[p.invoice_id]=(paidMap[p.invoice_id]||0)+Number(p.amount);});
     var rows=invoices.map(function(i){var p=pmap[i.patient_id]||{},paid=paidMap[i.id]||0,outstanding=Math.max(0,Number(i.amount)-paid);
       return '<tr><td><b>'+esc(i.invoice_number)+'</b></td><td>'+esc((p.first_name||'Patient')+' '+(p.last_name||''))+'</td><td>'+esc(i.description)+'</td><td>'+money(i.amount)+'</td><td>'+money(paid)+'</td><td>'+money(outstanding)+'</td><td>'+badge(i.status)+'</td><td>'+(outstanding>0 && i.status!=='cancelled' && i.status!=='waived' && (isManager() || membershipRole==='accountant' || staffRole==='cashier' || staffRole==='administrator')?'<button class="wlh-btn alt" type="button" data-invoice-pay="'+i.id+'">Record payment</button>':'—')+'</td></tr>';
     }).join('');
     var canBill=isManager() || membershipRole==='accountant' || staffRole==='cashier' || staffRole==='administrator';
-    var canCreateInvoice=isManager() || staffRole==='administrator';
+    var canCreateInvoice=isManager() || membershipRole==='accountant' || staffRole==='cashier' || staffRole==='administrator';
     cache.invoices=invoices;
     var form=canBill && canCreateInvoice?panel('Create invoice','Record a hospital service or admission charge','<form class="wlh-form" data-hospital-form="invoice">'+
       selectField('Patient','patient_id',patientOptions(),true)+field('Invoice number','invoice_number','text',true)+
@@ -468,7 +474,7 @@
     var form=isManager()?panel('Assign hospital staff account','Use the email of an existing, email-confirmed Koroma Leone Tech account. If they are not yet in this workspace, they are added as a viewer; their hospital role is assigned separately. No password is requested.','<form class="wlh-form" data-hospital-form="staff">'+
       field('Registered account email','staff_email','email',true)+field('Staff number','staff_number','text',true)+
       field('First name','first_name','text',true)+field('Last name','last_name','text',true)+
-      selectField('Hospital role','staff_role',['doctor','nurse','pharmacist','lab_technician','receptionist','administrator','other'].map(function(x){return {value:x,label:x.replaceAll('_',' ')};}),true)+
+      selectField('Hospital role','staff_role',['doctor','nurse','pharmacist','lab_technician','receptionist','cashier','administrator','other'].map(function(x){return {value:x,label:x.replaceAll('_',' ')};}),true)+
       field('Specialisation','specialization','text',false)+selectField('Department','department_id',departmentOptions(),false)+
       field('Phone','phone','tel',false)+
       '<div class="wlh-wide wlh-actions"><button class="wlh-btn" type="submit">Link account and assign role</button></div></form><p class="wlh-note">The person must already have a registered and email-confirmed account. Workspace access still follows the platform account-approval process. Their general workspace role is not promoted by this action.</p>'):'';
