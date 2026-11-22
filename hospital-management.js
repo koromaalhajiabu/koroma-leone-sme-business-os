@@ -336,10 +336,18 @@
     try {
       var activeBusiness=business();
       var cloudApi=window.whiteLionCloud;
-      if(activeBusiness && activeBusiness.logo_path && cloudApi && typeof cloudApi.getBusinessLogoUrl==='function'){
-        hospitalCrestUrl=await cloudApi.getBusinessLogoUrl(activeBusiness.logo_path)||hospitalCrestUrl;
+      var db=client();
+      // Re-read the saved logo path from the selected workspace. The module's
+      // cached business object can predate a crest upload or profile update.
+      if(activeBusiness && activeBusiness.id && db && cloudApi && typeof cloudApi.getBusinessLogoUrl==='function'){
+        var crestRecord=await db.from('businesses').select('logo_path').eq('id',activeBusiness.id).maybeSingle();
+        if(crestRecord.error) throw crestRecord.error;
+        var savedLogoPath=crestRecord.data && crestRecord.data.logo_path;
+        if(savedLogoPath){
+          hospitalCrestUrl=await cloudApi.getBusinessLogoUrl(savedLogoPath)||hospitalCrestUrl;
+        }
       }
-    } catch(e) { console.warn('Hospital crest could not be loaded:',e); }
+    } catch(e) { console.warn('Saved hospital crest could not be loaded:',e && e.message ? e.message : e); }
     var linksByRole={
       doctor:['clinical','patients','appointments','admissions','laboratory','pharmacy'],
       nurse:['patients','appointments','clinical','admissions','wards'],
