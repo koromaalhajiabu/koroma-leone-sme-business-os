@@ -379,7 +379,7 @@
     const isDeveloper = !!access.data?.is_developer;
     $('wlCreateBusiness').hidden = !isDeveloper;
     const { data: memberships, error } = await client.from('business_members')
-      .select('business_id,role,is_active,businesses(id,name,industry,currency_code,contact_email,contact_phone,address,website,tax_registration_number,receipt_footer)')
+      .select('business_id,role,is_active,businesses(id,name,industry,currency_code,contact_email,contact_phone,address,website,tax_registration_number,receipt_footer,logo_path)')
       .eq('user_id', session.user.id).eq('is_active', true);
     if (error) return say('Could not load workspaces: ' + error.message);
     document.querySelector('.app')?.classList.remove('wl-public-mode');
@@ -553,14 +553,14 @@
     if (!(file instanceof File) || !['image/png','image/jpeg','image/webp','image/gif'].includes(file.type) || file.size > 2*1024*1024) throw new Error('Choose a PNG, JPG, WEBP or GIF image under 2 MB.');
     const ext = ({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif'})[file.type];
     const path = activeBusiness.id + '/business-logo-' + Date.now() + '.' + ext;
-    const {error} = await client.storage.from('business-documents').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
+    const {error} = await client.storage.from('business-branding').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});
     if (error) throw new Error('Business logo upload failed: ' + error.message);
     return path;
   }
   async function getBusinessLogoUrl(path) {
     if (!client || !path || !activeBusiness) return null;
     if (!String(path).startsWith(activeBusiness.id + '/')) throw new Error('Logo path does not belong to the selected business.');
-    const {data,error} = await client.storage.from('business-documents').createSignedUrl(path,3600);
+    const {data,error} = await client.storage.from('business-branding').createSignedUrl(path,3600);
     if (error) throw new Error('Could not load business logo: ' + error.message);
     return data?.signedUrl || null;
   }
