@@ -22,6 +22,23 @@
   var session = function () { return window.whiteLionCloud && window.whiteLionCloud.getSession && window.whiteLionCloud.getSession(); };
   var isManager = function () { return ['owner','admin','manager'].indexOf(membershipRole) >= 0; };
   var hasRole = function (roles) { return isManager() || roles.indexOf(staffRole) >= 0; };
+  function canAccessTab(tab) {
+    if (isManager()) return true;
+    var roles = {
+      overview:['doctor','nurse','administrator'],
+      patients:['doctor','nurse','pharmacist','lab_technician','receptionist','administrator'],
+      appointments:['doctor','nurse','receptionist','administrator'],
+      clinical:['doctor','nurse','administrator'],
+      admissions:['doctor','nurse','administrator'],
+      wards:['doctor','nurse','administrator'],
+      pharmacy:['doctor','nurse','pharmacist','administrator'],
+      laboratory:['doctor','nurse','lab_technician','administrator'],
+      billing:['cashier','administrator'],
+      staff:[]
+    };
+    if (tab==='billing' && membershipRole==='accountant') return true;
+    return (roles[tab] || []).indexOf(staffRole) >= 0;
+  }
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
@@ -116,6 +133,7 @@
       ['pharmacy','Pharmacy','⚕'],['laboratory','Laboratory','⌕'],['billing','Billing','＄'],
       ['staff','Staff & Departments','♟']
     ];
+    tabs=tabs.filter(function(t){return canAccessTab(t[0]);});
     return '<div class="wlh-tabs">'+tabs.map(function(t){
       return '<button type="button" class="wlh-tab '+(activeTab===t[0]?'active':'')+'" data-hospital-tab="'+t[0]+'"><span>'+t[2]+'</span>'+t[1]+'</button>';
     }).join('')+'</div>';
@@ -154,13 +172,24 @@
       .eq('business_id',b.id).eq('user_id',currentUserId).maybeSingle();
     if (ownStaff.error && ownStaff.error.code !== 'PGRST116') throw ownStaff.error;
     staffRole = ownStaff.data && ownStaff.data.employment_status === 'active' ? ownStaff.data.staff_role : '';
-    await Promise.all([
-      loadList('patients','hospital_patients','id,patient_number,first_name,last_name,date_of_birth,gender,phone,email,address,blood_group,allergies,emergency_contact_name,emergency_contact_phone,status,created_at','created_at',false,250),
-      loadList('staff','hospital_staff','id,staff_number,first_name,last_name,staff_role,specialization,department_id,phone,email,employment_status,user_id','first_name',true,200),
-      loadList('departments','hospital_departments','id,name,description','name',true,100),
-      loadList('wards','hospital_wards','id,name,ward_type','name',true,100),
-      loadList('beds','hospital_beds','id,ward_id,bed_number,status','bed_number',true,250)
-    ]);
+    var tasks=[];
+    var clinicalRead=isManager() || ['doctor','nurse','pharmacist','lab_technician','receptionist','administrator'].indexOf(staffRole)>=0;
+    var staffRead=isManager() || ['doctor','nurse','pharmacist','lab_technician','receptionist','administrator'].indexOf(staffRole)>=0;
+    var wardRead=isManager() || ['doctor','nurse','administrator'].indexOf(staffRole)>=0;
+    if(clinicalRead) tasks.push(loadList('patients','hospital_patients','id,patient_number,first_name,last_name,date_of_birth,gender,phone,email,address,blood_group,allergies,emergency_contact_name,emergency_contact_phone,status,created_at','created_at',false,250));
+    else { patients=[]; cache.patients=[]; }
+    if(staffRead){
+      tasks.push(loadList('staff','hospital_staff','id,staff_number,first_name,last_name,staff_role,specialization,department_id,phone,email,employment_status,user_id','first_name',true,200));
+      tasks.push(loadList('departments','hospital_departments','id,name,description','name',true,100));
+    } else { staff=[]; departments=[]; cache.staff=[]; cache.departments=[]; }
+    if(wardRead){
+      tasks.push(loadList('wards','hospital_wards','id,name,ward_type','name',true,100));
+      tasks.push(loadList('beds','hospital_beds','id,ward_id,bed_number,status','bed_number',true,250));
+    } else { wards=[]; beds=[]; cache.wards=[]; cache.beds=[]; }
+    await Promise.all(tasks);
+    if(!canAccessTab(activeTab)){
+      activeTab=isManager()?'overview':(membershipRole==='accountant'||staffRole==='cashier'?'billing':staffRole==='pharmacist'?'pharmacy':staffRole==='lab_technician'?'laboratory':staffRole==='receptionist'?'appointments':'patients');
+    }
   }
   async function loadList(key, tableName, columns, orderColumn, ascending, limit) {
     var data = await query(tableName,columns,orderColumn,ascending,limit);
@@ -206,7 +235,9 @@
     target.innerHTML='<div class="wlh-panel"><h3>Loading Hospital Management…</h3><p class="wlh-note">Connecting securely to this workspace.</p></div>';
     try {
       await loadContext();
-      if (activeTab==='overview') await renderOverview();
+      if (!canAccessTab(activeTab)) {
+        target.innerHTML=shell('Access restricted','Your current hospital role does not have access to this section.','<div class="wlh-empty-state">Ask your hospital administrator to review your staff role and workspace permissions.</div>');
+      } else if (activeTab==='overview') await renderOverview();
       else if (activeTab==='patients') await renderPatients();
       else if (activeTab==='appointments') await renderAppointments();
       else if (activeTab==='clinical') await renderClinical();
@@ -243,6 +274,12 @@
       var p=patientsMap[a.patient_id] || {};
       return '<tr><td><b>'+esc((p.first_name||'Patient')+' '+(p.last_name||''))+'</b><div class="wlh-note">'+esc(p.patient_number||'')+'</div></td><td>'+esc(dateTime(a.appointment_at))+'</td><td>'+esc(a.reason||'—')+'</td><td>'+badge(a.status)+'</td></tr>';
     }).join('');
+    if (!canAccessTab('overview')) {
+      var openInvoices=await statCount('hospital_invoices',function(q){q.in('status',['unpaid','part_paid']);});
+      var paidCount=await statCount('hospital_invoice_payments');
+      root().innerHTML=shell('Hospital workspace','Your authorised hospital workspace.', '<div class="wlh-grid"><div class="wlh-stat"><small>Outstanding invoices</small><strong>'+openInvoices+'</strong><span>Pending payment</span></div><div class="wlh-stat"><small>Payments recorded</small><strong>'+paidCount+'</strong><span>Receipts in the current workspace</span></div></div>');
+      return;
+    }
     var body='<div class="wlh-grid">'+[
       ['Active patients',counts[0],'Registered patient records'],['Appointments today',counts[1],'Today’s scheduled activity'],
       ['Current admissions',counts[2],'Patients currently admitted'],['Pending laboratory',counts[3],'Tests awaiting completion']
@@ -390,7 +427,9 @@
       return '<tr><td><b>'+esc(i.invoice_number)+'</b></td><td>'+esc((p.first_name||'Patient')+' '+(p.last_name||''))+'</td><td>'+esc(i.description)+'</td><td>'+money(i.amount)+'</td><td>'+money(paid)+'</td><td>'+money(outstanding)+'</td><td>'+badge(i.status)+'</td><td>'+(outstanding>0 && i.status!=='cancelled' && i.status!=='waived' && (isManager() || membershipRole==='accountant' || staffRole==='cashier' || staffRole==='administrator')?'<button class="wlh-btn alt" type="button" data-invoice-pay="'+i.id+'">Record payment</button>':'—')+'</td></tr>';
     }).join('');
     var canBill=isManager() || membershipRole==='accountant' || staffRole==='cashier' || staffRole==='administrator';
-    var form=canBill?panel('Create invoice','Record a hospital service or admission charge','<form class="wlh-form" data-hospital-form="invoice">'+
+    var canCreateInvoice=isManager() || staffRole==='administrator';
+    cache.invoices=invoices;
+    var form=canBill && canCreateInvoice?panel('Create invoice','Record a hospital service or admission charge','<form class="wlh-form" data-hospital-form="invoice">'+
       selectField('Patient','patient_id',patientOptions(),true)+field('Invoice number','invoice_number','text',true)+
       field('Amount','amount','number',true,null,'min="0.01" step="0.01"')+field('Due date','due_date','date',false)+
       area('Description','description',2)+
