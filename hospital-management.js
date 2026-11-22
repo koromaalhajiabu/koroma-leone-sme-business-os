@@ -192,7 +192,11 @@
     }).join('')+'</div>';
   }
   function shell(title, description, body, action) {
-    return '<div class="wlh">'+pageTitle(title,description,action)+navTabs()+
+    var businessSettingsAction = isManager()
+      ? '<button type="button" class="wlh-btn alt" data-open-business-settings="true" aria-label="Open business settings">⚙ Business settings</button>'
+      : '';
+    var headerActions = [action || '', businessSettingsAction].filter(Boolean).join('');
+    return '<div class="wlh">'+pageTitle(title,description,headerActions)+navTabs()+
       '<div class="wlh-privacy"><span>🔒</span> Patient and clinical records are kept in your secured cloud workspace. Clinical data is not cached for offline access.</div>'+
       body+'<div class="wlh-footer">Koroma Leone Tech · Hospital Management · Designed for authorised staff</div></div>';
   }
@@ -601,6 +605,12 @@
       panel('Hospital staff directory','Staff profile and role register',table(['Photo','Staff number','Name','Role','Department','Email','Status'],staffRows,'No hospital staff profiles.')));
   }
   function wire(target) {
+    target.querySelectorAll('[data-open-business-settings]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        if (typeof window.setPage === 'function') window.setPage('settings');
+        else toast('Business settings are unavailable. Return to the main workspace and open Settings.',true);
+      });
+    });
     target.querySelectorAll('[data-hospital-tab]').forEach(function(btn){btn.addEventListener('click',function(){activeTab=btn.getAttribute('data-hospital-tab');render();});});
     var search=document.getElementById('wlhPatientSearch');
     if(search) search.addEventListener('input',function(){
