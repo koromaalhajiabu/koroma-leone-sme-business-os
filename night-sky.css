@@ -1,0 +1,31 @@
+/* Koroma Leone Tech — Night Sky visual theme (twinkling stars + shooting stars). */
+.klt-night-sky{position:absolute;inset:0;overflow:hidden;z-index:0;pointer-events:none;border-radius:inherit}
+
+/* Lift the real content above the star layer in the two "always night" surfaces. */
+.sidebar{position:relative}
+.sidebar>*:not(.klt-night-sky){position:relative;z-index:1}
+
+.klt-star-layer{position:absolute;top:0;left:0;width:2px;height:2px;border-radius:50%;background:transparent}
+.klt-star-small{animation:kltTwinkle 4.4s ease-in-out infinite}
+.klt-star-med{width:3px;height:3px;opacity:.9;animation:kltTwinkle 6.6s ease-in-out infinite reverse}
+.klt-star-layer.klt-no-anim{animation:none!important;opacity:.75}
+
+@keyframes kltTwinkle{0%,100%{opacity:.3}50%{opacity:1}}
+
+.klt-shooting-star{position:absolute;top:0;left:0;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0;animation-name:kltShoot;animation-timing-function:cubic-bezier(.3,.55,.3,1);animation-iteration-count:infinite}
+.klt-shooting-star::before{content:'';position:absolute;top:50%;left:50%;width:100px;height:1.5px;background:linear-gradient(90deg,#fff,rgba(255,255,255,0));transform:translate(-100%,-50%) rotate(215deg);transform-origin:right center}
+
+@keyframes kltShoot{
+  0%{opacity:0;transform:translate(0,0)}
+  2%{opacity:1}
+  16%{opacity:0;transform:translate(230px,165px)}
+  100%{opacity:0;transform:translate(230px,165px)}
+}
+
+/* Deep-space backdrop for the rest of the app once dark mode is on. */
+html[data-theme="dark"] body{background:radial-gradient(ellipse at top,#0e1c33 0%,#070e1c 55%,#05080f 100%)}
+
+@media(prefers-reduced-motion:reduce){
+  .klt-star-layer{animation:none!important;opacity:.8}
+  .klt-shooting-star{animation:none!important;display:none}
+}
