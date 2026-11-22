@@ -865,6 +865,29 @@ html[data-theme="dark"] .footer{color:#8795aa}
 <link rel="stylesheet" href="./ui-80-refresh.css?v=2">
 <link rel="stylesheet" href="./signature-2026.css?v=1">
 <link rel="stylesheet" href="./night-sky.css?v=1">
+<style id="klt-dashboard-premium-v3">
+:root{--klt-v3-emerald:#0d9a61;--klt-v3-emerald-dark:#075238;--klt-v3-gold:#d9b45e}
+body{background:radial-gradient(ellipse at 82% 0%,rgba(13,154,97,.16),transparent 34%),linear-gradient(135deg,#f5faf7,#eaf3ed)!important}
+.sidebar{background:linear-gradient(155deg,#073d2c 0%,#07583a 52%,#092b24 100%)!important;box-shadow:10px 0 34px rgba(4,57,39,.16)!important}
+.brand-mark{background:linear-gradient(135deg,#f5dc9c,#c69b43)!important;box-shadow:0 9px 24px rgba(214,178,95,.27)!important}
+.nav button{border:1px solid transparent!important;border-radius:12px!important;transition:background .2s,transform .2s,border-color .2s!important}
+.nav button:hover,.nav button.active{background:linear-gradient(100deg,rgba(29,171,111,.36),rgba(255,255,255,.075))!important;border-color:rgba(150,234,195,.2)!important;box-shadow:inset 3px 0 #e3c36f,0 7px 20px rgba(0,0,0,.11)!important;transform:translateX(2px)}
+.topbar{background:rgba(255,255,255,.9)!important;backdrop-filter:blur(18px)!important;border-bottom:1px solid #dce9e0!important;box-shadow:0 8px 24px rgba(15,59,40,.05)!important}
+.content{max-width:1580px!important;padding-top:32px!important}
+#welcome,.welcome,.welcome-banner,.hero,.dashboard-hero{border-radius:25px!important;background:linear-gradient(115deg,#063d2d 0%,#08764b 58%,#11a06a 100%)!important;color:white!important;padding:clamp(22px,3.5vw,38px)!important;box-shadow:0 20px 48px rgba(5,88,56,.23)!important;position:relative;overflow:hidden}
+#welcome:after,.welcome:after,.welcome-banner:after,.hero:after,.dashboard-hero:after{content:"";position:absolute;right:-70px;top:-135px;width:330px;height:330px;border:1px solid #ffffff30;border-radius:50%;box-shadow:0 0 0 25px #ffffff0c,0 0 0 55px #ffffff08;pointer-events:none}
+#welcome h1,.welcome h1,.welcome h2,.welcome-banner h1,.welcome-banner h2,.hero h1,.hero h2,.dashboard-hero h1,.dashboard-hero h2{color:#fff!important;letter-spacing:-.04em}
+#welcome p,.welcome p,.welcome-banner p,.hero p,.dashboard-hero p{color:#d8f6e7!important}
+.stat,.stat-card,.kpi,.metric-card{border:1px solid #d5e9dc!important;border-radius:20px!important;background:linear-gradient(145deg,#fff,#eff9f3)!important;box-shadow:0 14px 34px rgba(5,88,56,.09)!important;position:relative;overflow:hidden}
+.stat:after,.stat-card:after,.kpi:after,.metric-card:after{content:"";position:absolute;right:-45px;bottom:-65px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(13,154,97,.18),transparent 70%);pointer-events:none}
+.stat strong,.stat-value,.stat-card strong,.kpi strong,.metric-card strong{color:#075d3e!important;font-size:clamp(25px,3vw,36px)!important;font-weight:850!important}
+.panel,.module-card,.card{border-radius:20px!important;border:1px solid #dfebe3!important;box-shadow:0 13px 34px rgba(15,70,47,.065)!important}
+.quick,.quick-action,.action-card{border-radius:16px!important;transition:transform .2s,box-shadow .2s!important}
+.quick:hover,.quick-action:hover,.action-card:hover{transform:translateY(-3px)!important;box-shadow:0 14px 28px rgba(7,91,53,.13)!important}
+@media(prefers-reduced-motion:no-preference){.stat,.stat-card,.kpi,.metric-card,.panel,.module-card{animation:kltDashRise .5s cubic-bezier(.2,.75,.25,1) both}}
+@keyframes kltDashRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+<meta name="klt-dashboard-version" content="2026-11-22-premium-v3">
 </head>
 <body>
 <div class="app">
@@ -1609,7 +1632,7 @@ function csv(rows){const keys=['receipt','date','customer','payment','total'];co
 window.addEventListener('whiteLionBranchChanged',()=>{if(state.page==='sales'||state.page==='purchases'||state.page==='intelligence'||state.page==='stockcontrol')render()});
 (async()=>{const v=document.getElementById('view');try{db=await openDB();state.business=await setting('business')||state.business;await setting('business',state.business);await render();window.__wlStartupComplete=true}catch(e){window.__wlStartupComplete=true;console.error('Koroma Leone startup failed:',e);v.innerHTML='<div class="panel"><h2>Koroma Leone could not finish starting</h2><p class="panel-sub">Your saved local records have not been deleted. The startup error is: '+esc(e&&e.message?e.message:String(e))+'</p><button class="btn primary" id="wlRetryStartup" type="button">Try again</button></div>';const b=document.getElementById('wlRetryStartup');if(b)b.onclick=()=>location.reload()}})();
 
-if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=116',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=117',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
 </script>
 <script id="wl-simple-pwa-install">
 (function(){
