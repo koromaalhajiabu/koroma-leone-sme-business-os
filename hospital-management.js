@@ -193,7 +193,7 @@
   }
   function shell(title, description, body, action) {
     var businessSettingsAction = isManager()
-      ? '<button type="button" class="wlh-btn alt" data-open-business-settings="true" aria-label="Open business settings">⚙ Business settings</button>'
+      ? '<button type="button" class="wlh-btn alt" data-open-business-settings="true" aria-label="Open hospital settings">⚙ Hospital settings</button>'
       : '';
     var headerActions = [action || '', businessSettingsAction].filter(Boolean).join('');
     return '<div class="wlh">'+pageTitle(title,description,headerActions)+navTabs()+
