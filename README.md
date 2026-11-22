@@ -20,7 +20,7 @@ A multi-industry SME operations platform by Koroma Leone Tech. The frontend is d
 - Returns/refunds, cashbook, receivables/payables and financial payment records.
 - Barcode, batch/expiry and controlled stock adjustment features.
 - Private business document storage.
-- Optional tenant-scoped Hospital Management for hospital and clinic workspaces: patient registration, appointments, clinical encounters, observations and diagnoses, admissions and bed occupancy, medicine stock and prescription dispensing, laboratory requests, invoices/payments, and staff/departments. Patient and clinical data is cloud-only and role-scoped; it is not stored in the offline cache.
+- Optional tenant-scoped Hospital Management for hospital and clinic workspaces: patient registration, appointments, clinical encounters, observations and diagnoses, admissions and bed occupancy, medicine stock and prescription dispensing, laboratory requests, invoices/payments, and staff/departments. Patient and clinical data is cloud-only and role-scoped; it is not stored in the offline cache. Hospital staff accounts can be linked by verified email to existing platform accounts; linked users receive a viewer workspace role unless they already hold another role, while their hospital staff role controls clinical module permissions.
 - Sports and local-league competition management.
 - Developer administration, account controls and business/platform audit logging.
 - English, French, Arabic (RTL), Spanish, Hindi and Simplified Chinese language options.
