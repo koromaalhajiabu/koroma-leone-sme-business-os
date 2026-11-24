@@ -165,3 +165,15 @@ Migration 065 adds a private, owner-scoped in-app notification table and a daily
 - The in-app notification centre remains independent and continues to work when all external channels are disabled.
 
 - Delivery callbacks are enabled: Twilio SMS/WhatsApp status callbacks use the signed `twilio-status-webhook`; Resend delivery/bounce/complaint events use the signed `resend-status-webhook`. Configure the Resend webhook URL as `https://nclncqlgnxnijlumznnt.supabase.co/functions/v1/resend-status-webhook` and add `RESEND_WEBHOOK_SECRET` to Edge Function secrets. Twilio status callbacks are automatically attached by the dispatcher. Provider API acceptance and final delivery status are recorded separately.
+
+## Football Club Onboarding & Verification
+
+- Public club application: `football-club-apply.html`
+- Developer review module: `football-club-onboarding-admin.js`
+- Public website verification badge: `club-website.html`
+- Club manager workspace: sign in through `index.html`; the Football Club Website Studio opens automatically for the `Sports & Local League Management` workspace.
+- Supabase migrations:
+  - `20261124143125_football_club_onboarding_verification_centre.sql`
+  - `20261124144000_football_club_onboarding_verification_guard.sql`
+
+Email-confirmed applicants can submit club details and optional private supporting evidence. The platform developer can request information, reject, or approve an application. Approval atomically approves the platform account, creates a club-owned workspace, assigns the applicant as workspace owner, activates the football website module, creates a verified but unpublished website draft, and leaves developer delegation inactive until the club explicitly authorises it. A verified badge represents Koroma Leone Tech's platform review only; it is not FIFA, SLFA, league or government accreditation.
