@@ -40,7 +40,7 @@ Club media is stored in the public `club-website-media` Supabase Storage bucket.
 
 **Current implementation limits:** club fixtures and scores are entered by authorised club staff; there is no automatic live-data feed. Shop, ticketing and membership fields link to external services and do not create a built-in payment or ticketing checkout. Club sites currently use the shared GitHub Pages domain and slug-based URLs; individual custom domains require separate DNS and hosting configuration.
 
-Database setup is recorded in `supabase/migrations/20261124100000_football_club_website_studio.sql` and applied to the connected Koroma Leone Tech Supabase project. GitHub Pages publishes the static site files through the existing `.github/workflows/deploy-pages.yml` workflow.
+Database setup is recorded in the club website and delegation SQL migrations under `supabase/migrations/` and has been applied to the connected Koroma Leone Tech Supabase project. GitHub Pages automatically builds and publishes from the repository's configured Pages source; the built-in Pages build-and-deployment workflow is the single publishing path.
 
 ## Hospital Management module
 
