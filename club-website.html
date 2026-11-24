@@ -27,7 +27,7 @@ function setMeta(kind,key,value){
 }
 function applyClubSEO(s){
  const title=String(s.seo_title||((s.club_name||'Football Club')+' | Official Club Website')).trim();
- const description=String(s.seo_description||s.tagline||s.about_text||('Official website of '+(s.club_name||'this football club')+'. Club news, squad information and contact details.')).replace(/\\s+/g,' ').trim().slice(0,320);
+ const description=String(s.seo_description||s.tagline||s.about_text||('Official website of '+(s.club_name||'this football club')+'. Club news, squad information and contact details.')).replace(/\s+/g,' ').trim().slice(0,320);
  const canonical=new URL(location.pathname,location.origin);
  canonical.searchParams.set('slug',slug);
  let canonicalNode=document.head.querySelector('link[rel="canonical"]');
