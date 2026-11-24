@@ -122,7 +122,7 @@ function setAuthState(s){
 $('signup-form').onsubmit=async e=>{
  e.preventDefault();const f=new FormData(e.target),email=String(f.get('email')||'').trim().toLowerCase(),password=String(f.get('password')||''),name=String(f.get('full_name')||'').trim();
  say('auth-status','Creating account…');
- const r=await db.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:location.href.split('#')[0]}});
+ const r=await db.auth.signUp({email,password,options:{data:{full_name:name}}});
  if(r.error){say('auth-status',r.error.message,'error');return;}
  if(r.data.session){say('auth-status','Account created. Your email is confirmed and you are signed in.');setAuthState(r.data.session);}
  else say('auth-status','Account created. Check '+email+' for the confirmation link, then return to this page and sign in.','warn');
