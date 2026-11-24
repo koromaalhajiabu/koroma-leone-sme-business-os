@@ -77,13 +77,12 @@
   async function refresh() {
     if (busy) return;
     const c = client();
-    const session = cloud()?.getSession?.() || null;
-    if (!c || !session?.user) {
-      setStatus('No active platform developer session is available yet. Wait for the cloud panel to finish loading, then refresh this status.', true);
+    if (!c || typeof c.rpc !== 'function') {
+      setStatus('The platform database client is not ready yet. Refresh the developer console after the cloud connection loads.', true);
       return;
     }
     busy = true;
-    setStatus('Checking the developer-only club application queue…');
+    setStatus('Checking developer permissions and loading the club application queue…');
     try {
       const r = await c.rpc('get_platform_club_applications');
       if (r.error) throw r.error;
