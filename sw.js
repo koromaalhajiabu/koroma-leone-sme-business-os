@@ -1,5 +1,5 @@
 /* Koroma Leone SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='koroma-leone-sme-v292';
+const CACHE_NAME='koroma-leone-sme-v293';
 const APP_SHELL=[
   './',
   './index.html',
@@ -52,7 +52,7 @@ const APP_SHELL=[
   './icons/white-lion-official.webp',
   './icons/koroma-leone-tech-crest.svg?v=3',
   './league.js?v=6',
-  './football-club-website.js?v=1',
+  './football-club-website.js?v=2',
   './club-website.html',
   './billing.js?v=12',
   './subscription-notifications.js?v=4',
@@ -139,6 +139,11 @@ self.addEventListener('fetch', event => {
       if (request.mode === 'navigate' && /\/public-leagues\.html$/i.test(url.pathname)) {
         const publicPage = await cache.match('./public-leagues.html', {ignoreSearch:true});
         return publicPage || Response.error();
+      }
+      // Keep a club's public website on its own entry page when offline.
+      if (request.mode === 'navigate' && /\/club-website\.html$/i.test(url.pathname)) {
+        const clubPage = await cache.match('./club-website.html', {ignoreSearch:true});
+        return clubPage || Response.error();
       }
       const cached = await cache.match(request) ||
         (request.mode === 'navigate' ? await cache.match('./index.html') : null);
