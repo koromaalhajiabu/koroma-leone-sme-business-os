@@ -187,6 +187,7 @@ Supabase setup for this phase is recorded in:
 - `20261124191027_football_network_performance_expansion.sql`
 - `20261124191255_football_player_marketplace_activation.sql`
 - `20261124191446_football_transfer_completion_market_sync.sql`
+- `20261124192102_football_network_trigger_insert_guard.sql`
 
 No players, transfer offers, fees, scout reports or sample clubs are seeded. Clubs must enter real information, confirm consent and publish eligible profiles before records appear publicly.
 
