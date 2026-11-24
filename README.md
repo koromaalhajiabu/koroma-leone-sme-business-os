@@ -168,6 +168,28 @@ Migration 065 adds a private, owner-scoped in-app notification table and a daily
 
 - Delivery callbacks are enabled: Twilio SMS/WhatsApp status callbacks use the signed `twilio-status-webhook`; Resend delivery/bounce/complaint events use the signed `resend-status-webhook`. Configure the Resend webhook URL as `https://nclncqlgnxnijlumznnt.supabase.co/functions/v1/resend-status-webhook` and add `RESEND_WEBHOOK_SECRET` to Edge Function secrets. Twilio status callbacks are automatically attached by the dispatcher. Provider API acceptance and final delivery status are recorded separately.
 
+## Football Player Network & Transfer Opportunities
+
+This module is for managing individual football clubs and their players, presenting adult players to scouts and clubs internationally, and recording formal club-to-club transfer decisions. It is not a league competition administration system. The separate Sports & Local League module remains an independent existing tool and has not been expanded by this player-network phase.
+
+- Club manager workspace: open **Football Player Network** from Business Tools after signing in to the club workspace.
+- Public player transfer market: `football-player-marketplace.html`. It lists only active adult-player listings backed by a published player discovery profile, active player consent and a Koroma Leone Tech verified/published club website.
+- Player discovery: `football-scouting.html`. Verified scout accounts can submit player evaluations, trial enquiries, transfer interest and loan interest. Enquiries are delivered to the relevant club; player phone numbers, personal email addresses and guardian contacts are not published.
+- Career history: club managers can create structured career timelines with previous clubs, seasons, positions, appearances, goals, assists and honours.
+- Club match performance: clubs can record player-level minutes, goals, assists, clean sheets, cards, saves and ratings against their own club fixture records. These are club records, not league administration. Public match statistics appear only after club approval and while the linked player profile has current consent.
+- Market listings: club managers can list an eligible adult player for permanent transfer, loan, trial opportunity or free-agent availability, with an optional indicative fee, currency, negotiation status and expiry. Under-18 players cannot be listed for transfer through this module.
+- Transfer workflow: a source club starts a request from a published player listing; the destination club accepts or declines first; the source club then approves or declines player release; authorised source-club management records completion and the market listing is closed. Both club decisions are retained. This workflow records club confirmations; it does not execute a legal contract, settle a fee or submit a player registration to FIFA Connect, SLFA or another association.
+- Scout reports: verified scouts can submit private professional assessments with technical, tactical, physical, mental and potential ratings, strengths, development areas and a recommendation. The scout chooses whether to share a report with the club.
+- Reports and comparison: the public market supports shortlisting and side-by-side player comparison. The club workspace can print individual player briefs and a club player register.
+- Public pages: public player market, player profiles and club pages explain that Koroma Leone Tech platform verification is not FIFA, SLFA, league or government accreditation. The parties remain responsible for identity, safeguarding, contract, eligibility and association checks.
+
+Supabase setup for this phase is recorded in:
+- `20261124191027_football_network_performance_expansion.sql`
+- `20261124191255_football_player_marketplace_activation.sql`
+- `20261124191446_football_transfer_completion_market_sync.sql`
+
+No players, transfer offers, fees, scout reports or sample clubs are seeded. Clubs must enter real information, confirm consent and publish eligible profiles before records appear publicly.
+
 ## Football Club Onboarding & Verification
 
 - Public club application: `football-club-apply.html`
