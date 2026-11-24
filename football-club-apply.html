@@ -151,7 +151,7 @@ function showApplication(app){
  else if(app.status==='rejected'){form.classList.remove('hidden');prefill(app);$('submit-application').textContent='Submit a corrected application';say('application-status','You can submit a corrected application.','warn');}
  else if(app.status==='approved'){
    actions.classList.remove('hidden');
-   if(app.website_id&&app.proposed_website_slug){const a=$('public-site-link');a.href='./club-website.html?slug='+encodeURIComponent(app.proposed_website_slug);a.textContent='Public site (unpublished draft)';a.classList.add('secondary');a.setAttribute('aria-disabled','true');}
+   if(app.website_id&&app.proposed_website_slug){const a=$('public-site-link');a.href='#';a.textContent='Public website link available after publishing';a.classList.add('secondary');a.setAttribute('aria-disabled','true');a.style.pointerEvents='none';a.style.opacity='.6';}
    say('application-status','Approval is complete. Sign in using this same account to open your club manager workspace.','');
  }else say('application-status','You can return to this page at any time to check the application status.','');
 }
@@ -187,7 +187,7 @@ $('application-form').onsubmit=async e=>{
  const btn=$('submit-application');btn.disabled=true;btn.textContent='Submitting securely…';
  try{
   let appId;
-  const saved=currentApp&&['needs_information','rejected'].includes(currentApp.status)
+  const saved=currentApp?.status==='needs_information'
    ? await db.rpc('update_my_football_club_application',{p_application_id:currentApp.id,p_payload:payload})
    : await db.rpc('submit_football_club_application',{p_payload:payload});
   if(saved.error)throw saved.error;
