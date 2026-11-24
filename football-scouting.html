@@ -251,13 +251,21 @@ async function loadMyEnquiries(){
 async function loadDeveloperReview(){
  if(!isDeveloper){el('developer-review').style.display='none';return;}
  el('developer-review').style.display='block';
- const r=await db.from('football_scout_accounts').select('*').eq('verification_status','pending').order('created_at',{ascending:true});
+ const r=await db.from('football_scout_accounts').select('*').order('created_at',{ascending:false}).limit(200);
  if(r.error){el('pending-scouts').innerHTML='<div class="empty">'+esc(r.error.message)+'</div>';return;}
  const rows=r.data||[];
- el('pending-scouts').innerHTML=rows.length?rows.map(x=>'<div class="scout-row"><div><strong>'+esc(x.full_name)+' · '+esc(x.organisation)+'</strong><span class="meta">'+esc(x.job_title||'Scout')+' · '+esc(x.contact_email)+' · '+esc(x.country)+'</span>'+(x.website_url?'<br><a href="'+esc(safeUrl(x.website_url))+'" target="_blank" rel="noopener">Organisation website ↗</a>':'')+'</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="dark" data-review-scout="'+x.id+'" data-decision="verified">Verify</button><button class="soft" data-review-scout="'+x.id+'" data-decision="rejected">Reject</button></div></div>').join(''):'<div class="empty">No pending scout accounts.</div>';
+ el('pending-scouts').innerHTML=rows.length?rows.map(x=>{
+  const decisionButtons=x.verification_status==='pending'
+   ?'<button class="dark" data-review-scout="'+x.id+'" data-decision="verified">Verify</button><button class="soft" data-review-scout="'+x.id+'" data-decision="rejected">Reject</button>'
+   :x.verification_status==='verified'
+    ?'<button class="soft" data-review-scout="'+x.id+'" data-decision="suspended">Suspend</button>'
+    :'<button class="dark" data-review-scout="'+x.id+'" data-decision="verified">Restore as verified</button>';
+  return '<div class="scout-row"><div><strong>'+esc(x.full_name)+' · '+esc(x.organisation)+'</strong><span class="meta">'+esc(x.job_title||'Scout')+' · '+esc(x.contact_email)+' · '+esc(x.country)+'</span><br><span class="verify">'+esc(x.verification_status.toUpperCase())+'</span>'+(x.website_url?'<br><a href="'+esc(safeUrl(x.website_url))+'" target="_blank" rel="noopener">Organisation website ↗</a>':'')+(x.verification_comment?'<p class="hint">Review note: '+esc(x.verification_comment)+'</p>':'')+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+decisionButtons+'</div></div>';
+ }).join(''):'<div class="empty">No scout accounts have been registered yet.</div>';
  el('pending-scouts').querySelectorAll('[data-review-scout]').forEach(b=>b.onclick=async()=>{
   const decision=b.dataset.decision;
-  const comment=prompt(decision==='verified'?'Optional verification note:':'Reason for rejecting this account:')||'';
+  const promptText=decision==='verified'?'Optional verification note:':decision==='suspended'?'Reason for suspension:':'Reason for rejecting this account:';
+  const comment=prompt(promptText)||'';
   const result=await db.rpc('review_football_scout_account',{p_account_id:b.dataset.reviewScout,p_decision:decision,p_comment:comment});
   if(result.error){status(result.error.message,true);return;}
   await loadDeveloperReview();
@@ -277,7 +285,11 @@ async function refreshSession(){
   const dev=await db.rpc('football_scout_portal_is_developer');
   isDeveloper=!dev.error&&dev.data===true;
   if(!scoutAccount){
-   renderScoutAccountSetup();
+   if(isDeveloper){
+    el('scout-session').innerHTML='<div class="empty">Platform developer session. Use the account review panel below to verify, reject, suspend or restore scout accounts.</div>';
+   }else{
+    renderScoutAccountSetup();
+   }
    await loadDeveloperReview();
    return;
   }
