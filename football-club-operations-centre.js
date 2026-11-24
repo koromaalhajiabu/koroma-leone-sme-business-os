@@ -94,7 +94,15 @@
       setStatus('Could not load the live queue: ' + (e?.message || String(e)) + '. Existing application review remains available in its own panel.', true);
     } finally { busy = false; }
   }
-  function ready() { setTimeout(mount, 900); }
+  function ready() {
+    setTimeout(() => {
+      mount();
+      // The panel may have mounted before Supabase finished initialising.
+      // When the cloud client becomes ready, retry the live queue request
+      // even if the panel already exists.
+      if (client() && typeof client().rpc === 'function') refresh();
+    }, 900);
+  }
   window.addEventListener('whiteLionCloudReady', ready);
   window.addEventListener('whiteLionDeveloperPanelReady', ready);
   window.KoromaClubOperationsCentre = { mount, refresh };
