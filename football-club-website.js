@@ -126,10 +126,51 @@
     const host=document.getElementById('klwContent');
     await refreshDelegation();
     const status=delegation?.status||'inactive',mode=delegation?.approval_mode||'direct';
-    const controls=developer?'':('<div class="klw-form"><div class="klw-field"><label>Content publishing policy</label><select id="klwApprovalMode"><option value="direct" '+(mode==='direct'?'selected':'')+'>Direct management — developer changes go live as saved</option><option value="approval_required" '+(mode==='approval_required'?'selected':'')+'>Manager approval required — changes wait for review</option></select></div><div class="klw-field" style="align-self:end"><button id="klwSaveApprovalMode">Save publishing policy</button></div></div><div class="klw-actions" style="margin-top:12px">'+(status==='active'?'<button class="warn" id="klwSuspendDelegation">Suspend developer access</button>':'<button class="primary" id="klwActivateDelegation">Authorise Koroma Leone Tech</button>')+(status==='suspended'?'<button id="klwRestoreDelegation">Restore access</button>':'')+(status==='active'||status==='suspended'?'<button class="warn" id="klwRevokeDelegation">Revoke authorisation</button>':'')+'</div>');
-    host.innerHTML='<div class="klw-card"><h3>Koroma Leone Tech website management</h3><p class="klw-muted">The club controls whether the platform developer may manage this website. Authorisation applies only to this club and can be suspended or revoked at any time.</p><p><strong>Current status:</strong> <span class="klw-pill">'+esc(status.replaceAll('_',' '))+'</span></p><p><strong>Publishing policy:</strong> '+(mode==='approval_required'?'Club manager approval required':'Direct publishing')+'</p>'+(delegation?.approved_at?'<p class="klw-muted">Authorised on '+esc(new Date(delegation.approved_at).toLocaleString())+'</p>':'')+controls+(developer?'<div class="klw-note">Only the club owner, administrator or manager can grant, suspend, restore or revoke this permission.</div>':'<div class="klw-note">Direct management allows authorised website updates to appear immediately. Approval-required mode holds the developer\'s new, changed and deleted content in an approval inbox. Your own club account can continue managing its website.</div>')+'</div>';
+    const permissionLabels=[
+      ['profile','Club identity and branding'],
+      ['pages','Website pages'],
+      ['news','News and match reports'],
+      ['squad','Players and player photographs'],
+      ['staff','Coaching and staff profiles'],
+      ['fixtures','Fixtures and results'],
+      ['standings','League tables'],
+      ['transfers','Transfers and squad updates'],
+      ['gallery','Photo and video gallery'],
+      ['sponsors','Sponsors and partners'],
+      ['events','Academy, trials and events'],
+      ['honours','Honours and trophies'],
+      ['enquiries','Club enquiry inbox']
+    ];
+    const savedPermissions=delegation?.permissions||{};
+    const permissionStatus=permissionLabels.map(([key,label])=>{
+      const allowed=savedPermissions[key]!==false;
+      return '<div class="klw-note" style="padding:8px 10px;margin:3px 0;display:flex;justify-content:space-between;gap:8px"><span>'+esc(label)+'</span><strong style="color:'+(allowed?'#087a43':'#a34b51')+'">'+(allowed?'Allowed':'Not allowed')+'</strong></div>';
+    }).join('');
+    const permissionControls=permissionLabels.map(([key,label])=>
+      '<label class="klw-check" style="border:1px solid #e4ede6;border-radius:9px;padding:9px;margin:3px 0"><input type="checkbox" data-delegation-permission="'+key+'" '+(savedPermissions[key]===false?'':'checked')+'> '+esc(label)+'</label>'
+    ).join('');
+    const controls=developer?'':(
+      '<div class="klw-card"><h3>Developer permissions</h3><p class="klw-muted">Choose exactly which parts of this club website Koroma Leone Tech may manage. The club retains full owner/admin/manager control.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:5px">'+permissionControls+'</div></div>'+
+      '<div class="klw-form"><div class="klw-field"><label>Content publishing policy</label><select id="klwApprovalMode"><option value="direct" '+(mode==='direct'?'selected':'')+'>Direct management — developer changes go live as saved</option><option value="approval_required" '+(mode==='approval_required'?'selected':'')+'>Manager approval required — changes wait for review</option></select></div><div class="klw-field" style="align-self:end"><button id="klwSaveApprovalMode">Save permissions and publishing policy</button></div></div>'+
+      '<div class="klw-actions" style="margin-top:12px">'+(status==='active'?'<button class="warn" id="klwSuspendDelegation">Suspend developer access</button>':'<button class="primary" id="klwActivateDelegation">Authorise Koroma Leone Tech</button>')+(status==='suspended'?'<button id="klwRestoreDelegation">Restore access</button>':'')+(status==='active'||status==='suspended'?'<button class="warn" id="klwRevokeDelegation">Revoke authorisation</button>':'')+'</div>'
+    );
+    host.innerHTML='<div class="klw-card"><h3>Koroma Leone Tech website management</h3><p class="klw-muted">The club controls whether the platform developer may manage this website. Authorisation applies only to this club and can be suspended or revoked at any time.</p><p><strong>Current status:</strong> <span class="klw-pill">'+esc(status.replaceAll('_',' '))+'</span></p><p><strong>Publishing policy:</strong> '+(mode==='approval_required'?'Club manager approval required':'Direct publishing')+'</p>'+(delegation?.approved_at?'<p class="klw-muted">Authorised on '+esc(new Date(delegation.approved_at).toLocaleString())+'</p>':'')+(developer?'<div class="klw-card"><h3>Your permitted content areas</h3>'+permissionStatus+'</div>':controls)+(developer?'<div class="klw-note">Only the club owner, administrator or manager can grant, suspend, restore or revoke this permission or change the permitted content areas.</div>':'<div class="klw-note">Direct management allows authorised website updates to appear immediately. Approval-required mode holds the developer\'s new, changed and deleted content in an approval inbox. You can change permissions later or suspend/revoke access without deleting the website.</div>')+'</div>';
     if(developer)return;
-    const save=async nextStatus=>{const selected=document.getElementById('klwApprovalMode')?.value||mode;const payload={business_id:businessId,website_id:website.id,status:nextStatus||status,approval_mode:selected,updated_by:user()?.id,updated_at:new Date().toISOString()};if(payload.status==='active'){payload.approved_by=user()?.id;payload.approved_at=new Date().toISOString();}const r=await db().from('football_club_website_delegations').upsert(payload,{onConflict:'business_id'}).select('*').single();if(r.error){message(r.error.message,true);return;}delegation=r.data;message('Club website management permissions updated.');await loadTab('delegation');};
+    const save=async nextStatus=>{
+      const selected=document.getElementById('klwApprovalMode')?.value||mode;
+      const permissions=Object.fromEntries(permissionLabels.map(([key])=>{
+        const checkbox=document.querySelector('[data-delegation-permission="'+key+'"]');
+        return [key,checkbox?checkbox.checked:savedPermissions[key]!==false];
+      }));
+      const payload={
+        business_id:businessId,website_id:website.id,status:nextStatus||status,
+        approval_mode:selected,permissions,updated_by:user()?.id,updated_at:new Date().toISOString()
+      };
+      if(payload.status==='active'){payload.approved_by=user()?.id;payload.approved_at=new Date().toISOString();}
+      const r=await db().from('football_club_website_delegations').upsert(payload,{onConflict:'business_id'}).select('*').single();
+      if(r.error){message(r.error.message,true);return;}
+      delegation=r.data;message('Club website permissions and authorisation updated.');await loadTab('delegation');
+    };
     document.getElementById('klwSaveApprovalMode').onclick=()=>save(status);
     const activate=document.getElementById('klwActivateDelegation');if(activate)activate.onclick=()=>save('active');
     const suspend=document.getElementById('klwSuspendDelegation');if(suspend)suspend.onclick=()=>save('suspended');
