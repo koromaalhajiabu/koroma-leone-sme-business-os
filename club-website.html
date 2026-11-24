@@ -19,11 +19,65 @@ const grid=a=>a.length?'<div class="cards">'+a.join('')+'</div>':'';
 const img=(u,a)=>u?'<img loading="lazy" src="'+esc(safe(u))+'" alt="'+esc(a||'Club image')+'">':'';
 const card=(t,d,u,b)=>'<article class="card">'+img(u,t)+'<div>'+(b?'<span class="badge">'+esc(b)+'</span>':'')+'<h3>'+esc(t)+'</h3><p>'+d+'</p></div></article>';
 const date=v=>v?new Date(v).toLocaleString():'—';
+function setMeta(kind,key,value){
+ if(!value)return;
+ let node=document.head.querySelector('meta['+kind+'="'+key+'"]');
+ if(!node){node=document.createElement('meta');node.setAttribute(kind,key);document.head.appendChild(node);}
+ node.setAttribute('content',String(value));
+}
+function applyClubSEO(s){
+ const title=String(s.seo_title||((s.club_name||'Football Club')+' | Official Club Website')).trim();
+ const description=String(s.seo_description||s.tagline||s.about_text||('Official website of '+(s.club_name||'this football club')+'. Club news, squad information and contact details.')).replace(/\\s+/g,' ').trim().slice(0,320);
+ const canonical=new URL(location.pathname,location.origin);
+ canonical.searchParams.set('slug',slug);
+ let canonicalNode=document.head.querySelector('link[rel="canonical"]');
+ if(!canonicalNode){canonicalNode=document.createElement('link');canonicalNode.rel='canonical';document.head.appendChild(canonicalNode);}
+ canonicalNode.href=canonical.href;
+ const imageUrl=safe(s.hero_image_url||s.crest_url);
+ document.title=title;
+ setMeta('name','description',description);
+ setMeta('name','robots','index,follow');
+ setMeta('property','og:type','website');
+ setMeta('property','og:site_name','Koroma Leone Tech');
+ setMeta('property','og:title',title);
+ setMeta('property','og:description',description);
+ setMeta('property','og:url',canonical.href);
+ setMeta('name','twitter:card',imageUrl!=='#'?'summary_large_image':'summary');
+ setMeta('name','twitter:title',title);
+ setMeta('name','twitter:description',description);
+ if(imageUrl!=='#'){
+  setMeta('property','og:image',imageUrl);
+  setMeta('property','og:image:alt',(s.club_name||'Football club')+' official website image');
+  setMeta('name','twitter:image',imageUrl);
+ }
+ const socials=Object.values(s.social_links||{}).map(v=>safe(v)).filter(v=>v!=='#');
+ const address={};
+ if(s.city)address.addressLocality=s.city;
+ if(s.country)address.addressCountry=s.country;
+ const crest=safe(s.crest_url);
+ const schema={
+  '@context':'https://schema.org',
+  '@type':'SportsOrganization',
+  name:s.club_name||'Football Club',
+  alternateName:s.short_name||undefined,
+  url:canonical.href,
+  logo:crest!=='#'?crest:undefined,
+  image:imageUrl!=='#'?imageUrl:undefined,
+  description,
+  sport:'Association football',
+  foundingDate:s.founded_year?String(s.founded_year):undefined,
+  address:Object.keys(address).length?{'@type':'PostalAddress',...address}:undefined,
+  sameAs:socials.length?socials:undefined
+ };
+ let structured=document.getElementById('clubStructuredData');
+ if(!structured){structured=document.createElement('script');structured.id='clubStructuredData';structured.type='application/ld+json';document.head.appendChild(structured);}
+ structured.textContent=JSON.stringify(schema).replace(/</g,'\\u003c');
+}
 async function rows(t,id){const r=await db.from(t).select('*').eq('business_id',id).eq('is_published',true);if(r.error)throw r.error;return r.data||[]}
 async function start(){
  const r=await db.from('football_club_websites').select('*').eq('slug',slug).eq('is_published',true).eq('maintenance_mode',false).maybeSingle();
  if(r.error||!r.data){root.innerHTML='<div class="error">This club website is not available. It may be unpublished or temporarily offline.</div>';return}
- const s=r.data;document.title=s.seo_title||s.club_name;const meta=document.querySelector('meta[name="description"]');if(meta&&s.seo_description)meta.content=s.seo_description;
+ const s=r.data;applyClubSEO(s);
  document.documentElement.style.setProperty('--primary',s.primary_color||'#075b35');document.documentElement.style.setProperty('--secondary',s.secondary_color||'#101a2d');document.documentElement.style.setProperty('--accent',s.accent_color||'#d5ae5a');
  const names=['football_club_website_pages','football_club_website_news','football_club_website_squad','football_club_website_staff','football_club_website_fixtures','football_club_website_standings','football_club_website_transfers','football_club_website_gallery','football_club_website_sponsors','football_club_website_events','football_club_website_honours'];
  const data=await Promise.all(names.map(n=>rows(n,s.business_id).catch(()=>[])));
