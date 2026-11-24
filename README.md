@@ -21,10 +21,24 @@ A multi-industry SME operations platform by Koroma Leone Tech. The frontend is d
 - Barcode, batch/expiry and controlled stock adjustment features.
 - Private business document storage.
 - Optional tenant-scoped Hospital Management for hospital and clinic workspaces: patient registration, appointments, clinical encounters, observations and diagnoses, admissions and bed occupancy, medicine stock and prescription dispensing, laboratory requests, invoices/payments, and staff/departments. Patient and clinical data is cloud-only and role-scoped; it is not stored in the offline cache. Hospital staff accounts can be linked by verified email to existing platform accounts; linked users receive a viewer workspace role unless they already hold another role, while their hospital staff role controls clinical module permissions.
-- Sports and local-league competition management.
+- Sports and local-league competition management, plus the Football Club Website Studio for managing separate client club websites.
 - Developer administration, account controls and business/platform audit logging.
 - English, French, Arabic (RTL), Spanish, Hindi and Simplified Chinese language options.
 - Responsive PWA shell, install support, service-worker caching and light/dark appearance.
+
+## Football Club Website Studio
+
+The Football Club Website Studio is an optional business workspace tool and a central service for the Koroma Leone Tech platform developer. It manages multiple club websites from the same SME OS while keeping every club's content and enquiries scoped to that club's business workspace.
+
+Website features include club identity and colour branding; crest and banner media uploads; editable public pages; news and match reports; player profiles and squad groups; coaching and staff profiles; fixtures and results; league standings; transfer announcements; photo/video galleries; sponsor listings; academy, trial and community events; honours and trophies; SEO title and description fields; publication and unpublication controls; and a private club enquiry inbox.
+
+Public club websites use the GitHub Pages entry page `club-website.html?slug=<club-slug>`. Public visitors can read published website content and submit a club enquiry. They cannot access draft content, website administration or the enquiry inbox. Club owners, administrators and managers can manage their own club website; the platform developer can centrally create and manage client club websites.
+
+Club media is stored in the public `club-website-media` Supabase Storage bucket. Uploads require an authenticated club website manager, are stored under the club business ID, and are limited to 50 MB per file for JPG, PNG, WEBP, GIF, MP4 and WEBM media.
+
+**Current implementation limits:** club fixtures and scores are entered by authorised club staff; there is no automatic live-data feed. Shop, ticketing and membership fields link to external services and do not create a built-in payment or ticketing checkout. Club sites currently use the shared GitHub Pages domain and slug-based URLs; individual custom domains require separate DNS and hosting configuration.
+
+Database setup is recorded in `supabase/migrations/20261124100000_football_club_website_studio.sql` and applied to the connected Koroma Leone Tech Supabase project. GitHub Pages publishes the static site files through the existing `.github/workflows/deploy-pages.yml` workflow.
 
 ## Hospital Management module
 
