@@ -44,7 +44,7 @@ function applicationCard(a){
   '<div class="dev-meta" style="margin:7px 0">Submitted: '+esc(new Date(a.created_at).toLocaleString())+'</div>'+
   '<div class="dev-actions" style="margin-top:9px">'+evidence+
     (a.official_website_url?'<a href="'+esc(a.official_website_url)+'" target="_blank" rel="noopener" style="color:#f0d28b;font-size:10px;padding:7px">Existing website ↗</a>':'')+
-    (a.email_confirmed?'<button type="button" data-review="approve" data-id="'+esc(a.id)+'">Approve &amp; provision</button>':'<button type="button" disabled title="Email confirmation is required">Awaiting email confirmation</button>')+
+    (a.email_confirmed?'<button type="button" data-review="approve" data-id="'+esc(a.id)+'" data-slug="'+esc(a.proposed_website_slug)+'">Approve &amp; provision</button>':'<button type="button" disabled title="Email confirmation is required">Awaiting email confirmation</button>')+
     '<button type="button" data-review="request_information" data-id="'+esc(a.id)+'">Request information</button>'+
     '<button type="button" data-review="reject" data-id="'+esc(a.id)+'" style="background:#c45e65;color:#fff">Reject</button>'+
   '</div>'+
@@ -72,7 +72,7 @@ async function review(id,decision,button){
  const c=client();if(!c)return;
  let note='',slug=null;
  if(decision==='approve'){
-  slug=prompt('Confirm the club website URL slug:',button.closest('article')?.querySelector('.dev-meta:nth-of-type(5)')?.textContent?.replace('Proposed site slug: ','')||'');
+  slug=prompt('Confirm the club website URL slug:',button.dataset.slug||'');
   if(slug===null)return;
   slug=String(slug).trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   if(!slug){status('Enter a valid website slug.',true);return;}
