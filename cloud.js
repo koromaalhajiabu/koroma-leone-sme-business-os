@@ -1821,20 +1821,13 @@
       client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
-      const { data } = await client.auth.getSession();
+      const { data, error: sessionError } = await client.auth.getSession();
+      if (sessionError) throw sessionError;
       session = data.session;
-      if (session) await loadBusinesses(); else showSignedOut();
-      client.auth.onAuthStateChange((event, nextSession) => {
-        // Supabase fires an INITIAL_SESSION event the instant this listener is
-        // registered, re-delivering the same state getSession() just handled
-        // above. Reacting to it here can race with that already-in-flight
-        // loadBusinesses() call and briefly (or wrongly) flip the UI back to
-        // "signed out" even though the person is genuinely signed in.
-        if (event === 'INITIAL_SESSION') return;
-        session = nextSession;
-        if (session) setTimeout(() => loadBusinesses(), 0);
-        else showSignedOut();
-      });
+
+      // Publish the authenticated Supabase client before loading workspace data.
+      // Developer-only modules can now use the client even if a later workspace
+      // query fails; all database permissions and RLS checks remain authoritative.
       window.whiteLionCloud = {
         getClient: () => client,
         getSession: () => session,
@@ -1847,7 +1840,19 @@
         getBusinessLogoUrl,
         refreshApprovalSettings
       };
+      client.auth.onAuthStateChange((event, nextSession) => {
+        // INITIAL_SESSION repeats the state already returned by getSession().
+        if (event === 'INITIAL_SESSION') return;
+        session = nextSession;
+        if (session) setTimeout(() => loadBusinesses().catch(error => say(error.message || 'Workspace loading failed.')), 0);
+        else showSignedOut();
+      });
       window.dispatchEvent(new CustomEvent('whiteLionCloudReady'));
+
+      // Workspace loading is a separate stage. A failure here must not hide
+      // the already-initialised Supabase client from authorised console tools.
+      if (session) await loadBusinesses();
+      else showSignedOut();
     } catch (error) {
       say(error.message || 'Cloud connection could not be initialised.');
     }
