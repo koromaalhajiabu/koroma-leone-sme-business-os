@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#075b35">
+<meta name="description" content="Discover football talent and connect with clubs through the Koroma Leone Tech International Football Scouting Portal.">
+<title>International Football Scouting | Koroma Leone Tech</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--green:#075b35;--deep:#10251c;--gold:#d5ae5a;--paper:#f3f7f4;--muted:#65776c;--line:#dfe9e1;--white:#fff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:#183126;font:15px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}a{color:inherit}button,input,select,textarea{font:inherit}.top{background:var(--deep);color:white;padding:13px max(18px,calc((100vw - 1220px)/2));display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{display:flex;align-items:center;gap:11px;text-decoration:none}.crest{width:43px;height:43px;border-radius:11px;background:linear-gradient(145deg,#fff,#e9f3eb);display:grid;place-items:center;color:var(--green);font-size:23px;font-weight:900}.brand b{display:block;font-size:14px}.brand small{display:block;color:#becdc2;font-size:9px;letter-spacing:1.5px}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a,.nav button{color:#e4eee6;background:transparent;border:1px solid #ffffff25;padding:8px 11px;border-radius:8px;text-decoration:none;font-size:11px;cursor:pointer}.hero{background:radial-gradient(circle at 84% 10%,#1f87564a,transparent 32%),linear-gradient(120deg,#092719,#0d5030 65%,#10251c);color:white;padding:58px max(18px,calc((100vw - 1220px)/2)) 52px}.eyebrow{font-size:10px;font-weight:850;color:var(--gold);letter-spacing:2.2px;text-transform:uppercase}.hero h1{font-size:clamp(32px,5.3vw,58px);line-height:1.04;max-width:800px;margin:12px 0}.hero p{max-width:720px;color:#d9e8de;font-size:14px}.hero-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}.btn{border:0;border-radius:9px;background:var(--gold);color:#192619;text-decoration:none;padding:11px 15px;font-weight:850;font-size:11px;cursor:pointer}.btn.alt{background:#ffffff16;border:1px solid #ffffff40;color:#fff}.wrap{max-width:1220px;margin:auto;padding:20px 18px 56px}.section{margin:28px 0}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:13px}.section-head h2{margin:0;font-size:22px;color:var(--deep)}.sub{color:var(--muted);font-size:11px}.filters{display:grid;grid-template-columns:2fr repeat(3,minmax(120px,1fr));gap:9px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;box-shadow:0 8px 25px #0a40200a}.field{display:grid;gap:5px;min-width:0}.field label{font-size:10px;font-weight:800;color:#5c6f63}.field input,.field select,.field textarea{width:100%;min-width:0;padding:10px 11px;background:white;border:1px solid #dce6de;border-radius:8px;font-size:12px;color:#1c3427}.field textarea{min-height:90px;resize:vertical}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.player{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 24px #0a40200a;display:flex;flex-direction:column}.player-image{height:190px;background:#e8f0e9;display:grid;place-items:center;overflow:hidden}.player-image img{width:100%;height:100%;object-fit:cover}.player-image span{font-size:54px;color:#7d9683;font-weight:900}.player-content{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}.player-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.pill{display:inline-block;padding:4px 8px;border-radius:99px;background:#e8f4eb;color:var(--green);font-size:9px;font-weight:850}.featured{background:#fff2d4;color:#865e0b}.player h3{font-size:16px;margin:0;color:var(--deep)}.meta{font-size:11px;color:var(--muted)}.club-line{display:flex;align-items:center;gap:8px;color:#2b5940;font-size:11px;font-weight:800}.club-line img{width:25px;height:25px;object-fit:contain;background:#f4f7f4;border-radius:50%;padding:2px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:auto}.stat{background:#f3f8f4;border-radius:8px;padding:7px;text-align:center}.stat b{display:block;font-size:17px;color:var(--green)}.stat small{display:block;font-size:9px;color:var(--muted)}.player-actions{display:flex;gap:7px;margin-top:5px}.player-actions button,.player-actions a{flex:1;text-align:center}.soft{background:#edf5ef;color:var(--green);border:1px solid #dbe9de;border-radius:8px;padding:9px 11px;font-size:10px;font-weight:850;text-decoration:none;cursor:pointer}.dark{background:var(--green);color:#fff;border:1px solid var(--green);border-radius:8px;padding:9px 11px;font-size:10px;font-weight:850;text-decoration:none;cursor:pointer}.empty{padding:34px 18px;text-align:center;background:#fff;border:1px dashed #cbd9cd;border-radius:13px;color:var(--muted);font-size:12px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 8px 25px #0a40200a}.panel h3{margin:0 0 8px;color:var(--deep);font-size:16px}.panel p{font-size:11px;color:var(--muted)}.account-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.wide{grid-column:1/-1}.status{font-size:11px;color:var(--green);margin-top:8px;min-height:17px}.status.error{color:#ae4141}.hint{font-size:10px;color:var(--muted);line-height:1.55}.tag{display:inline-flex;align-items:center;gap:5px;background:#edf5ef;color:#28603d;border-radius:20px;padding:5px 9px;font-size:9px;font-weight:850}.backdrop{position:fixed;inset:0;z-index:500;background:#071c11b8;display:none;align-items:center;justify-content:center;padding:14px}.backdrop.open{display:flex}.modal{width:min(760px,100%);max-height:92vh;overflow:auto;background:white;border-radius:16px;padding:19px;box-shadow:0 20px 60px #00180c55}.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:start}.modal-head h2{margin:0;color:var(--deep);font-size:22px}.close{border:1px solid var(--line);border-radius:8px;background:#fff;padding:7px 10px;cursor:pointer}.detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:15px;margin-top:13px}.detail-image{width:100%;max-height:280px;object-fit:cover;border-radius:12px;background:#e8f0e9}.detail-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}.detail-stats .stat{padding:10px}.video{width:100%;max-height:360px;background:#0b160e;border-radius:12px;margin-top:12px}.footer{background:var(--deep);color:#dce9df;padding:27px max(18px,calc((100vw - 1220px)/2));font-size:11px}.footer p{color:#b8c9bd}.scout-row{border-top:1px solid #e7eee8;padding:12px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px}.scout-row strong{display:block}.verify{font-size:9px;color:var(--green);background:#e8f4eb;border-radius:20px;padding:4px 8px;font-weight:850}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters .field:first-child{grid-column:1/-1}}
+@media(max-width:620px){.top{align-items:flex-start;flex-direction:column}.nav{width:100%}.hero{padding-top:42px;padding-bottom:38px}.grid{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.filters .field:first-child{grid-column:auto}.account-grid,.form-grid,.detail-layout{grid-template-columns:1fr}.detail-stats{grid-template-columns:repeat(2,1fr)}.player-image{height:215px}.section-head{align-items:start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./">
+    <span class="crest">K</span>
+    <span><b>KOROMA LEONE TECH</b><small>INTERNATIONAL FOOTBALL SCOUTING</small></span>
+  </a>
+  <nav class="nav">
+    <a href="./">SME Business OS</a>
+    <a href="#discover">Discover players</a>
+    <a href="#scout-account">Scout account</a>
+    <a href="#how-it-works">How it works</a>
+  </nav>
+</header>
+<section class="hero">
+  <div class="eyebrow">Connected to the Koroma Leone Tech SME Business OS</div>
+  <h1>Discover football talent. Connect with clubs.</h1>
+  <p>Explore club-approved player profiles, compare published performance records and send scouting enquiries directly to the player's club. Clubs manage their profiles inside the same Koroma Leone Tech platform.</p>
+  <div class="hero-actions">
+    <a class="btn" href="#discover">Explore player directory</a>
+    <a class="btn alt" href="#scout-account">Register as a scout</a>
+  </div>
+</section>
+<main class="wrap">
+  <section class="section" id="discover">
+    <div class="section-head">
+      <div><h2>Player discovery directory</h2><div class="sub">Only profiles published by a club after the required consent checks are shown.</div></div>
+      <span class="tag" id="directory-count">Loading directory…</span>
+    </div>
+    <div class="filters">
+      <div class="field"><label for="search">Search players, clubs or playing history</label><input id="search" type="search" placeholder="Name, club, country, position…"></div>
+      <div class="field"><label for="position-filter">Position</label><select id="position-filter"><option value="">All positions</option></select></div>
+      <div class="field"><label for="age-filter">Age group</label><select id="age-filter"><option value="">All age groups</option><option value="Under 18">Youth</option><option value="18-21">18–21</option><option value="22+">22+</option></select></div>
+      <div class="field"><label for="country-filter">Nationality</label><select id="country-filter"><option value="">All nationalities</option></select></div>
+    </div>
+    <div id="players" class="grid" style="margin-top:14px"><div class="empty">Connecting to the player directory…</div></div>
+  </section>
+
+  <section class="section" id="scout-account">
+    <div class="section-head"><div><h2>Scout and agency access</h2><div class="sub">Directory browsing is public. Sending a formal enquiry requires a verified scout account.</div></div></div>
+    <div class="account-grid">
+      <div class="panel">
+        <h3 id="account-heading">Register a scout account</h3>
+        <p>Use your professional details. Koroma Leone Tech reviews accounts before allowing direct scouting enquiries. Verification is a platform account check; it is not a FIFA, national-association or government accreditation.</p>
+        <div id="account-forms">
+          <form id="register-form" class="form-grid">
+            <div class="field"><label>Full name</label><input name="full_name" required minlength="2" maxlength="120"></div>
+            <div class="field"><label>Club, agency or organisation</label><input name="organisation" required minlength="2" maxlength="160"></div>
+            <div class="field"><label>Professional role</label><input name="job_title" placeholder="Scout, head scout, agent"></div>
+            <div class="field"><label>Country</label><input name="country" required value=""></div>
+            <div class="field"><label>Contact email</label><input name="contact_email" type="email" required></div>
+            <div class="field"><label>Organisation website (optional)</label><input name="website_url" type="url" placeholder="https://"></div>
+            <div class="field"><label>Account email</label><input name="auth_email" type="email" autocomplete="email" required></div>
+            <div class="field"><label>Password</label><input name="password" type="password" autocomplete="new-password" minlength="8" required></div>
+            <div class="field wide"><button class="dark" type="submit">Create scout account</button></div>
+          </form>
+          <div style="border-top:1px solid var(--line);margin:14px 0;padding-top:12px">
+            <h3 style="font-size:13px">Already registered?</h3>
+            <form id="login-form" class="form-grid">
+              <div class="field"><label>Email</label><input name="email" type="email" required autocomplete="username"></div>
+              <div class="field"><label>Password</label><input name="password" type="password" required autocomplete="current-password"></div>
+              <div class="field wide"><button class="soft" type="submit">Sign in</button></div>
+            </form>
+          </div>
+        </div>
+        <div id="account-status" class="status" aria-live="polite"></div>
+      </div>
+      <div class="panel" id="scout-dashboard">
+        <h3>Scout workspace</h3>
+        <p>Sign in to view your verification status, manage your submitted enquiries and receive club responses.</p>
+        <div id="scout-session"><div class="empty">No scout account is signed in.</div></div>
+      </div>
+    </div>
+    <div class="panel" id="developer-review" style="display:none;margin-top:13px">
+      <h3>Platform scout-account verification</h3>
+      <p>Only the Koroma Leone Tech platform developer can verify, reject or suspend scouting accounts.</p>
+      <div id="pending-scouts"><div class="empty">No pending scout accounts.</div></div>
+    </div>
+  </section>
+
+  <section class="section" id="how-it-works">
+    <div class="panel">
+      <h3>How the scouting portal works</h3>
+      <div class="form-grid">
+        <div><span class="tag">01 · Club approval</span><p>Club managers create player profiles from their existing squad records and approve the public information.</p></div>
+        <div><span class="tag">02 · Consent first</span><p>Players must have permission recorded. Under-18 profiles also require guardian consent and use a restricted public identity.</p></div>
+        <div><span class="tag">03 · Scout verification</span><p>Scouts create an account, confirm their email and await Koroma Leone Tech platform verification.</p></div>
+        <div><span class="tag">04 · Club enquiry</span><p>Verified scouts send enquiries to the club. The club responds through the SME Business OS and the scout receives an in-app notification.</p></div>
+      </div>
+      <p class="hint">This portal is a discovery and introduction service. It does not guarantee trials, contracts, transfers, representation or player eligibility. Clubs and scouts remain responsible for checking identities, registration status, safeguarding and applicable football regulations.</p>
+    </div>
+  </section>
+</main>
+<div class="backdrop" id="player-modal"><div class="modal"><div class="modal-head"><div><div class="eyebrow">PLAYER DISCOVERY PROFILE</div><h2 id="modal-name">Player</h2></div><button class="close" id="modal-close" aria-label="Close">Close</button></div><div id="modal-content"></div></div></div>
+<div class="footer">
+  <strong>KOROMA LEONE TECH · INTERNATIONAL FOOTBALL SCOUTING</strong>
+  <p>Part of the Koroma Leone Tech SME Business OS. Club websites, player profiles and scouting enquiries remain connected to the same platform. Public listings contain only club-approved information.</p>
+  <a href="./" style="color:#e4c981">Return to SME Business OS</a>
+</div>
+<script>
+(function(){
+'use strict';
+const SUPABASE_URL='https://nclncqlgnxnijlumznnt.supabase.co';
+const SUPABASE_KEY='sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
+const root='./';
+const el=id=>document.getElementById(id);
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl=v=>{try{const u=new URL(v,location.href);return ['https:','http:'].includes(u.protocol)?u.href:'#';}catch(_){return '#';}};
+const supabaseReady=window.supabase&&window.supabase.createClient;
+if(!supabaseReady){el('players').innerHTML='<div class="empty">The portal could not load its connection library. Refresh while connected.</div>';return;}
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let playerRows=[],session=null,scoutAccount=null,isDeveloper=false,selectedPlayer=null;
+const playerParam=new URLSearchParams(location.search).get('player');
+const clubParam=new URLSearchParams(location.search).get('club');
+
+function status(message,error){
+ const node=el('account-status');node.textContent=message||'';node.className='status'+(error?' error':'');
+}
+function playerName(p){return p.is_minor?'Youth player · '+p.position:p.public_name;}
+function clubName(p){return p.club?.club_name||'Football club';}
+function publicAge(p){return p.age_band==='Under 18'?'Youth':p.age_band;}
+function imageOrFallback(url){return url?'<img loading="lazy" src="'+esc(safeUrl(url))+'" alt="Player image">':'<span>⚽</span>';}
+function playerCard(p){
+ return '<article class="player"><div class="player-image">'+imageOrFallback(p.player_image_url)+'</div><div class="player-content"><div class="player-top"><span class="pill '+(p.is_featured?'featured':'')+'">'+(p.is_featured?'Featured player':'Club approved')+'</span><span class="pill">'+esc(publicAge(p))+'</span></div><h3>'+esc(playerName(p))+'</h3><div class="meta">'+esc(p.position)+(p.secondary_position?' · '+esc(p.secondary_position):'')+(p.nationality?' · '+esc(p.nationality):'')+'</div><div class="club-line">'+(p.club?.crest_url?'<img src="'+esc(safeUrl(p.club.crest_url))+'" alt="">':'')+esc(clubName(p))+'</div><div class="stats"><div class="stat"><b>'+Number(p.appearances||0)+'</b><small>Apps</small></div><div class="stat"><b>'+Number(p.goals||0)+'</b><small>Goals</small></div><div class="stat"><b>'+Number(p.assists||0)+'</b><small>Assists</small></div></div><div class="player-actions"><button class="soft" data-player="'+esc(p.public_slug)+'">View profile</button></div></div></article>';
+}
+function renderDirectory(){
+ const text=el('search').value.trim().toLowerCase();
+ const pos=el('position-filter').value,age=el('age-filter').value,country=el('country-filter').value;
+ let result=playerRows.filter(p=>{
+  const combined=[p.public_name,p.position,p.secondary_position,p.nationality,clubName(p),p.profile_summary,(p.playing_history||[]).join(' ')].join(' ').toLowerCase();
+  return (!text||combined.includes(text))&&(!pos||p.position===pos)&&(!age||p.age_band===age)&&(!country||p.nationality===country);
+ });
+ if(clubParam)result=result.filter(p=>p.club?.slug===clubParam);
+ el('directory-count').textContent=result.length+' player profile'+(result.length===1?'':'s');
+ el('players').innerHTML=result.length?result.sort((a,b)=>Number(!!b.is_featured)-Number(!!a.is_featured)).map(playerCard).join(''):'<div class="empty" style="grid-column:1/-1">No published player profiles match these filters. Check back as clubs publish approved profiles.</div>';
+ el('players').querySelectorAll('[data-player]').forEach(b=>b.onclick=()=>openPlayer(playerRows.find(p=>p.public_slug===b.dataset.player)));
+}
+function fillFilters(){
+ const pos=[...new Set(playerRows.map(p=>p.position).filter(Boolean))].sort();
+ const countries=[...new Set(playerRows.map(p=>p.nationality).filter(Boolean))].sort();
+ el('position-filter').innerHTML='<option value="">All positions</option>'+pos.map(v=>'<option>'+esc(v)+'</option>').join('');
+ el('country-filter').innerHTML='<option value="">All nationalities</option>'+countries.map(v=>'<option>'+esc(v)+'</option>').join('');
+}
+async function loadDirectory(){
+ el('players').innerHTML='<div class="empty">Loading published player profiles…</div>';
+ let query=db.from('football_player_discovery_profiles').select('id,business_id,website_id,public_slug,public_name,age_band,is_minor,position,secondary_position,nationality,preferred_foot,height_cm,profile_summary,playing_history,achievements,current_season,appearances,goals,assists,clean_sheets,player_image_url,highlight_video_url,highlight_video_type,is_featured,club:football_club_websites!inner(club_name,slug,crest_url,country,city)').eq('scouting_status','published').order('is_featured',{ascending:false}).order('public_name').limit(500);
+ const result=await query;
+ if(result.error){el('players').innerHTML='<div class="empty">The directory could not be loaded. '+esc(result.error.message)+'</div>';el('directory-count').textContent='Unavailable';return;}
+ playerRows=result.data||[];
+ fillFilters();renderDirectory();
+ if(playerParam){const p=playerRows.find(x=>x.public_slug===playerParam);if(p)openPlayer(p);}
+}
+function playerDetail(p){
+ const history=(p.playing_history||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
+ let video='';
+ if(p.highlight_video_url){
+  if(p.highlight_video_type==='mp4'||p.highlight_video_type==='webm')video='<video class="video" controls preload="metadata" src="'+esc(safeUrl(p.highlight_video_url))+'"></video>';
+  else video='<p><a class="dark" href="'+esc(safeUrl(p.highlight_video_url))+'" target="_blank" rel="noopener">Open player highlight video ↗</a></p>';
+ }
+ const youth=p.is_minor;
+ return '<div class="detail-layout"><div><div class="club-line">'+(p.club?.crest_url?'<img src="'+esc(safeUrl(p.club.crest_url))+'" alt="">':'')+esc(clubName(p))+' · '+esc(p.club?.country||'')+'</div><p class="meta">'+esc(p.position)+(p.secondary_position?' · '+esc(p.secondary_position):'')+' · '+esc(publicAge(p))+(p.nationality?' · '+esc(p.nationality):'')+'</p><p>'+esc(p.profile_summary||'No profile summary has been supplied.')+'</p><div class="detail-stats"><div class="stat"><b>'+Number(p.appearances||0)+'</b><small>Apps</small></div><div class="stat"><b>'+Number(p.goals||0)+'</b><small>Goals</small></div><div class="stat"><b>'+Number(p.assists||0)+'</b><small>Assists</small></div><div class="stat"><b>'+Number(p.clean_sheets||0)+'</b><small>Clean sheets</small></div></div><p><strong>Preferred foot:</strong> '+esc(p.preferred_foot||'Not supplied')+' · <strong>Height:</strong> '+(p.height_cm?Number(p.height_cm)+' cm':'Not supplied')+'</p><h3>Playing history</h3>'+(history?'<ul>'+history+'</ul>':'<p class="meta">No playing history supplied.</p>')+'<h3>Achievements</h3><p>'+esc(p.achievements||'Not supplied')+'</p>'+video+'</div><aside><img class="detail-image" src="'+esc(safeUrl(p.player_image_url||''))+'" alt="Player image" onerror="this.style.display=\'none\'"><div class="panel" style="margin-top:10px"><strong>'+esc(clubName(p))+'</strong><p>Club-approved scouting profile</p><span class="tag">'+(youth?'Youth profile · guardian consent recorded':'Published for scouting')+'</span><p class="hint">'+(youth?'This player is under 18. The public profile uses restricted identity details. Enquiries are sent to the club; direct contact with the player is not provided.':'Contact the club through a verified scout enquiry.')+'</p></div></aside></div><div class="panel" style="margin-top:15px"><h3>Contact the club about this player</h3><div id="player-enquiry-zone">'+enquiryPrompt()+'</div></div>';
+}
+function enquiryPrompt(){
+ if(!session)return '<p>Sign in with a verified scout account to send an enquiry. Public visitors can browse player profiles without signing in.</p><a class="dark" href="#scout-account">Sign in / register as a scout</a>';
+ if(!scoutAccount)return '<p>Complete your scout account details in the Scout workspace before sending enquiries.</p><a class="dark" href="#scout-account">Complete scout profile</a>';
+ if(scoutAccount.verification_status!=='verified')return '<p>Your scout account is '+esc(scoutAccount.verification_status)+'. Enquiries are enabled after Koroma Leone Tech verifies your account.</p>';
+ return '<form id="player-enquiry-form" class="form-grid"><div class="field"><label>Enquiry type</label><select name="enquiry_type"><option>Player scouting</option><option>Trial invitation</option><option>Additional footage</option><option>Club partnership</option><option>Other</option></select></div><div class="field wide"><label>Message to the club</label><textarea name="message" required minlength="20" maxlength="3000" placeholder="Introduce your organisation and explain what player information you would like the club to provide."></textarea></div><div class="field wide"><button class="dark">Send scouting enquiry to club</button></div></form><div id="enquiry-status" class="status"></div>';
+}
+function openPlayer(p){
+ if(!p)return;
+ selectedPlayer=p;
+ el('modal-name').textContent=playerName(p);
+ el('modal-content').innerHTML=playerDetail(p);
+ el('player-modal').classList.add('open');
+ const form=el('player-enquiry-form');
+ if(form)form.onsubmit=async e=>{
+  e.preventDefault();
+  const data=new FormData(form);
+  const r=await db.rpc('submit_football_scout_enquiry',{
+   p_profile_id:p.id,p_enquiry_type:data.get('enquiry_type'),p_message:data.get('message')
+  });
+  const statusNode=el('enquiry-status');
+  if(r.error){statusNode.textContent=r.error.message;statusNode.className='status error';return;}
+  statusNode.textContent='Enquiry sent to '+clubName(p)+'. The club will respond through the platform.';
+  statusNode.className='status';
+  form.reset();
+  await loadMyEnquiries();
+ };
+}
+function closePlayer(){el('player-modal').classList.remove('open');selectedPlayer=null;}
+function switchForms(){
+ const form=el('register-form');
+ const input=form.elements.auth_email;
+ if(session){el('account-forms').style.display='none';}
+ else{el('account-forms').style.display='block';}
+}
+async function ensureScoutAccount(details){
+ if(!session)return null;
+ const found=await db.from('football_scout_accounts').select('*').eq('user_id',session.user.id).maybeSingle();
+ if(found.error)throw found.error;
+ if(found.data)return found.data;
+ const payload=details||{};
+ const account={
+  user_id:session.user.id,full_name:payload.full_name||session.user.user_metadata?.full_name||'Scout account',
+  organisation:payload.organisation||'Independent scouting',
+  job_title:payload.job_title||null,contact_email:payload.contact_email||session.user.email,
+  country:payload.country||'Not supplied',website_url:payload.website_url||null
+ };
+ const inserted=await db.from('football_scout_accounts').insert(account).select('*').single();
+ if(inserted.error)throw inserted.error;
+ return inserted.data;
+}
+async function loadMyEnquiries(){
+ if(!session)return;
+ const r=await db.from('football_scout_enquiries').select('id,scout_user_id,enquiry_type,message,status,club_response,created_at,profile:football_player_discovery_profiles(public_name,public_slug),club:football_club_websites(club_name,slug)').eq('scout_user_id',session.user.id).order('created_at',{ascending:false}).limit(100);
+ if(r.error){el('scout-session').insertAdjacentHTML('beforeend','<p class="hint">'+esc(r.error.message)+'</p>');return;}
+ const enquiries=r.data||[];
+ const node=el('my-enquiries');
+ if(!node)return;
+ node.innerHTML=enquiries.length?enquiries.map(x=>'<div class="scout-row"><div><strong>'+esc(x.profile?.public_name||'Player profile')+' · '+esc(x.club?.club_name||'Club')+'</strong><span class="meta">'+esc(x.enquiry_type)+' · '+esc(new Date(x.created_at).toLocaleString())+' · '+esc(x.status)+'</span>'+(x.club_response?'<p>'+esc(x.club_response)+'</p>':'')+'</div></div>').join(''):'<div class="empty">You have not submitted any scouting enquiries.</div>';
+}
+async function loadDeveloperReview(){
+ if(!isDeveloper){el('developer-review').style.display='none';return;}
+ el('developer-review').style.display='block';
+ const r=await db.from('football_scout_accounts').select('*').eq('verification_status','pending').order('created_at',{ascending:true});
+ if(r.error){el('pending-scouts').innerHTML='<div class="empty">'+esc(r.error.message)+'</div>';return;}
+ const rows=r.data||[];
+ el('pending-scouts').innerHTML=rows.length?rows.map(x=>'<div class="scout-row"><div><strong>'+esc(x.full_name)+' · '+esc(x.organisation)+'</strong><span class="meta">'+esc(x.job_title||'Scout')+' · '+esc(x.contact_email)+' · '+esc(x.country)+'</span>'+(x.website_url?'<br><a href="'+esc(safeUrl(x.website_url))+'" target="_blank" rel="noopener">Organisation website ↗</a>':'')+'</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="dark" data-review-scout="'+x.id+'" data-decision="verified">Verify</button><button class="soft" data-review-scout="'+x.id+'" data-decision="rejected">Reject</button></div></div>').join(''):'<div class="empty">No pending scout accounts.</div>';
+ el('pending-scouts').querySelectorAll('[data-review-scout]').forEach(b=>b.onclick=async()=>{
+  const decision=b.dataset.decision;
+  const comment=prompt(decision==='verified'?'Optional verification note:':'Reason for rejecting this account:')||'';
+  const result=await db.rpc('review_football_scout_account',{p_account_id:b.dataset.reviewScout,p_decision:decision,p_comment:comment});
+  if(result.error){status(result.error.message,true);return;}
+  await loadDeveloperReview();
+ });
+}
+async function refreshSession(){
+ const result=await db.auth.getSession();
+ session=result.data.session||null;
+ if(!session){
+  scoutAccount=null;isDeveloper=false;switchForms();
+  el('scout-session').innerHTML='<div class="empty">No scout account is signed in. Sign in or register to send enquiries and manage your scouting messages.</div>';
+  el('developer-review').style.display='none';return;
+ }
+ switchForms();
+ try{
+  scoutAccount=await ensureScoutAccount();
+  const dev=await db.rpc('football_scout_portal_is_developer');
+  isDeveloper=!dev.error&&dev.data===true;
+  const accountStatus=esc(scoutAccount.verification_status);
+  el('scout-session').innerHTML='<div class="player-top"><strong>'+esc(scoutAccount.full_name)+'</strong><span class="verify">'+(scoutAccount.verification_status==='verified'?'VERIFIED':'ACCOUNT '+accountStatus.toUpperCase())+'</span></div><p class="meta">'+esc(scoutAccount.organisation)+' · '+esc(scoutAccount.country)+'</p><p class="hint">Signed in as '+esc(session.user.email)+'. '+(scoutAccount.verification_status==='verified'?'You can send enquiries to clubs.':'Your account is awaiting platform review or needs attention.')+'</p><div class="field"><label>My scouting enquiries</label><div id="my-enquiries"><div class="empty">Loading enquiries…</div></div></div><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
+  el('scout-signout').onclick=async()=>{await db.auth.signOut();await refreshSession();status('Signed out.');};
+  await loadMyEnquiries();await loadDeveloperReview();
+ }catch(error){el('scout-session').innerHTML='<div class="empty">'+esc(error.message)+'</div>';status(error.message,true);}
+}
+el('register-form').onsubmit=async e=>{
+ e.preventDefault();status('Creating scout account…');
+ const f=new FormData(e.target);
+ const details={
+  full_name:f.get('full_name'),organisation:f.get('organisation'),job_title:f.get('job_title'),
+  contact_email:f.get('contact_email'),country:f.get('country'),website_url:f.get('website_url')
+ };
+ const email=String(f.get('auth_email')||'').trim(),password=String(f.get('password')||'');
+ try{
+  const r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+  if(r.error)throw r.error;
+  if(r.data.session){
+   session=r.data.session;scoutAccount=await ensureScoutAccount(details);await refreshSession();
+   status('Scout account registered. Confirm your email and wait for Koroma Leone Tech review before sending enquiries.');
+  }else{
+   status('Registration started. Check your email to confirm the account, then return here and sign in. Your account will remain pending until verified.');
+  }
+ }catch(error){status(error.message,true);}
+};
+el('login-form').onsubmit=async e=>{
+ e.preventDefault();const f=new FormData(e.target);status('Signing in…');
+ const r=await db.auth.signInWithPassword({email:f.get('email'),password:f.get('password')});
+ if(r.error){status(r.error.message,true);return;}
+ session=r.data.session;await refreshSession();status('Signed in.');
+};
+['search','position-filter','age-filter','country-filter'].forEach(id=>el(id).addEventListener(id==='search'?'input':'change',renderDirectory));
+el('modal-close').onclick=closePlayer;
+el('player-modal').addEventListener('click',e=>{if(e.target===el('player-modal'))closePlayer();});
+db.auth.onAuthStateChange((_event,newSession)=>{
+ session=newSession;
+ setTimeout(()=>refreshSession().catch(e=>status(e.message,true)),0);
+});
+(async function init(){
+ try{
+  if(clubParam){el('search').placeholder='Showing published profiles for this club';}
+  await loadDirectory();
+  await refreshSession();
+ }catch(error){el('players').innerHTML='<div class="empty">'+esc(error.message||'Portal loading failed')+'</div>';}
+})();
+})();
+</script>
+</body>
+</html>
