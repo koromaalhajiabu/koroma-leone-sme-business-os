@@ -36,7 +36,8 @@
   async function uploadMedia(file,scope){
     if(!file)return null;
     const isImage=/^image\/(jpeg|png|webp|gif)$/i.test(file.type);
-    const isGalleryVideo=scope==='gallery/asset_url' && /^video\/(mp4|webm)$/i.test(file.type);\n    const isScoutingVideo=scope==='squad/highlight_video_url' && /^video\/(mp4|webm)$/i.test(file.type);
+    const isGalleryVideo=scope==='gallery/asset_url' && /^video\/(mp4|webm)$/i.test(file.type);
+    const isScoutingVideo=scope==='squad/highlight_video_url' && /^video\/(mp4|webm)$/i.test(file.type);
     if(!isImage&&!isGalleryVideo&&!isScoutingVideo)throw new Error('Choose a supported image file. Gallery and scouting videos must be MP4 or WEBM.');
     if(file.size>50*1024*1024)throw new Error('Media files must be 50 MB or smaller.');
     const parts=String(file.name||'media.jpg').split('.');
@@ -104,7 +105,7 @@
     if(tab==='approvals')return approvalsTab();
     if(tab==='activity')return activityTab();
     if(tab==='scouting')return scoutingTab();
-    if(tab==='scout-enquiries')return scoutEnquiriesTab();\n    if(tab==='scouting')return scoutingTab();\n    if(tab==='scout-enquiries')return scoutEnquiriesTab();
+    if(tab==='scout-enquiries')return scoutEnquiriesTab();
     const host=document.getElementById('klwContent'),cols=columns[tab]||[];
     let q=db().from(tables[tab]).select('*').eq('business_id',businessId);
     q=q.order(tab==='enquiries'?'created_at':tab==='fixtures'?'kickoff_at':tab==='standings'?'position':tab==='news'?'created_at':tab==='events'?'start_at':'sort_order',{ascending:tab!=='enquiries'});
