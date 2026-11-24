@@ -4,11 +4,11 @@
   if (window.KoromaNotifications) return;
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const labels = {subscription:'Subscription',payment:'Payments',orders:'Orders',approvals:'Approvals',inventory:'Inventory',delivery:'Delivery',system:'System'};
-  const routes = {billing:'billing',sales:'sales',orders:'sales',approvals:'actions',actions:'actions',inventory:'inventory',stockcontrol:'stockcontrol',delivery:'sales'};
+  const routes = {billing:'billing',sales:'sales',orders:'sales',approvals:'actions',actions:'actions','club-website-studio':'club-website-studio',inventory:'inventory',stockcontrol:'stockcontrol',delivery:'sales'};
   let open = false, loading = false, rows = [], unreadCount = 0, filter = 'all', categoryFilter = 'all';
   let categoryPrefs = {}, realtimeChannel = null, realtimeUser = null, realtimeTimer = null, reloadRequested = false;
   const categoryKeys = Object.keys(labels);
-  const routeLabels = {billing:'Plans & Billing',sales:'Sales & POS',actions:'Executive Action Centre',inventory:'Inventory Management',stockcontrol:'Inventory Intelligence'};
+  const routeLabels = {billing:'Plans & Billing',sales:'Sales & POS',actions:'Executive Action Centre','club-website-studio':'Football Club Website Studio',inventory:'Inventory Management',stockcontrol:'Inventory Intelligence'};
   const isCategoryEnabled = category => categoryPrefs[category] !== false;
   const enabledCategories = () => categoryKeys.filter(isCategoryEnabled);
 
