@@ -1821,13 +1821,9 @@
       client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
-      const { data, error: sessionError } = await client.auth.getSession();
-      if (sessionError) throw sessionError;
-      session = data.session;
-
-      // Publish the authenticated Supabase client before loading workspace data.
-      // Developer-only modules can now use the client even if a later workspace
-      // query fails; all database permissions and RLS checks remain authoritative.
+      // Publish the client as soon as it exists. Do not make developer tools
+      // wait for getSession() or workspace loading to finish before they can
+      // obtain the client. RPC authorization and RLS remain enforced by Supabase.
       window.whiteLionCloud = {
         getClient: () => client,
         getSession: () => session,
@@ -1840,17 +1836,23 @@
         getBusinessLogoUrl,
         refreshApprovalSettings
       };
+      window.dispatchEvent(new CustomEvent('whiteLionCloudReady'));
+
       client.auth.onAuthStateChange((event, nextSession) => {
-        // INITIAL_SESSION repeats the state already returned by getSession().
-        if (event === 'INITIAL_SESSION') return;
         session = nextSession;
+        if (event === 'INITIAL_SESSION') return;
         if (session) setTimeout(() => loadBusinesses().catch(error => say(error.message || 'Workspace loading failed.')), 0);
         else showSignedOut();
       });
-      window.dispatchEvent(new CustomEvent('whiteLionCloudReady'));
 
-      // Workspace loading is a separate stage. A failure here must not hide
-      // the already-initialised Supabase client from authorised console tools.
+      // Session retrieval and workspace loading are separate startup stages.
+      // A session lookup failure must not hide the already-created client.
+      const { data, error: sessionError } = await client.auth.getSession();
+      if (sessionError) {
+        say('Database client connected, but login session could not be checked: ' + sessionError.message);
+        return;
+      }
+      session = data.session;
       if (session) await loadBusinesses();
       else showSignedOut();
     } catch (error) {
