@@ -68,3 +68,24 @@
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+
+/* Shared motion for standalone specialist workspaces and public portals. */
+@media (prefers-reduced-motion:no-preference){
+  .klt-enter{animation:klt-rise-in .64s var(--klt-motion-ease) both}
+  .card,.hero,.event,.league,.service,.product,.steps{
+    transition:transform var(--klt-motion-medium) var(--klt-motion-ease),
+      box-shadow var(--klt-motion-medium) ease,border-color var(--klt-motion-medium) ease;
+  }
+  .card:hover,.event:hover,.league:hover,.service:hover,.product:hover{
+    transform:translateY(-2px);
+    box-shadow:0 14px 34px rgba(12,38,29,.10);
+  }
+  body:not(.app) header{animation:klt-rise-in .68s var(--klt-motion-ease) both}
+}
+@media(max-width:720px){
+  @media(prefers-reduced-motion:no-preference){
+    .card:hover,.event:hover,.league:hover,.service:hover,.product:hover{transform:none}
+    .klt-enter{animation-duration:.52s}
+  }
+}

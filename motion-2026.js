@@ -6,7 +6,7 @@
  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
  var smallScreen=window.matchMedia&&window.matchMedia('(max-width: 720px)').matches;
  if(reduce)return;
- var selector='.welcome,.stats,.grid-main,.stat,.panel,.module-card,.quick,.report-box';
+ var selector='.welcome,.stats,.grid-main,.stat,.panel,.module-card,.quick,.report-box,.card,.hero,.event,.league,.service,.product,.steps,header';
  function reveal(root){
   if(!root||root.nodeType!==1)return;
   var nodes=[];
@@ -21,8 +21,9 @@
  }
  function start(){
   var view=document.getElementById('view');
-  if(!view)return;
-  reveal(view);
+  var root=view||document.querySelector('[data-klt-motion-root]')||document.body;
+  if(!root)return;
+  reveal(root);
   var queued=false;
   var observer=new MutationObserver(function(records){
    if(queued)return;queued=true;
@@ -31,7 +32,7 @@
     records.forEach(function(record){record.addedNodes.forEach(function(node){reveal(node)})});
    });
   });
-  observer.observe(view,{childList:true,subtree:true});
+  observer.observe(root,{childList:true,subtree:true});
   window.addEventListener('pagehide',function(){observer.disconnect()},{once:true});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
