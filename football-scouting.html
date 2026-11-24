@@ -23,6 +23,7 @@
   <nav class="nav">
     <a href="./">SME Business OS</a>
     <a href="./football-clubs.html">Club directory</a>
+    <a href="./football-player-marketplace.html">Transfer market</a>
     <a href="#discover">Discover players</a>
     <a href="#scout-account">Scout account</a>
     <a href="#how-it-works">How it works</a>
@@ -159,30 +160,65 @@ function fillFilters(){
 }
 async function loadDirectory(){
  el('players').innerHTML='<div class="empty">Loading published player profiles…</div>';
- let query=db.from('football_player_discovery_profiles').select('id,business_id,website_id,public_slug,public_name,age_band,is_minor,position,secondary_position,nationality,preferred_foot,height_cm,profile_summary,playing_history,achievements,current_season,appearances,goals,assists,clean_sheets,player_image_url,highlight_video_url,highlight_video_type,is_featured,club:football_club_websites!inner(club_name,slug,crest_url,country,city)').eq('scouting_status','published').order('is_featured',{ascending:false}).order('public_name').limit(500);
- const result=await query;
+ const result=await db.from('football_player_discovery_profiles').select('id,business_id,website_id,public_slug,public_name,age_band,is_minor,position,secondary_position,nationality,preferred_foot,height_cm,profile_summary,playing_history,achievements,current_season,appearances,goals,assists,clean_sheets,player_image_url,highlight_video_url,highlight_video_type,is_featured,club:football_club_websites!inner(club_name,slug,crest_url,country,city)').eq('scouting_status','published').order('is_featured',{ascending:false}).order('public_name').limit(500);
  if(result.error){el('players').innerHTML='<div class="empty">The directory could not be loaded. '+esc(result.error.message)+'</div>';el('directory-count').textContent='Unavailable';return;}
  playerRows=result.data||[];
+ const ids=playerRows.map(p=>p.id);
+ if(ids.length){
+  const [career,performance,listings]=await Promise.all([
+   db.from('football_player_career_history').select('id,profile_id,club_name,country,season,start_date,end_date,position,appearances,goals,assists,honours,summary,is_current').in('profile_id',ids).eq('is_published',true).order('sort_order'),
+   db.from('football_player_match_performances').select('profile_id,minutes_played,goals,assists,clean_sheets,player_rating').in('profile_id',ids),
+   db.from('football_player_market_listings').select('profile_id,listing_type').in('profile_id',ids).eq('status','published')
+  ]);
+  const careerRows=career.error?[]:(career.data||[]),performanceRows=performance.error?[]:(performance.data||[]),listingRows=listings.error?[]:(listings.data||[]);
+  playerRows.forEach(p=>{
+   p.career_entries=careerRows.filter(x=>x.profile_id===p.id);
+   p.match_performances=performanceRows.filter(x=>x.profile_id===p.id);
+   p.market_listings=listingRows.filter(x=>x.profile_id===p.id);
+  });
+ }
  fillFilters();renderDirectory();
  if(playerParam){const p=playerRows.find(x=>x.public_slug===playerParam);if(p)openPlayer(p);}
 }
 function playerDetail(p){
  const history=(p.playing_history||[]).map(x=>'<li>'+esc(x)+'</li>').join('');
+ const career=(p.career_entries||[]).map(x=>'<tr><td>'+esc(x.club_name)+'</td><td>'+esc(x.season||'')+'</td><td>'+esc(x.position||'')+'</td><td>'+x.appearances+'</td><td>'+x.goals+'</td><td>'+x.assists+'</td></tr>').join('');
+ const perf=p.match_performances||[],perfApps=perf.length,perfGoals=perf.reduce((n,x)=>n+Number(x.goals||0),0),perfAssists=perf.reduce((n,x)=>n+Number(x.assists||0),0),perfMinutes=perf.reduce((n,x)=>n+Number(x.minutes_played||0),0);
  let video='';
  if(p.highlight_video_url){
   if(p.highlight_video_type==='mp4'||p.highlight_video_type==='webm')video='<video class="video" controls preload="metadata" src="'+esc(safeUrl(p.highlight_video_url))+'"></video>';
   else video='<p><a class="dark" href="'+esc(safeUrl(p.highlight_video_url))+'" target="_blank" rel="noopener">Open player highlight video ↗</a></p>';
  }
  const youth=p.is_minor;
- return '<div class="detail-layout"><div><div class="club-line">'+(p.club?.crest_url?'<img src="'+esc(safeUrl(p.club.crest_url))+'" alt="">':'')+esc(clubName(p))+' · '+esc(p.club?.country||'')+'</div><p class="meta">'+esc(p.position)+(p.secondary_position?' · '+esc(p.secondary_position):'')+' · '+esc(publicAge(p))+(p.nationality?' · '+esc(p.nationality):'')+'</p><p>'+esc(p.profile_summary||'No profile summary has been supplied.')+'</p><div class="detail-stats"><div class="stat"><b>'+Number(p.appearances||0)+'</b><small>Apps</small></div><div class="stat"><b>'+Number(p.goals||0)+'</b><small>Goals</small></div><div class="stat"><b>'+Number(p.assists||0)+'</b><small>Assists</small></div><div class="stat"><b>'+Number(p.clean_sheets||0)+'</b><small>Clean sheets</small></div></div><p><strong>Preferred foot:</strong> '+esc(p.preferred_foot||'Not supplied')+' · <strong>Height:</strong> '+(p.height_cm?Number(p.height_cm)+' cm':'Not supplied')+'</p><h3>Playing history</h3>'+(history?'<ul>'+history+'</ul>':'<p class="meta">No playing history supplied.</p>')+'<h3>Achievements</h3><p>'+esc(p.achievements||'Not supplied')+'</p>'+video+'</div><aside><img class="detail-image" src="'+esc(safeUrl(p.player_image_url||''))+'" alt="Player image" onerror="this.style.display=\'none\'"><div class="panel" style="margin-top:10px"><strong>'+esc(clubName(p))+'</strong><p>Club-approved scouting profile</p><span class="tag">'+(youth?'Youth profile · guardian consent recorded':'Published for scouting')+'</span><p class="hint">'+(youth?'This player is under 18. The public profile uses restricted identity details. Enquiries are sent to the club; direct contact with the player is not provided.':'Contact the club through a verified scout enquiry.')+'</p></div></aside></div><div class="panel" style="margin-top:15px"><h3>Contact the club about this player</h3><div id="player-enquiry-zone">'+enquiryPrompt()+'</div></div>';
+ return '<div class="detail-layout"><div><div class="club-line">'+(p.club?.crest_url?'<img src="'+esc(safeUrl(p.club.crest_url))+'" alt="">':'')+esc(clubName(p))+' · '+esc(p.club?.country||'')+'</div><p class="meta">'+esc(p.position)+(p.secondary_position?' · '+esc(p.secondary_position):'')+' · '+esc(publicAge(p))+(p.nationality?' · '+esc(p.nationality):'')+'</p><p>'+esc(p.profile_summary||'No profile summary has been supplied.')+'</p><div class="detail-stats"><div class="stat"><b>'+Number(p.appearances||0)+'</b><small>Apps</small></div><div class="stat"><b>'+Number(p.goals||0)+'</b><small>Goals</small></div><div class="stat"><b>'+Number(p.assists||0)+'</b><small>Assists</small></div><div class="stat"><b>'+Number(p.clean_sheets||0)+'</b><small>Clean sheets</small></div></div><p><strong>Preferred foot:</strong> '+esc(p.preferred_foot||'Not supplied')+' · <strong>Height:</strong> '+(p.height_cm?Number(p.height_cm)+' cm':'Not supplied')+'</p><h3>Career history</h3>'+(career?'<div class="table"><table><thead><tr><th>Club</th><th>Season</th><th>Position</th><th>Apps</th><th>Goals</th><th>Assists</th></tr></thead><tbody>'+career+'</tbody></table></div>':history?'<ul>'+history+'</ul>':'<p class="meta">No career history supplied.</p>')+'<h3>Club match performance</h3><div class="detail-stats"><div class="stat"><b>'+perfApps+'</b><small>Matches</small></div><div class="stat"><b>'+perfGoals+'</b><small>Goals</small></div><div class="stat"><b>'+perfAssists+'</b><small>Assists</small></div><div class="stat"><b>'+perfMinutes+'</b><small>Minutes</small></div></div><p class="hint">Only approved player match statistics are shown.</p><h3>Achievements</h3><p>'+esc(p.achievements||'Not supplied')+'</p>'+video+'</div><aside><img class="detail-image" src="'+esc(safeUrl(p.player_image_url||''))+'" alt="Player image" onerror="this.style.display=\'none\'"><div class="panel" style="margin-top:10px"><strong>'+esc(clubName(p))+'</strong><p>Club-approved scouting profile</p><span class="tag">'+(youth?'Youth profile · guardian consent recorded':'Published for scouting')+'</span><p class="hint">'+(youth?'This player is under 18. The public profile uses restricted identity details. Enquiries are sent to the club; direct contact with the player is not provided.':'Contact the club through a verified scout enquiry.')+'</p></div></aside></div><div class="panel" style="margin-top:15px"><h3>Contact the club about this player</h3><div id="player-enquiry-zone">'+enquiryPrompt(p)+'</div></div><div class="panel" style="margin-top:15px"><h3>Professional scout assessment</h3><div id="assessment-zone"><p class="meta">Loading assessment options…</p></div></div>';
 }
-function enquiryPrompt(){
+function enquiryPrompt(p){
  if(!session)return '<p>Sign in with a verified scout account to send an enquiry. Public visitors can browse player profiles without signing in.</p><a class="dark" href="#scout-account">Sign in / register as a scout</a>';
  if(!scoutAccount)return '<p>Complete your scout account details in the Scout workspace before sending enquiries.</p><a class="dark" href="#scout-account">Complete scout profile</a>';
  if(scoutAccount.verification_status!=='verified')return '<p>Your scout account is '+esc(scoutAccount.verification_status)+'. Enquiries are enabled after Koroma Leone Tech verifies your account.</p>';
- return '<form id="player-enquiry-form" class="form-grid"><div class="field"><label>Enquiry type</label><select name="enquiry_type"><option>Player scouting</option><option>Trial invitation</option><option>Additional footage</option><option>Club partnership</option><option>Other</option></select></div><div class="field wide"><label>Message to the club</label><textarea name="message" required minlength="20" maxlength="3000" placeholder="Introduce your organisation and explain what player information you would like the club to provide."></textarea></div><div class="field wide"><button class="dark">Send scouting enquiry to club</button></div></form><div id="enquiry-status" class="status"></div>';
+ const opportunities=p&&!p.is_minor?(p.market_listings||[]).map(x=>x.listing_type):[];
+ const transferOptions=(opportunities.includes('Permanent transfer')||opportunities.includes('Free agent')?'<option>Transfer interest</option>':'')+(opportunities.includes('Loan')||opportunities.includes('Permanent transfer')?'<option>Loan interest</option>':'');
+ return '<form id="player-enquiry-form" class="form-grid"><div class="field"><label>Enquiry type</label><select name="enquiry_type"><option>Player scouting</option><option>Player evaluation</option><option>Trial invitation</option>'+transferOptions+'<option>Additional footage</option><option>Club partnership</option><option>Other</option></select></div><div class="field wide"><label>Message to the club</label><textarea name="message" required minlength="20" maxlength="3000" placeholder="Introduce your organisation and explain the professional opportunity or information you are requesting."></textarea></div><div class="field wide"><button class="dark">Send enquiry to the club</button></div></form><div id="enquiry-status" class="status"></div>';
 }
-function openPlayer(p){
+async function loadScoutAssessment(p){
+ const zone=el('assessment-zone');if(!zone)return;
+ if(!session||!scoutAccount||scoutAccount.verification_status!=='verified'){
+  zone.innerHTML='<p class="hint">A verified scout account is required to submit a professional player assessment. Assessment reports are private unless the scout chooses to share them with the club.</p>';return;
+ }
+ const found=await db.from('football_scout_assessments').select('*').eq('profile_id',p.id).eq('scout_user_id',session.user.id).maybeSingle();
+ if(found.error){zone.innerHTML='<p class="hint">'+esc(found.error.message)+'</p>';return;}
+ const row=found.data||{};
+ zone.innerHTML='<form id="scout-assessment-form" class="form-grid"><div class="field"><label>Overall rating (1–10)</label><input type="number" name="overall_rating" min="1" max="10" required value="'+esc(row.overall_rating||'')+'"></div><div class="field"><label>Potential rating (1–10)</label><input type="number" name="potential_rating" min="1" max="10" value="'+esc(row.potential_rating??'')+'"></div>'+[['technical_rating','Technical'],['tactical_rating','Tactical'],['physical_rating','Physical'],['mental_rating','Mental']].map(([n,l])=>'<div class="field"><label>'+l+' (1–10)</label><input type="number" name="'+n+'" min="1" max="10" value="'+esc(row[n]??'')+'"></div>').join('')+'<div class="field"><label>Recommendation</label><select name="recommendation">'+['Monitor','Further assessment','Invite for trial','Signing consideration','Not recommended'].map(x=>'<option '+((row.recommendation||'Further assessment')===x?'selected':'')+'>'+x+'</option>').join('')+'</select></div><div class="field wide"><label>Strengths</label><textarea name="strengths" maxlength="1500">'+esc(row.strengths||'')+'</textarea></div><div class="field wide"><label>Development areas</label><textarea name="development_areas" maxlength="1500">'+esc(row.development_areas||'')+'</textarea></div><div class="field wide"><label>Assessment summary</label><textarea name="report_summary" maxlength="2000">'+esc(row.report_summary||'')+'</textarea></div><div class="field wide"><label class="hint"><input type="checkbox" name="is_shared_with_club" '+(row.is_shared_with_club?'checked':'')+'> Share this assessment with the player’s club</label></div><div class="field wide"><button class="dark">Save professional assessment</button></div></form><div class="status" id="assessment-status"></div><p class="hint">Your report remains private unless you select the share option. This assessment is a professional opinion, not an employment or transfer guarantee.</p>';
+ const form=el('scout-assessment-form');
+ form.onsubmit=async e=>{
+  e.preventDefault();const f=new FormData(form),num=n=>f.get(n)===''?null:Number(f.get(n));
+  const data={business_id:p.business_id,profile_id:p.id,scout_user_id:session.user.id,overall_rating:num('overall_rating'),technical_rating:num('technical_rating'),tactical_rating:num('tactical_rating'),physical_rating:num('physical_rating'),mental_rating:num('mental_rating'),potential_rating:num('potential_rating'),recommendation:f.get('recommendation'),strengths:f.get('strengths')||null,development_areas:f.get('development_areas')||null,report_summary:f.get('report_summary')||null,is_shared_with_club:f.get('is_shared_with_club')==='on'};
+  const saved=await db.from('football_scout_assessments').upsert(data,{onConflict:'profile_id,scout_user_id'});
+  const n=el('assessment-status');if(saved.error){n.textContent=saved.error.message;n.className='status error';return;}
+  n.textContent=data.is_shared_with_club?'Assessment saved and shared with the club.':'Assessment saved privately in your scout account.';n.className='status';
+ };
+}
+async function openPlayer(p){
  if(!p)return;
  selectedPlayer=p;
  el('modal-name').textContent=playerName(p);
@@ -190,18 +226,14 @@ function openPlayer(p){
  el('player-modal').classList.add('open');
  const form=el('player-enquiry-form');
  if(form)form.onsubmit=async e=>{
-  e.preventDefault();
-  const data=new FormData(form);
-  const r=await db.rpc('submit_football_scout_enquiry',{
-   p_profile_id:p.id,p_enquiry_type:data.get('enquiry_type'),p_message:data.get('message')
-  });
+  e.preventDefault();const data=new FormData(form);
+  const r=await db.rpc('submit_football_scout_enquiry',{p_profile_id:p.id,p_enquiry_type:data.get('enquiry_type'),p_message:data.get('message')});
   const statusNode=el('enquiry-status');
   if(r.error){statusNode.textContent=r.error.message;statusNode.className='status error';return;}
   statusNode.textContent='Enquiry sent to '+clubName(p)+'. The club will respond through the platform.';
-  statusNode.className='status';
-  form.reset();
-  await loadMyEnquiries();
+  statusNode.className='status';form.reset();await loadMyEnquiries();
  };
+ await loadScoutAssessment(p);
 }
 function closePlayer(){el('player-modal').classList.remove('open');selectedPlayer=null;}
 function switchForms(){
