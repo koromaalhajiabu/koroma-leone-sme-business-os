@@ -250,7 +250,7 @@
     const rows=profiles.map(p=>{
       const c=consentMap[p.id];
       const consentLabel=developer?'Club-controlled':!c||!c.player_or_parent_consent||c.withdrawn_at?'Not recorded':p.is_minor&&!c.guardian_consent?'Guardian consent missing':'Consent recorded';
-      return '<tr><td><strong>'+esc(p.public_name)+'</strong><br><small>'+esc(p.public_slug)+'</small></td><td>'+esc(p.position)+'</td><td>'+esc(p.age_band==='Under 18'?'Youth':p.age_band)+'</td><td>'+esc(p.scouting_status)+'</td><td>'+esc(consentLabel)+'</td><td>'+(editable?'<button data-edit-scout-profile="'+p.id+'">Edit</button>':'Read only')+' <a href="./football-scouting.html?player='+encodeURIComponent(p.public_slug)+'" target="_blank" rel="noopener">View</a></td></tr>';
+      return '<tr><td><strong>'+esc(p.public_name)+'</strong><br><small>'+esc(p.public_slug)+'</small></td><td>'+esc(p.position)+'</td><td>'+esc(p.age_band==='Under 18'?'Youth':p.age_band)+'</td><td>'+esc(p.scouting_status)+'</td><td>'+esc(consentLabel)+'</td><td>'+(editable?'<button data-edit-scout-profile="'+p.id+'">Edit</button>':'Read only')+' '+(p.scouting_status==='published'?'<a href="./football-scouting.html?player='+encodeURIComponent(p.public_slug)+'" target="_blank" rel="noopener">Public profile</a>':'<span class="klw-muted">Not public</span>')+'</td></tr>';
     }).join('');
     host.innerHTML='<div class="klw-card"><div class="klw-head"><div><h3>International player discovery profiles</h3><p>Build player profiles for scouts and agents. Every profile remains private until a club owner, administrator or manager publishes it after recording the required consent.</p></div>'+(editable?'<button class="primary" id="klwAddScoutProfile">＋ Create player profile</button>':'')+'</div><div class="klw-note">For players under 18, use an approved display name (such as first name and last initial), never publish a date of birth, personal phone number or personal email, and record guardian consent. Scout enquiries go to the club, not directly to the player.</div><div class="klw-table-wrap" style="margin-top:12px"><table class="klw-table"><thead><tr><th>Public display name</th><th>Position</th><th>Age group</th><th>Status</th><th>Consent</th><th>Profile</th></tr></thead><tbody>'+(rows||'<tr><td colspan="6">No discovery profiles have been created.</td></tr>')+'</tbody></table></div><p class="klw-muted">'+profiles.length+' profiles · '+profiles.filter(p=>p.scouting_status==='published').length+' published · '+profiles.filter(p=>p.scouting_status!=='published').length+' drafts / rejected.</p></div>';
     const add=document.getElementById('klwAddScoutProfile');
@@ -277,6 +277,15 @@
     document.getElementById('klwScoutProfileCancel').onclick=scoutingTab;
     document.getElementById('klwScoutProfileCancel2').onclick=scoutingTab;
     const form=document.getElementById('klwScoutProfileForm');
+    const applyYouthIdentity=()=>{
+      if(form.elements.age_band.value!=='Under 18')return;
+      const selectedId=row?.squad_member_id||form.elements.squad_member_id.value;
+      form.elements.public_name.value='Youth player';
+      if(selectedId)form.elements.public_slug.value='youth-player-'+selectedId.replace(/-/g,'').slice(0,10);
+    };
+    form.elements.age_band.onchange=applyYouthIdentity;
+    form.elements.squad_member_id.onchange=applyYouthIdentity;
+    applyYouthIdentity();
     form.onsubmit=async e=>{
       e.preventDefault();
       try{
@@ -284,6 +293,12 @@
         const player=squad.find(p=>p.id===selectedId);
         if(!player)throw new Error('Choose a player from this club’s existing squad.');
         const ageBand=form.elements.age_band.value;
+        if(!developer&&form.elements.player_consent.checked&&form.elements.consent_method.value==='not_recorded'){
+          throw new Error('Choose how player or parent/guardian consent was recorded.');
+        }
+        if(!developer&&ageBand==='Under 18'&&form.elements.publish_profile.checked&&!form.elements.guardian_consent.checked){
+          throw new Error('Guardian consent is required before publishing a player under 18.');
+        }
         let videoUrl=form.elements.highlight_video_url.value.trim()||null;
         let videoType=videoUrl?'link':'link';
         const videoFile=form.elements.highlight_video_file.files?.[0];
