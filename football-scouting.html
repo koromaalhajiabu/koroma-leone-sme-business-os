@@ -294,8 +294,25 @@ async function refreshSession(){
    return;
   }
   const accountStatus=esc(scoutAccount.verification_status);
-  el('scout-session').innerHTML='<div class="player-top"><strong>'+esc(scoutAccount.full_name)+'</strong><span class="verify">'+(scoutAccount.verification_status==='verified'?'VERIFIED':'ACCOUNT '+accountStatus.toUpperCase())+'</span></div><p class="meta">'+esc(scoutAccount.organisation)+' · '+esc(scoutAccount.country)+'</p><p class="hint">Signed in as '+esc(session.user.email)+'. '+(scoutAccount.verification_status==='verified'?'You can send enquiries to clubs.':'Your account is awaiting platform review or needs attention.')+'</p><div class="field"><label>My scouting enquiries</label><div id="my-enquiries"><div class="empty">Loading enquiries…</div></div></div><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
+  el('scout-session').innerHTML='<div class="player-top"><strong>'+esc(scoutAccount.full_name)+'</strong><span class="verify">'+(scoutAccount.verification_status==='verified'?'VERIFIED':'ACCOUNT '+accountStatus.toUpperCase())+'</span></div><p class="meta">'+esc(scoutAccount.organisation)+' · '+esc(scoutAccount.country)+'</p><p class="hint">Signed in as '+esc(session.user.email)+'. '+(scoutAccount.verification_status==='verified'?'You can send enquiries to clubs.':'Your account is awaiting platform review or needs attention.')+'</p><details style="margin:12px 0"><summary style="cursor:pointer;font-size:11px;font-weight:850;color:#075b35">Edit professional scout profile</summary><form id="scout-profile-edit" class="form-grid" style="margin-top:12px"><div class="field"><label>Full name</label><input name="full_name" required value="'+esc(scoutAccount.full_name)+'"></div><div class="field"><label>Organisation</label><input name="organisation" required value="'+esc(scoutAccount.organisation)+'"></div><div class="field"><label>Professional role</label><input name="job_title" value="'+esc(scoutAccount.job_title||'')+'"></div><div class="field"><label>Country</label><input name="country" required value="'+esc(scoutAccount.country)+'"></div><div class="field"><label>Contact email</label><input name="contact_email" type="email" required value="'+esc(scoutAccount.contact_email)+'"></div><div class="field"><label>Organisation website</label><input name="website_url" type="url" value="'+esc(scoutAccount.website_url||'')+'"></div><div class="field wide"><button class="soft">Save professional profile</button><small class="hint">Changing verified identity or organisation details sends the account back for re-verification.</small></div></form></details><div class="field"><label>My scouting enquiries</label><div id="my-enquiries"><div class="empty">Loading enquiries…</div></div></div><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
   el('scout-signout').onclick=async()=>{await db.auth.signOut();await refreshSession();status('Signed out.');};
+  el('scout-profile-edit').onsubmit=async e=>{
+   e.preventDefault();const f=new FormData(e.target);
+   const changes={
+    full_name:String(f.get('full_name')).trim(),
+    organisation:String(f.get('organisation')).trim(),
+    job_title:String(f.get('job_title')||'').trim()||null,
+    country:String(f.get('country')).trim(),
+    contact_email:String(f.get('contact_email')).trim(),
+    website_url:String(f.get('website_url')||'').trim()||null,
+    updated_at:new Date().toISOString()
+   };
+   const saved=await db.from('football_scout_accounts').update(changes).eq('user_id',session.user.id).select('*').single();
+   if(saved.error){status(saved.error.message,true);return;}
+   scoutAccount=saved.data;
+   await refreshSession();
+   status(scoutAccount.verification_status==='pending'?'Profile updated. The account has been returned to the verification queue.':'Profile updated.');
+  };
   await loadMyEnquiries();await loadDeveloperReview();
  }catch(error){el('scout-session').innerHTML='<div class="empty">'+esc(error.message)+'</div>';status(error.message,true);}
 }
