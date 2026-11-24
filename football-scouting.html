@@ -325,7 +325,7 @@ el('register-form').onsubmit=async e=>{
  };
  const email=String(f.get('auth_email')||'').trim(),password=String(f.get('password')||'');
  try{
-  const r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+  const r=await db.auth.signUp({email,password});
   if(r.error)throw r.error;
   if(r.data.session){
    session=r.data.session;scoutAccount=await createScoutAccount(details);await refreshSession();
