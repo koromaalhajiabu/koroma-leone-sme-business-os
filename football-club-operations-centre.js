@@ -77,19 +77,14 @@
   async function refresh() {
     if (busy) return;
     const c = client();
-    if (!c || !c.auth || typeof c.auth.getSession !== 'function') {
-      setStatus('The platform session client is not ready. Refresh this panel after the developer console finishes loading.', true);
+    const session = cloud()?.getSession?.() || null;
+    if (!c || !session?.user) {
+      setStatus('No active platform developer session is available yet. Wait for the cloud panel to finish loading, then refresh this status.', true);
       return;
     }
     busy = true;
     setStatus('Checking the developer-only club application queue…');
     try {
-      const sessionResult = await c.auth.getSession();
-      if (sessionResult.error) throw sessionResult.error;
-      if (!sessionResult.data?.session?.user) {
-        setStatus('No active Supabase session was found for this browser tab. Please refresh the page and confirm the developer account is still signed in.', true);
-        return;
-      }
       const r = await c.rpc('get_platform_club_applications');
       if (r.error) throw r.error;
       const rows = Array.isArray(r.data) ? r.data : [];
