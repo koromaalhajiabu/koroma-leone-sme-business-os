@@ -42,6 +42,20 @@ Club media is stored in the public `club-website-media` Supabase Storage bucket.
 
 Database setup is recorded in the club website and delegation SQL migrations under `supabase/migrations/` and has been applied to the connected Koroma Leone Tech Supabase project. GitHub Pages automatically builds and publishes from the repository's configured Pages source; the built-in Pages build-and-deployment workflow is the single publishing path.
 
+## International Football Scouting & Player Discovery Portal
+
+The International Football Scouting Portal is part of the same Koroma Leone Tech SME Business OS and uses the same Supabase project and GitHub Pages deployment. It is not a separate product or a separate club database.
+
+Public portal: `football-scouting.html`. Public player profiles use `football-scouting.html?player=<player-slug>`; a club-scoped directory uses `football-scouting.html?club=<club-slug>`. Published club websites link to the scouting directory, and the Business Tools menu opens the portal.
+
+The portal provides a searchable public directory with filters for name, club, position, age group and nationality; individual player discovery profiles; club and squad links; player statistics, playing history and achievements; highlight video links or MP4/WEBM uploads; scout and agency sign-up; verified scout enquiries routed to the club; a private scout inbox; and a private club-side scouting enquiry inbox. The platform developer can review scout accounts and verify, reject, suspend or restore them.
+
+Player profiles are linked to the club's existing squad records. They remain drafts until the club records the required consent and a club owner, administrator or manager approves publication. Under-18 profiles require both player/parent permission and guardian consent. Youth public names and slugs are automatically generalised; the scouting portal does not publish dates of birth, personal player contact details or guardian contact information. Consent records remain private to club management. Scout enquiries are available only to registered, email-confirmed scout accounts verified by Koroma Leone Tech, and are rate-limited at the database layer.
+
+This is a scouting discovery and introduction service, not a FIFA or national-association accreditation scheme. It does not guarantee trials, contracts, representation or transfers. Clubs and scouts remain responsible for verifying identity, eligibility, safeguarding and applicable football regulations.
+
+Database setup is recorded in `supabase/migrations/20261124140000_football_player_scouting_portal.sql` and the follow-up youth privacy hardening migration under `supabase/migrations/`; both migrations have been applied to the connected Koroma Leone Tech Supabase project. No sample clubs or player profiles are seeded. A club must add real squad records, record consent and publish eligible profiles before they appear in the public directory.
+
 ## Hospital Management module
 
 The Hospital Management workspace is an optional business module for hospital, clinic, medical-centre and diagnostic-facility workspaces. It is integrated with the active Koroma Leone Tech Supabase project and uses the current business workspace as its tenant boundary.
