@@ -46,6 +46,8 @@ Database setup is recorded in the club website and delegation SQL migrations und
 
 The International Football Scouting Portal is part of the same Koroma Leone Tech SME Business OS and uses the same Supabase project and GitHub Pages deployment. It is not a separate product or a separate club database.
 
+Public club directory: `football-clubs.html`. It lists only club websites with a platform-verified club application, a published website and maintenance mode disabled. The directory links to each independent club website and its club-scoped player discovery results. “Verified” is a Koroma Leone Tech review status, not FIFA, SLFA, league or government accreditation.
+
 Public portal: `football-scouting.html`. Public player profiles use `football-scouting.html?player=<player-slug>`; a club-scoped directory uses `football-scouting.html?club=<club-slug>`. Published club websites link to the scouting directory, and the Business Tools menu opens the portal.
 
 The portal provides a searchable public directory with filters for name, club, position, age group and nationality; individual player discovery profiles; club and squad links; player statistics, playing history and achievements; highlight video links or MP4/WEBM uploads; scout and agency sign-up; verified scout enquiries routed to the club; a private scout inbox; and a private club-side scouting enquiry inbox. The platform developer can review scout accounts and verify, reject, suspend or restore them. Scouts can maintain their own professional profiles; changes to a previously verified scout's identity or organisation details automatically return the account to pending review.
