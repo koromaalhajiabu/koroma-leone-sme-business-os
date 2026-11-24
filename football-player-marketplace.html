@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a2b1a">
+<meta name="description" content="Discover adult football players made available by verified clubs for transfer, loan and professional opportunities.">
+<title>Player Transfer Market | Koroma Leone Tech</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--green:#075b35;--dark:#0a2b1a;--gold:#d6b46b;--paper:#f3f7f4;--ink:#193328;--muted:#6b7a70;--line:#dfe9e2}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+a{color:inherit}button,input,select{font:inherit}.top{background:var(--dark);color:white;padding:14px max(18px,calc((100vw - 1200px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-weight:900;letter-spacing:.3px}.brand small{display:block;color:#c7d7cb;font-weight:600;font-size:10px;letter-spacing:1.5px}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#eef6ef;border:1px solid #ffffff2a;border-radius:9px;padding:8px 10px;text-decoration:none;font-size:11px}
+.hero{background:radial-gradient(circle at 85% 0,#337f4c66,transparent 32%),linear-gradient(120deg,#082316,#075b35 65%,#0a2b1a);color:white;padding:48px max(18px,calc((100vw - 1200px)/2))}.eyebrow{color:var(--gold);font-size:10px;letter-spacing:2px;font-weight:900}.hero h1{font-size:clamp(30px,5vw,54px);line-height:1.05;margin:10px 0}.hero p{max-width:760px;color:#e0eee3;font-size:13px}.wrap{max-width:1200px;margin:auto;padding:22px 18px 55px}.notice{background:#fff8e8;border:1px solid #ead9b1;border-radius:12px;padding:12px 14px;font-size:11px;color:#69511c;margin-bottom:16px}
+.filters{display:grid;grid-template-columns:2fr repeat(3,minmax(130px,1fr));gap:9px;background:white;border:1px solid var(--line);border-radius:13px;padding:13px}.field{display:grid;gap:5px}.field label{font-size:10px;font-weight:850;color:var(--muted)}.field input,.field select{width:100%;padding:10px 11px;border:1px solid #dbe6dd;border-radius:8px;background:white;font-size:12px}.summary{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0;font-size:11px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.card{background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 24px #0b45220a}.photo{height:190px;background:#e8f0ea;display:grid;place-items:center;overflow:hidden}.photo img{width:100%;height:100%;object-fit:cover}.photo span{font-size:50px;color:#78927f;font-weight:900}.body{padding:14px;display:flex;flex-direction:column;gap:7px;flex:1}.badge{display:inline-block;background:#eaf5ed;color:var(--green);font-size:9px;font-weight:900;border-radius:99px;padding:4px 8px}.card h3{font-size:16px;margin:0}.meta{font-size:11px;color:var(--muted)}.club{font-size:11px;color:#27613e;font-weight:850;display:flex;align-items:center;gap:7px}.club img{width:24px;height:24px;object-fit:contain;background:#f3f7f4;border-radius:50%;padding:2px}.fee{font-size:12px;font-weight:900;color:var(--dark)}.actions{display:flex;gap:7px;margin-top:auto;padding-top:8px}.btn{display:inline-block;border:1px solid #dce8df;border-radius:8px;background:#edf5ef;color:var(--green);padding:9px 10px;text-align:center;font-weight:850;font-size:10px;text-decoration:none;cursor:pointer;flex:1}.btn.primary{background:var(--green);color:white;border-color:var(--green)}.btn.selected{background:#fff2d4;border-color:#d6b46b;color:#684e18}
+.empty{grid-column:1/-1;padding:34px;background:white;border:1px dashed #c9d8cc;border-radius:13px;text-align:center;color:var(--muted);font-size:12px}
+.compare{display:none;background:white;border:1px solid var(--line);border-radius:13px;padding:14px;margin:18px 0}.compare.open{display:block}.compare table{width:100%;border-collapse:collapse;min-width:500px}.compare th,.compare td{text-align:left;border-bottom:1px solid #eaf0eb;padding:9px;font-size:11px}.compare th{color:var(--muted);background:#f6faf7}.compare-wrap{overflow:auto}.footer{background:var(--dark);color:#d9e5dc;padding:24px max(18px,calc((100vw - 1200px)/2));font-size:10px}.footer p{color:#b8cabb}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters .field:first-child{grid-column:1/-1}}
+@media(max-width:600px){.top{align-items:flex-start;flex-direction:column}.grid{grid-template-columns:1fr}.filters{grid-template-columns:1fr}.filters .field:first-child{grid-column:auto}.photo{height:210px}}
+@media print{.top,.hero,.filters,.actions,.footer,.notice,.summary button{display:none!important}body{background:white}.wrap{max-width:none;padding:0}.card{break-inside:avoid;box-shadow:none}.grid{grid-template-columns:repeat(2,1fr)}.compare{display:block!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="brand">KOROMA LEONE TECH<small>FOOTBALL PLAYER NETWORK</small></div><nav class="nav"><a href="./football-scouting.html">Player discovery</a><a href="./football-clubs.html">Club directory</a><a href="./index.html">Platform</a></nav></header>
+<section class="hero"><div class="eyebrow">INTERNATIONAL PLAYER OPPORTUNITIES</div><h1>Find players. Create opportunities. Build careers.</h1><p>View adult players whose clubs have actively listed them for a permanent transfer, loan, trial opportunity or free-agent move. Contact is routed to the player's club through verified scout and agency accounts.</p></section>
+<main class="wrap">
+<div class="notice"><strong>Responsible transfer process.</strong> Listings are club-submitted expressions of availability, not proof of ownership, registration eligibility or a completed sale. Player and club identity, consent, contracts, fees and registration must be independently verified by the parties and relevant football authorities. Under-18 players are not listed for transfer through this service. Koroma Leone Tech is not a football association, agent or regulator.</div>
+<section class="filters" aria-label="Player market filters">
+<div class="field"><label for="search">Search player, club or skill</label><input id="search" type="search" placeholder="Name, position, club, nationality"></div>
+<div class="field"><label for="type">Opportunity</label><select id="type"><option value="">All opportunities</option><option>Permanent transfer</option><option>Loan</option><option>Trial opportunity</option><option>Free agent</option></select></div>
+<div class="field"><label for="position">Position</label><select id="position"><option value="">All positions</option></select></div>
+<div class="field"><label for="country">Country</label><select id="country"><option value="">All countries</option></select></div>
+</section>
+<div class="summary"><span id="count">Loading active listings…</span><button class="btn" id="printMarket" style="max-width:150px">Print market report</button></div>
+<section class="compare" id="compare"><div class="summary"><strong>Player shortlist comparison</strong><button class="btn" id="clearCompare" style="max-width:130px">Clear shortlist</button></div><div class="compare-wrap"><table id="compareTable"></table></div></section>
+<section class="grid" id="listings"><div class="empty">Connecting to the player market…</div></section>
+</main>
+<footer class="footer"><strong>Koroma Leone Tech SME Business OS</strong><p>Club and player management, public player discovery and verified professional introductions.</p><p>Platform verification is not FIFA, SLFA, league or government accreditation. Player availability and transfer claims must be verified before any agreement.</p></footer>
+<script>
+(function(){
+'use strict';
+const SUPABASE_URL='https://nclncqlgnxnijlumznnt.supabase.co';
+const SUPABASE_KEY='sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
+const el=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl=v=>{try{const u=new URL(v,location.href);return ['https:','http:'].includes(u.protocol)?u.href:'';}catch{return '';}};
+const money=(amount,currency)=>{if(amount===null||amount===undefined)return 'Fee on request';try{return new Intl.NumberFormat(undefined,{style:'currency',currency:currency||'SLE',maximumFractionDigits:0}).format(Number(amount))+(currency==='SLE'?' · SLE':'' );}catch{return Number(amount).toLocaleString()+' '+currency;}};
+let db,rows=[],shortlist=[];
+function clubName(p){return p.club?.short_name||p.club?.club_name||'Verified club';}
+function card(x){
+ const p=x.player||{},c=p.club||{},img=safeUrl(p.player_image_url),crest=safeUrl(c.crest_url);
+ const fee=x.asking_fee_amount===null?'Fee on request':money(x.asking_fee_amount,x.fee_currency_code)+(x.fee_negotiable?' · negotiable':'');
+ const chosen=shortlist.some(z=>z.id===p.id);
+ return '<article class="card"><div class="photo">'+(img?'<img loading="lazy" src="'+esc(img)+'" alt="Player portrait">':'<span>⚽</span>')+'</div><div class="body"><div><span class="badge">'+esc(x.listing_type)+'</span> <span class="badge">Club listed</span></div><h3>'+esc(p.public_name)+'</h3><div class="meta">'+esc(p.position)+(p.secondary_position?' · '+esc(p.secondary_position):'')+' · '+esc(p.age_band||'Adult')+(p.nationality?' · '+esc(p.nationality):'')+'</div><div class="club">'+(crest?'<img src="'+esc(crest)+'" alt="">':'')+esc(clubName(p))+'</div><p class="meta">'+esc(x.headline)+'</p><p class="meta">'+esc(x.availability_note||'Contact the club for further details.')+'</p><div class="fee">'+esc(fee)+'</div><div class="actions"><a class="btn primary" href="./football-scouting.html?player='+encodeURIComponent(p.public_slug)+'">Player profile & contact</a><button class="btn '+(chosen?'selected':'')+'" data-compare="'+esc(p.id)+'">'+(chosen?'In shortlist':'Compare')+'</button></div></div></article>';
+}
+function renderCompare(){
+ const node=el('compare');node.classList.toggle('open',shortlist.length>0);
+ if(!shortlist.length)return;
+ const specs=[['Club',p=>clubName(p)],['Position',p=>p.position],['Age group',p=>p.age_band],['Nationality',p=>p.nationality||'—'],['Preferred foot',p=>p.preferred_foot||'—'],['Appearances',p=>Number(p.appearances||0)],['Goals',p=>Number(p.goals||0)],['Assists',p=>Number(p.assists||0)],['Clean sheets',p=>Number(p.clean_sheets||0)]];
+ el('compareTable').innerHTML='<thead><tr><th>Category</th>'+shortlist.map(x=>'<th>'+esc(x.public_name)+'</th>').join('')+'</tr></thead><tbody>'+specs.map(([label,get])=>'<tr><th>'+esc(label)+'</th>'+shortlist.map(p=>'<td>'+esc(get(p))+'</td>').join('')+'</tr>').join('')+'</tbody>';
+}
+function render(){
+ const text=el('search').value.trim().toLowerCase(),type=el('type').value,pos=el('position').value,country=el('country').value;
+ const filtered=rows.filter(x=>{const p=x.player||{},combined=[p.public_name,p.position,p.secondary_position,p.nationality,clubName(p),x.headline,x.availability_note].join(' ').toLowerCase();return(!text||combined.includes(text))&&(!type||x.listing_type===type)&&(!pos||p.position===pos)&&(!country||p.nationality===country);});
+ el('count').textContent=filtered.length+' active player listing'+(filtered.length===1?'':'s')+' · '+rows.length+' total';
+ el('listings').innerHTML=filtered.length?filtered.map(card).join(''):'<div class="empty">No player listings match those filters. Clubs add players to this market after confirming adult player consent and publishing an approved player profile.</div>';
+ el('listings').querySelectorAll('[data-compare]').forEach(b=>b.onclick=()=>{const p=rows.find(x=>x.player?.id===b.dataset.compare)?.player;if(!p)return;const i=shortlist.findIndex(x=>x.id===p.id);if(i>=0)shortlist.splice(i,1);else if(shortlist.length<3)shortlist.push(p);else{el('count').textContent='You can compare up to three players at a time.';return;}render();renderCompare();});
+}
+async function load(){
+ const q=await db.from('football_player_market_listings').select('id,profile_id,listing_type,headline,availability_note,asking_fee_amount,fee_currency_code,fee_negotiable,available_from,expires_at,published_at,player:football_player_discovery_profiles!inner(id,public_slug,public_name,age_band,is_minor,position,secondary_position,nationality,preferred_foot,appearances,goals,assists,clean_sheets,player_image_url,club:football_club_websites!inner(club_name,short_name,slug,crest_url,country,city,verification_status,is_published,maintenance_mode))').eq('status','published').eq('player.is_minor',false).order('published_at',{ascending:false}).limit(500);
+ if(q.error){el('listings').innerHTML='<div class="empty">Player market could not be loaded. '+esc(q.error.message)+'</div>';el('count').textContent='Unavailable';return;}
+ rows=(q.data||[]).filter(x=>x.player?.club?.verification_status==='verified'&&x.player?.club?.is_published&&!x.player?.club?.maintenance_mode);
+ const positions=[...new Set(rows.map(x=>x.player?.position).filter(Boolean))].sort(),countries=[...new Set(rows.map(x=>x.player?.nationality).filter(Boolean))].sort();
+ el('position').innerHTML='<option value="">All positions</option>'+positions.map(x=>'<option>'+esc(x)+'</option>').join('');
+ el('country').innerHTML='<option value="">All nationalities</option>'+countries.map(x=>'<option>'+esc(x)+'</option>').join('');
+ render();
+}
+['search','type','position','country'].forEach(id=>el(id).addEventListener(id==='search'?'input':'change',render));
+el('clearCompare').onclick=()=>{shortlist=[];renderCompare();render();};
+el('printMarket').onclick=()=>window.print();
+try{db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);load();}catch(e){el('listings').innerHTML='<div class="empty">The market connection is unavailable. Reload this page and try again.</div>';}
+})();
+</script>
+</body>
+</html>
