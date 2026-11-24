@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#075b35">
+<meta name="description" content="Apply to register your football club on the Koroma Leone Tech SME Business OS.">
+<title>Football Club Registration | Koroma Leone Tech</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--green:#075b35;--green2:#0b7546;--ink:#172a22;--muted:#6c7c71;--line:#e1ebe3;--paper:#f4f8f5;--gold:#d5ae5a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 90% 0,#e3f0e7,transparent 35%),var(--paper);color:var(--ink);font:14px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+a{color:var(--green);font-weight:750}.wrap{max-width:1000px;margin:0 auto;padding:22px 15px 55px}.header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 22px}.brand{display:flex;align-items:center;gap:11px}.brand img{width:45px;height:45px;object-fit:contain}.brand b{display:block;letter-spacing:1.3px;font-size:13px}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:1.4px}.header a{font-size:12px;text-decoration:none}.intro{background:linear-gradient(135deg,#0c442b,#075b35 60%,#0d7044);color:white;border-radius:19px;padding:clamp(22px,5vw,43px);margin-bottom:18px;box-shadow:0 16px 38px #075b3520}.eyebrow{font-size:10px;letter-spacing:2px;color:#e5ca8f;font-weight:850}.intro h1{font-size:clamp(27px,5vw,39px);line-height:1.08;margin:10px 0}.intro p{max-width:700px;color:#e1eee5;font-size:13px;margin:0}.layout{display:grid;grid-template-columns: minmax(260px,.8fr) minmax(0,1.35fr);gap:16px;align-items:start}.panel{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:0 8px 24px #143e2608;margin-bottom:14px}.panel h2{font-size:17px;margin:0 0 6px}.muted{color:var(--muted);font-size:11px;line-height:1.6}.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:14px}.field{display:grid;gap:5px;min-width:0}.field.full{grid-column:1/-1}.field label{font-size:10px;font-weight:800;color:#526459}.field input,.field select,.field textarea{width:100%;min-width:0;border:1px solid #d9e5dc;border-radius:9px;padding:10px;background:#fff;color:var(--ink);font:inherit;font-size:12px}.field textarea{min-height:94px;resize:vertical}.field small{font-size:9px;color:var(--muted)}button,.button{border:0;border-radius:9px;padding:11px 14px;background:var(--green);color:white;font-size:11px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-flex;justify-content:center;align-items:center;gap:6px}button.secondary,.button.secondary{background:#edf5ef;color:var(--green);border:1px solid #d8e8dc}.button:visited{color:var(--green)}button:disabled{opacity:.55;cursor:wait}.auth-stack{display:grid;gap:10px;margin-top:12px}.status{padding:11px 12px;border-radius:10px;background:#f0f7f1;color:#315a3e;font-size:11px;line-height:1.6;overflow-wrap:anywhere}.status.error{background:#fff1ef;color:#9e3b32}.status.warn{background:#fff8e8;color:#825b16}.status:empty{display:none}.status-card{border:1px solid var(--line);border-radius:11px;padding:13px;margin-top:12px}.status-card strong{display:block}.steps{display:grid;gap:12px;margin-top:14px}.step{display:flex;gap:10px;align-items:flex-start}.num{width:25px;height:25px;border-radius:50%;background:#edf5ef;color:var(--green);display:grid;place-items:center;font-size:10px;font-weight:900;flex:0 0 25px}.step b{display:block;font-size:11px}.step p{margin:3px 0 0;color:var(--muted);font-size:10px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.foot{text-align:center;color:#859187;font-size:10px;padding:20px 0}.divider{height:1px;background:var(--line);margin:16px 0}.hidden{display:none!important}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.form{grid-template-columns:1fr}.field.full{grid-column:auto}.header{align-items:flex-start}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="header">
+ <div class="brand"><img src="./icons/koroma-leone-tech-crest.svg?v=3" alt="Koroma Leone Tech"><div><b>KOROMA LEONE TECH</b><small>BUSINESS OPERATING SYSTEM</small></div></div>
+ <a href="./index.html">Return to sign in ↗</a>
+</header>
+<section class="intro">
+ <div class="eyebrow">FOOTBALL CLUB ONBOARDING</div>
+ <h1>Register your club and establish its official online home.</h1>
+ <p>Submit your club details for review by Koroma Leone Tech. Approved applications receive a dedicated club workspace, manager access and a verified website draft. You remain in control of who manages and publishes your website.</p>
+</section>
+<div class="layout">
+ <aside>
+  <section class="panel">
+   <h2>Application process</h2>
+   <div class="muted">The club's authorised representative must submit the application using their own email account.</div>
+   <div class="steps">
+    <div class="step"><span class="num">1</span><div><b>Create or sign into an account</b><p>Confirm the email address used for the application.</p></div></div>
+    <div class="step"><span class="num">2</span><div><b>Submit club information</b><p>Provide club identity, manager details and evidence of authority.</p></div></div>
+    <div class="step"><span class="num">3</span><div><b>Developer review</b><p>We may approve, reject or request additional information.</p></div></div>
+    <div class="step"><span class="num">4</span><div><b>Workspace and website setup</b><p>Approval creates a club-owned workspace and a verified website draft.</p></div></div>
+    <div class="step"><span class="num">5</span><div><b>Manager controls publishing</b><p>You decide whether Koroma Leone Tech can publish directly or must submit changes for your approval.</p></div></div>
+   </div>
+  </section>
+  <section class="panel">
+   <h2>Verification note</h2>
+   <p class="muted">The verification badge means the applicant and club information were reviewed by Koroma Leone Tech. It is not FIFA, SLFA, league or government accreditation. The platform may request further evidence before approval.</p>
+  </section>
+ </aside>
+ <main>
+  <section class="panel" id="auth-panel">
+   <h2>Account access</h2>
+   <p class="muted">Use the same Koroma Leone Tech account for this application and the club manager workspace. You do not need to share your password with the developer.</p>
+   <div class="auth-stack" id="auth-forms">
+    <form id="signup-form" class="form">
+     <div class="field full"><label>Full name</label><input name="full_name" required minlength="2" maxlength="120" autocomplete="name"></div>
+     <div class="field"><label>Email address</label><input name="email" type="email" required autocomplete="email"></div>
+     <div class="field"><label>Create password</label><input name="password" type="password" required minlength="8" autocomplete="new-password"></div>
+     <div class="field full"><button type="submit">Create account</button></div>
+    </form>
+    <div class="divider"></div>
+    <form id="login-form" class="form">
+     <div class="field"><label>Existing account email</label><input name="email" type="email" required autocomplete="username"></div>
+     <div class="field"><label>Password</label><input name="password" type="password" required autocomplete="current-password"></div>
+     <div class="field full"><button type="submit" class="secondary">Sign in</button></div>
+    </form>
+   </div>
+   <div id="auth-status" class="status" aria-live="polite"></div>
+   <div id="signed-in" class="hidden"></div>
+  </section>
+  <section class="panel hidden" id="application-panel">
+   <h2>Club application</h2>
+   <p class="muted">Complete all required fields. Upload one supporting PDF or image if available. Your evidence is stored privately and is not displayed on the public club website.</p>
+   <div id="application-status" class="status" aria-live="polite"></div>
+   <div id="current-application"></div>
+   <form id="application-form" class="form hidden">
+    <div class="field"><label>Official club name *</label><input name="official_club_name" required minlength="2" maxlength="140"></div>
+    <div class="field"><label>Short name (optional)</label><input name="short_name" maxlength="60"></div>
+    <div class="field"><label>Club type *</label><select name="club_type" required><option value="Men's">Men's team</option><option value="Women's">Women's team</option><option value="Academy">Academy</option><option value="Other">Other</option></select></div>
+    <div class="field"><label>Country *</label><input name="country" required value="Sierra Leone"></div>
+    <div class="field"><label>District / region</label><input name="district" maxlength="100"></div>
+    <div class="field"><label>City / town</label><input name="city" maxlength="100"></div>
+    <div class="field"><label>League / competition</label><input name="competition_name" maxlength="160" placeholder="Current competition or league"></div>
+    <div class="field"><label>Home ground</label><input name="home_ground" maxlength="160"></div>
+    <div class="field"><label>Registration body</label><input name="club_registration_body" maxlength="160" placeholder="Association, league or registration authority"></div>
+    <div class="field"><label>Club registration number</label><input name="club_registration_number" maxlength="100"></div>
+    <div class="field"><label>Manager / authorised representative *</label><input name="manager_full_name" required minlength="2" maxlength="120"></div>
+    <div class="field"><label>Position at the club *</label><input name="manager_role" required minlength="2" maxlength="100" placeholder="Club chairman, general manager"></div>
+    <div class="field"><label>Club contact email *</label><input name="contact_email" type="email" required maxlength="254"></div>
+    <div class="field"><label>Club contact phone *</label><input name="contact_phone" required minlength="6" maxlength="40"></div>
+    <div class="field"><label>Existing club website (optional)</label><input name="official_website_url" type="url" placeholder="https://"></div>
+    <div class="field"><label>Preferred website address *</label><input name="proposed_website_slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="example-united-fc"><small>Lowercase letters, numbers and hyphens only.</small></div>
+    <div class="field full"><label>Explain your authority to represent this club *</label><textarea name="authority_statement" required minlength="30" maxlength="1500" placeholder="Explain your role and why the club has authorised you to apply for its online presence."></textarea></div>
+    <div class="field full"><label>Supporting evidence (PDF, JPG, PNG or WEBP; maximum 10 MB)</label><input name="evidence_file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"><small>For example, a club appointment letter, board authorisation or registration evidence. Do not upload identity documents unless requested.</small></div>
+    <div class="field full"><label>Evidence reference or additional context</label><input name="evidence_reference" maxlength="300" placeholder="Document title, issuing body or reference number"></div>
+    <div class="field full"><label>Additional notes</label><textarea name="additional_notes" maxlength="2000"></textarea></div>
+    <div class="field full"><label><input type="checkbox" name="declaration" required style="width:auto"> I confirm that the information is accurate and that I am authorised to submit this application on behalf of the club.</label></div>
+    <div class="field full"><button id="submit-application" type="submit">Submit club application</button></div>
+   </form>
+   <div class="actions hidden" id="manager-actions"><a class="button" href="./index.html?club-manager=1">Open club manager workspace ↗</a><a class="button secondary" id="public-site-link" href="#" target="_blank" rel="noopener">Open public website</a></div>
+  </section>
+ </main>
+</div>
+<div class="foot">KOROMA LEONE TECH · FOOTBALL CLUB ONBOARDING · Private club applications and evidence</div>
+</div>
+<script>
+(function(){
+'use strict';
+const URL='https://nclncqlgnxnijlumznnt.supabase.co';
+const KEY='sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
+const $=id=>document.getElementById(id);
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const slugify=v=>String(v||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+if(!window.supabase?.createClient){$('auth-status').textContent='The secure account service did not load. Refresh while connected.';$('auth-status').className='status error';return;}
+const db=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+let session=null,currentApp=null;
+function say(id,msg,type){const e=$(id);e.textContent=msg||'';e.className='status'+(type?' '+type:'');}
+function setAuthState(s){
+ session=s;
+ if(!s){$('auth-forms').classList.remove('hidden');$('signed-in').classList.add('hidden');$('application-panel').classList.add('hidden');return;}
+ $('auth-forms').classList.add('hidden');$('signed-in').classList.remove('hidden');$('application-panel').classList.remove('hidden');
+ $('signed-in').innerHTML='<div class="status-card"><strong>Signed in as '+esc(s.user.email||'')+'</strong><span class="muted">Your club application will be linked to this account.</span><div class="actions"><button type="button" class="secondary" id="signout">Sign out</button></div></div>';
+ $('signout').onclick=async()=>{await db.auth.signOut();currentApp=null;setAuthState(null);};
+ loadApplication().catch(e=>say('application-status',e.message,'error'));
+}
+$('signup-form').onsubmit=async e=>{
+ e.preventDefault();const f=new FormData(e.target),email=String(f.get('email')||'').trim().toLowerCase(),password=String(f.get('password')||''),name=String(f.get('full_name')||'').trim();
+ say('auth-status','Creating account…');
+ const r=await db.auth.signUp({email,password,options:{data:{full_name:name}}});
+ if(r.error){say('auth-status',r.error.message,'error');return;}
+ if(r.data.session){say('auth-status','Account created. Your email is confirmed and you are signed in.');setAuthState(r.data.session);}
+ else say('auth-status','Account created. Check '+email+' for the confirmation link, then return to this page and sign in.','warn');
+};
+$('login-form').onsubmit=async e=>{
+ e.preventDefault();const f=new FormData(e.target);say('auth-status','Signing in…');
+ const r=await db.auth.signInWithPassword({email:String(f.get('email')||'').trim().toLowerCase(),password:String(f.get('password')||'')});
+ if(r.error){say('auth-status',r.error.message,'error');return;}
+ say('auth-status','Signed in. Loading your application details.');setAuthState(r.data.session);
+};
+function showApplication(app){
+ currentApp=app||null;
+ const host=$('current-application'),form=$('application-form'),actions=$('manager-actions');
+ form.classList.add('hidden');actions.classList.add('hidden');
+ if(!app){host.innerHTML='<div class="status-card"><strong>No club application has been submitted.</strong><span class="muted">Complete the form below to apply for club verification and workspace setup.</span></div>';form.classList.remove('hidden');return;}
+ const states={
+  submitted:['Application submitted','Your application is awaiting review. Your workspace is not active yet.'],
+  in_review:['Application under review','The Koroma Leone Tech team is reviewing the club information.'],
+  needs_information:['More information required',app.developer_note||'Please update the application information requested by the reviewer.'],
+  approved:['Application approved','Your club workspace and website draft have been created. Sign in to manage the website.'],
+  rejected:['Application not approved',app.developer_note||'This application was not approved. You may submit a corrected application.']
+ };
+ const [heading,description]=states[app.status]||['Application status',app.status];
+ host.innerHTML='<div class="status-card"><strong>'+esc(heading)+'</strong><span class="muted">'+esc(description)+'</span><div class="muted" style="margin-top:7px">Club: '+esc(app.official_club_name)+' · Submitted: '+esc(new Date(app.created_at).toLocaleString())+'</div>'+(app.evidence_path?'<div class="muted">Supporting evidence: received privately.</div>':'')+(app.status==='approved'?'<div class="muted">Website address: '+esc(app.proposed_website_slug)+'</div>':'')+'</div>';
+ if(app.status==='needs_information'){form.classList.remove('hidden');prefill(app);$('submit-application').textContent='Resubmit updated application';say('application-status','The reviewer requested additional information. Update the form and resubmit.','warn');}
+ else if(app.status==='rejected'){form.classList.remove('hidden');prefill(app);$('submit-application').textContent='Submit a corrected application';say('application-status','You can submit a corrected application.','warn');}
+ else if(app.status==='approved'){
+   actions.classList.remove('hidden');
+   if(app.website_id&&app.proposed_website_slug){const a=$('public-site-link');a.href='#';a.textContent='Public website link available after publishing';a.classList.add('secondary');a.setAttribute('aria-disabled','true');a.style.pointerEvents='none';a.style.opacity='.6';}
+   say('application-status','Approval is complete. Sign in using this same account to open your club manager workspace.','');
+ }else say('application-status','You can return to this page at any time to check the application status.','');
+}
+function prefill(a){
+ const f=$('application-form');
+ Object.keys(a).forEach(k=>{const el=f.elements.namedItem(k);if(el&&el.type!=='file'&&el.type!=='checkbox')el.value=a[k]??'';});
+ if(a.proposed_website_slug)f.elements.namedItem('proposed_website_slug').value=a.proposed_website_slug;
+}
+async function loadApplication(){
+ if(!session){$('application-panel').classList.add('hidden');return;}
+ const r=await db.from('football_club_applications').select('*').eq('applicant_user_id',session.user.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+ if(r.error)throw r.error;
+ showApplication(r.data||null);
+}
+function collectPayload(f){
+ const names=['official_club_name','short_name','club_type','country','district','city','competition_name','home_ground','club_registration_body','club_registration_number','manager_full_name','manager_role','contact_email','contact_phone','official_website_url','proposed_website_slug','authority_statement','evidence_reference','additional_notes'];
+ const p={};for(const n of names)p[n]=String(f.get(n)||'').trim();
+ p.proposed_website_slug=slugify(p.proposed_website_slug||p.official_club_name);
+ if(!p.contact_email)p.contact_email=session.user.email;
+ return p;
+}
+$('application-form').onsubmit=async e=>{
+ e.preventDefault();if(!session)return say('application-status','Sign in before applying.','error');
+ const f=new FormData(e.target),declaration=f.get('declaration');
+ if(!declaration)return say('application-status','Confirm the declaration before submitting.','error');
+ const me=await db.auth.getUser();
+ if(me.error) return say('application-status',me.error.message,'error');
+ if(!me.data.user?.email_confirmed_at)return say('application-status','Confirm your account email before submitting the club application.','warn');
+ const payload=collectPayload(f);
+ if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(payload.proposed_website_slug))return say('application-status','Enter a valid website address slug.','error');
+ const file=f.get('evidence_file');
+ if(file&&file.size>10*1024*1024)return say('application-status','The supporting evidence file must be 10 MB or smaller.','error');
+ const btn=$('submit-application');btn.disabled=true;btn.textContent='Submitting securely…';
+ try{
+  let appId;
+  const saved=currentApp?.status==='needs_information'
+   ? await db.rpc('update_my_football_club_application',{p_application_id:currentApp.id,p_payload:payload})
+   : await db.rpc('submit_football_club_application',{p_payload:payload});
+  if(saved.error)throw saved.error;
+  appId=saved.data;
+  if(file&&file.size){
+   const base=slugify(file.name.replace(/\.[^.]+$/,''))||'club-evidence';
+   const ext=(file.name.split('.').pop()||'pdf').toLowerCase().replace(/[^a-z0-9]/g,'')||'pdf';
+   const path=session.user.id+'/'+appId+'/'+Date.now()+'-'+base+'.'+ext;
+   const uploaded=await db.storage.from('club-onboarding-evidence').upload(path,file,{upsert:false,contentType:file.type});
+   if(uploaded.error)throw new Error('Application saved, but the evidence upload failed: '+uploaded.error.message+'. Return to the form and contact support to attach the document.');
+   const attached=await db.rpc('attach_my_football_club_application_evidence',{p_application_id:appId,p_evidence_path:path});
+   if(attached.error)throw attached.error;
+  }
+  say('application-status','Your club application has been submitted successfully. Your club workspace will not be created until the application is approved.');
+  await loadApplication();e.target.reset();
+ }catch(error){say('application-status',error.message||'Application could not be submitted.','error');}
+ finally{btn.disabled=false;btn.textContent=currentApp?.status==='needs_information'?'Resubmit updated application':'Submit club application';}
+};
+db.auth.getSession().then(({data,error})=>{if(error)say('auth-status',error.message,'error');setAuthState(data?.session||null);});
+db.auth.onAuthStateChange((event,s)=>{if(event==='INITIAL_SESSION')return;setAuthState(s);});
+})();
+</script>
+</body>
+</html>
