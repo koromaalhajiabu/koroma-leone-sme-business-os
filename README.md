@@ -173,7 +173,10 @@ Migration 065 adds a private, owner-scoped in-app notification table and a daily
 - Public website verification badge: `club-website.html`
 - Club manager workspace: sign in through `index.html`; the Football Club Website Studio opens automatically for the `Sports & Local League Management` workspace.
 - Supabase migrations:
+  - `20261124131250_football_club_media_storage_policy_fix.sql`
+  - `20261124135312_football_player_scouting_portal.sql`
   - `20261124143125_football_club_onboarding_verification_centre.sql`
-  - `20261124144000_football_club_onboarding_verification_guard.sql`
+  - `20261124143656_football_club_onboarding_verification_guard.sql`
+  - `20261124144223_football_club_onboarding_private_rpc_hardening.sql`
 
 Email-confirmed applicants can submit club details and optional private supporting evidence. The platform developer can request information, reject, or approve an application. Approval atomically approves the platform account, creates a club-owned workspace, assigns the applicant as workspace owner, activates the football website module, creates a verified but unpublished website draft, and leaves developer delegation inactive until the club explicitly authorises it. A verified badge represents Koroma Leone Tech's platform review only; it is not FIFA, SLFA, league or government accreditation.
