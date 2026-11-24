@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#075b35">
+<meta name="description" content="Browse Koroma Leone Tech platform-verified football clubs and open their published official websites.">
+<title>Approved Football Clubs | Koroma Leone Tech</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--green:#075b35;--deep:#10251c;--gold:#d5ae5a;--paper:#f3f7f4;--muted:#65776c;--line:#dfe9e1}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:#183126;font:15px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}a{color:inherit}
+.top{background:var(--deep);color:white;padding:13px max(18px,calc((100vw - 1180px)/2));display:flex;justify-content:space-between;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none}.crest-mark{width:43px;height:43px;border-radius:11px;background:linear-gradient(145deg,#fff,#e9f3eb);display:grid;place-items:center;color:var(--green);font-size:22px;font-weight:900}.brand b{display:block;font-size:14px}.brand small{display:block;color:#becdc2;font-size:9px;letter-spacing:1.5px}
+.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a{color:#e4eee6;background:transparent;border:1px solid #ffffff25;padding:8px 11px;border-radius:8px;text-decoration:none;font-size:11px}
+.hero{background:radial-gradient(circle at 84% 10%,#1f87564a,transparent 32%),linear-gradient(120deg,#092719,#0d5030 65%,#10251c);color:white;padding:55px max(18px,calc((100vw - 1180px)/2)) 48px}
+.eyebrow{font-size:10px;font-weight:850;color:var(--gold);letter-spacing:2.2px;text-transform:uppercase}.hero h1{font-size:clamp(32px,5vw,56px);line-height:1.04;max-width:790px;margin:12px 0}.hero p{max-width:760px;color:#d9e8de;font-size:14px}
+.wrap{max-width:1180px;margin:auto;padding:22px 18px 56px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:13px}.section-head h2{margin:0;font-size:22px;color:var(--deep)}.sub{color:var(--muted);font-size:11px}
+.filters{display:grid;grid-template-columns:2fr 1fr;gap:9px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;box-shadow:0 8px 25px #0a40200a}
+.field{display:grid;gap:5px;min-width:0}.field label{font-size:10px;font-weight:800;color:#5c6f63}.field input,.field select{width:100%;min-width:0;padding:10px 11px;background:white;border:1px solid #dce6de;border-radius:8px;font-size:12px;color:#1c3427}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:14px}
+.club{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 24px #0a40200a;display:flex;flex-direction:column;min-width:0}
+.club-top{min-height:138px;background:linear-gradient(135deg,#e9f2eb,#f7faf7);display:flex;align-items:center;justify-content:center;padding:18px}
+.club-top img{width:104px;height:104px;object-fit:contain}.crest-fallback{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid #dce8de;color:var(--green);font-size:33px;font-weight:900}
+.club-body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}.club-title-row{display:flex;justify-content:space-between;gap:8px;align-items:start}.club h3{font-size:16px;line-height:1.25;margin:0;color:var(--deep)}.badge{display:inline-block;white-space:nowrap;padding:4px 8px;border-radius:99px;background:#e8f4eb;color:var(--green);font-size:9px;font-weight:850}
+.meta{font-size:11px;color:var(--muted)}.summary{font-size:11px;color:#52675a;line-height:1.55}.club-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:auto;padding-top:4px}.btn{display:inline-flex;justify-content:center;align-items:center;flex:1;min-width:110px;text-align:center;border-radius:8px;padding:9px 10px;text-decoration:none;font-size:10px;font-weight:850;background:var(--green);color:#fff}.btn.alt{background:#edf5ef;color:var(--green);border:1px solid #dbe9de}
+.empty{padding:34px 18px;text-align:center;background:#fff;border:1px dashed #cbd9cd;border-radius:13px;color:var(--muted);font-size:12px;grid-column:1/-1}
+.notice{margin-top:18px;padding:13px 15px;background:#fff;border:1px solid var(--line);border-radius:11px;color:#5d7064;font-size:10px;line-height:1.65}
+.footer{background:var(--deep);color:#dce9df;padding:25px max(18px,calc((100vw - 1180px)/2));font-size:11px}.footer a{color:#f3d99d}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.top{align-items:flex-start;flex-direction:column}.nav{width:100%}}
+@media(max-width:560px){.grid,.filters{grid-template-columns:1fr}.club-top{min-height:125px}.hero{padding-top:42px}.hero h1{font-size:38px}.section-head{align-items:start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="./"><span class="crest-mark">K</span><span><b>KOROMA LEONE TECH</b><small>FOOTBALL CLUB DIRECTORY</small></span></a>
+  <nav class="nav">
+    <a href="./">SME Business OS</a>
+    <a href="./football-scouting.html">Player scouting</a>
+    <a href="./club-apply.html">Register a club</a>
+  </nav>
+</header>
+<section class="hero">
+  <div class="eyebrow">Koroma Leone Tech SME Business OS</div>
+  <h1>Discover football clubs across the platform.</h1>
+  <p>Browse clubs whose applications have been reviewed by Koroma Leone Tech and whose official club websites are currently published. Open a club website or explore its consent-approved player profiles.</p>
+</section>
+<main class="wrap">
+  <section>
+    <div class="section-head">
+      <div><h2>Approved and published clubs</h2><div class="sub">Only platform-verified clubs with a live published website appear here.</div></div>
+      <span class="badge" id="club-count">Loading directory…</span>
+    </div>
+    <div class="filters">
+      <div class="field"><label for="search">Search clubs, grounds or locations</label><input id="search" type="search" placeholder="Club name, city, ground…"></div>
+      <div class="field"><label for="country-filter">Country</label><select id="country-filter"><option value="">All countries</option></select></div>
+    </div>
+    <div id="clubs" class="grid"><div class="empty">Connecting to the approved club directory…</div></div>
+    <div class="notice">“Verified” means the club application was reviewed by Koroma Leone Tech. It does not mean accreditation or endorsement by FIFA, SLFA, a league, government body or any other football authority. A club appears only while its website is published, verified and not in maintenance mode. Player details are shown separately in the scouting portal and remain subject to club approval and consent controls.</div>
+  </section>
+</main>
+<footer class="footer">
+  <strong>KOROMA LEONE TECH</strong>
+  <p>Club websites and scouting profiles are managed within the Koroma Leone Tech SME Business OS.</p>
+  <a href="./football-scouting.html">Open International Football Scouting Portal</a>
+</footer>
+<script>
+(function(){
+'use strict';
+const SUPABASE_URL='https://nclncqlgnxnijlumznnt.supabase.co';
+const SUPABASE_KEY='sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
+const el=id=>document.getElementById(id);
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl=v=>{try{const u=new URL(v,location.href);return ['https:','http:'].includes(u.protocol)?u.href:'#';}catch(_){return '#';}};
+if(!window.supabase||!window.supabase.createClient){el('clubs').innerHTML='<div class="empty">The directory connection library did not load. Refresh while connected.</div>';return;}
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+let clubRows=[];
+function card(c){
+ const crest=c.crest_url?'<img loading="lazy" src="'+esc(safeUrl(c.crest_url))+'" alt="'+esc(c.club_name)+' crest">':'<div class="crest-fallback">⚽</div>';
+ const place=[c.city,c.country].filter(Boolean).join(', ');
+ const details=[c.home_ground,place].filter(Boolean).join(' · ');
+ const summary=c.tagline||c.about_text||'Official club profile and published website.';
+ const base='./club-website.html?slug='+encodeURIComponent(c.slug);
+ const scouting='./football-scouting.html?club='+encodeURIComponent(c.slug);
+ return '<article class="club"><div class="club-top">'+crest+'</div><div class="club-body"><div class="club-title-row"><h3>'+esc(c.short_name||c.club_name)+'</h3><span class="badge">Platform verified</span></div><div class="meta">'+esc(details||'Club location not listed')+'</div><div class="summary">'+esc(summary.length>155?summary.slice(0,152)+'…':summary)+'</div><div class="club-actions"><a class="btn" href="'+base+'">Open club website</a><a class="btn alt" href="'+scouting+'">View player profiles</a></div></div></article>';
+}
+function render(){
+ const q=el('search').value.trim().toLowerCase(),country=el('country-filter').value;
+ const filtered=clubRows.filter(c=>{
+  const hay=[c.club_name,c.short_name,c.tagline,c.about_text,c.home_ground,c.city,c.country].join(' ').toLowerCase();
+  return (!q||hay.includes(q))&&(!country||c.country===country);
+ });
+ el('club-count').textContent=filtered.length+' club'+(filtered.length===1?'':'s');
+ el('clubs').innerHTML=filtered.length?filtered.map(card).join(''):'<div class="empty">No approved, published clubs match this search. Check back as more clubs complete verification and website publication.</div>';
+}
+async function load(){
+ el('clubs').innerHTML='<div class="empty">Loading verified club websites…</div>';
+ const r=await db.from('football_club_websites')
+  .select('club_name,short_name,slug,tagline,about_text,home_ground,city,country,crest_url,verification_status,is_published,maintenance_mode')
+  .eq('verification_status','verified').eq('is_published',true).eq('maintenance_mode',false)
+  .order('club_name',{ascending:true}).limit(500);
+ if(r.error){el('clubs').innerHTML='<div class="empty">The club directory could not be loaded: '+esc(r.error.message)+'</div>';el('club-count').textContent='Unavailable';return;}
+ clubRows=r.data||[];
+ const countries=[...new Set(clubRows.map(c=>c.country).filter(Boolean))].sort();
+ el('country-filter').innerHTML='<option value="">All countries</option>'+countries.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
+ render();
+}
+el('search').addEventListener('input',render);
+el('country-filter').addEventListener('change',render);
+load();
+})();
+</script>
+</body>
+</html>
