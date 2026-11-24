@@ -1,4 +1,4 @@
-/* White Lion — Refer & Earn.
+/* Koroma Leone Tech — Refer & Earn.
    Any signed-in account gets a referral link. A reward is only ever recorded
    after a business that account referred becomes a verified PAYING subscriber
    (first subscription payment approved). Rewards are reviewed and paid
@@ -66,8 +66,8 @@
     const currency=cache.rewards[0]?.currency_code||'SLE';
     const rows=cache.referrals.map(r=>'<tr><td>'+new Date(r.first_clicked_at).toLocaleDateString()+'</td><td>'+statusPill(r.status)+'</td><td>'+(r.business_created_at?new Date(r.business_created_at).toLocaleDateString():'—')+'</td><td>'+(r.converted_at?new Date(r.converted_at).toLocaleDateString():'—')+'</td></tr>').join('');
     const rewardRows=cache.rewards.map(r=>'<tr><td>'+new Date(r.created_at).toLocaleDateString()+'</td><td><b>'+money(r.amount,r.currency_code)+'</b></td><td>'+statusPill(r.status)+'</td><td>'+(r.notes?esc(r.notes):'—')+'</td></tr>').join('');
-    view().innerHTML=shell('Refer & Earn','Invite other businesses to White Lion. Earn a reward once a business you referred becomes a paying subscriber.',
-      '<div class="notice"><b>How it works:</b> share your link below. A click is not a reward — you only earn once the referred business creates a workspace and its subscription payment is verified by White Lion. Rewards are reviewed and paid manually; nothing is paid automatically.</div>'+
+    view().innerHTML=shell('Refer & Earn','Invite other businesses to Koroma Leone Tech. Earn a reward once a business you referred becomes a paying subscriber.',
+      '<div class="notice"><b>How it works:</b> share your link below. A click is not a reward — you only earn once the referred business creates a workspace and its subscription payment is verified by Koroma Leone Tech. Rewards are reviewed and paid manually; nothing is paid automatically.</div>'+
       '<div class="panel"><h3>Your referral link</h3><p class="panel-sub">Share this with other business owners. When they sign up, create a workspace, and later pay for a paid plan, you earn a reward.</p>'+
       '<div class="toolbar" style="margin-top:10px;flex-wrap:wrap"><input id="wlRefLink" readonly value="'+esc(link)+'" style="flex:1;min-width:220px;padding:10px 12px;border:1px solid #dde3ec;border-radius:9px;font-size:12px"><button class="btn primary small" id="wlRefCopy">Copy link</button></div>'+
       '<div class="panel-sub" style="margin-top:8px">Your referral code: <b>'+esc(cache.code||'—')+'</b></div></div>'+
