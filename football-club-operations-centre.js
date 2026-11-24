@@ -48,7 +48,7 @@
       <div class="kloc-actions">
         <a href="./club-apply.html" target="_blank" rel="noopener">Open club application ↗</a>
         <a class="secondary" href="./football-scouting.html" target="_blank" rel="noopener">Scouting portal ↗</a>
-        <a class="secondary" href="./club-website.html" target="_blank" rel="noopener">Public club website ↗</a>
+        <a class="secondary" href="./football-clubs.html" target="_blank" rel="noopener">Public club directory ↗</a>
         <button class="secondary" type="button" id="klocApps">Open application review</button>
       </div>
       <div class="kloc-list">
