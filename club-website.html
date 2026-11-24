@@ -28,11 +28,26 @@ async function start(){
  const names=['football_club_website_pages','football_club_website_news','football_club_website_squad','football_club_website_staff','football_club_website_fixtures','football_club_website_standings','football_club_website_transfers','football_club_website_gallery','football_club_website_sponsors','football_club_website_events','football_club_website_honours'];
  const data=await Promise.all(names.map(n=>rows(n,s.business_id).catch(()=>[])));
  const [pages,news,squad,staff,fixtures,standings,transfers,gallery,sponsors,events,honours]=data;
+ // Public player profiles are returned only when database publication and consent rules allow it.
+ let playerProfiles=[];
+ try{
+  const profileResult=await db.from('football_player_discovery_profiles')
+   .select('squad_member_id,public_slug,public_name')
+   .eq('business_id',s.business_id)
+   .eq('scouting_status','published');
+  if(!profileResult.error)playerProfiles=profileResult.data||[];
+ }catch(_){playerProfiles=[];}
+ const playerProfileBySquad=Object.fromEntries(playerProfiles.filter(p=>p.squad_member_id&&p.public_slug).map(p=>[p.squad_member_id,p]));
  const nav=[['about','About'],['news','News'],['squad','Squad'],['fixtures','Fixtures'],['gallery','Gallery'],['contact','Contact']].concat(pages.filter(p=>p.show_in_navigation).map(p=>[p.slug,p.title])).map(x=>'<a href="#'+esc(x[0])+'">'+esc(x[1])+'</a>').join('')+'<a href="./football-scouting.html?club='+encodeURIComponent(s.slug)+'">International Scouting</a><a href="./football-player-marketplace.html">Player Transfer Market</a>';
  const hero=s.hero_image_url?'background-image:linear-gradient(90deg,#07180fdd,#07180f55),url("'+esc(safe(s.hero_image_url))+'")':'';
  const custom=pages.map(p=>section(p.slug,esc(p.title),esc(p.summary||''),'<div class="profile"><p>'+esc(p.body||'').replace(/\\n/g,'<br>')+'</p></div>')).join('');
  const newsCards=news.sort((a,b)=>Number(!!b.is_featured)-Number(!!a.is_featured)).map(n=>card(n.title,esc(n.excerpt||n.body||'')+'<br><small>'+esc(n.category||'Club news')+' · '+esc(date(n.published_at||n.created_at))+'</small>',n.cover_image_url,n.is_featured?'Featured':n.category));
- const playerCards=squad.sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(p=>card((p.shirt_number?'#'+p.shirt_number+' ':'')+p.full_name,esc(p.position||'')+(p.nationality?' · '+esc(p.nationality):'')+'<br>Apps '+p.appearances+' · Goals '+p.goals+' · Assists '+p.assists,p.photo_url,p.squad_group));
+ const playerCards=squad.sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).map(p=>{
+  const profile=playerProfileBySquad[p.id];
+  const details=esc(p.position||'')+(p.nationality?' · '+esc(p.nationality):'')+'<br>Apps '+Number(p.appearances||0)+' · Goals '+Number(p.goals||0)+' · Assists '+Number(p.assists||0);
+  const profileLink=profile?'<p style="margin-top:11px"><a class="btn" href="./football-scouting.html?player='+encodeURIComponent(profile.public_slug)+'">View player scouting profile ↗</a></p>':'';
+  return '<article class="card">'+img(p.photo_url,p.full_name)+'<div>'+(p.squad_group?'<span class="badge">'+esc(p.squad_group)+'</span>':'')+'<h3>'+(p.shirt_number?'#'+esc(p.shirt_number)+' ':'')+esc(p.full_name)+'</h3><p>'+details+'</p>'+profileLink+'</div></article>';
+ });
  const staffCards=staff.map(p=>card(p.full_name,esc(p.staff_title)+'<br>'+esc(p.biography||''),p.photo_url,'Club staff'));
  const fixtureRows=fixtures.sort((a,b)=>new Date(a.kickoff_at)-new Date(b.kickoff_at)).map(f=>'<tr><td>'+esc(date(f.kickoff_at))+'</td><td>'+esc(f.competition_name||f.fixture_type)+'</td><td>'+esc(f.venue_type)+' · '+esc(f.opponent_name)+'</td><td>'+(f.match_status==='Completed'?esc(f.home_score)+' - '+esc(f.away_score):esc(f.match_status))+'</td></tr>').join('');
  const standingRows=standings.sort((a,b)=>a.position-b.position).map(x=>'<tr><td>'+x.position+'</td><td>'+esc(x.team_name)+'</td><td>'+x.played+'</td><td>'+x.won+'</td><td>'+x.drawn+'</td><td>'+x.lost+'</td><td>'+x.goals_for+':'+x.goals_against+'</td><td><strong>'+x.points+'</strong></td></tr>').join('');
