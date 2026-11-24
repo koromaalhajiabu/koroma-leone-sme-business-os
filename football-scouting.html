@@ -209,21 +209,35 @@ function switchForms(){
  if(session){el('account-forms').style.display='none';}
  else{el('account-forms').style.display='block';}
 }
-async function ensureScoutAccount(details){
+async function ensureScoutAccount(){
  if(!session)return null;
  const found=await db.from('football_scout_accounts').select('*').eq('user_id',session.user.id).maybeSingle();
  if(found.error)throw found.error;
- if(found.data)return found.data;
+ return found.data||null;
+}
+async function createScoutAccount(details){
+ if(!session)throw new Error('Sign in before creating a scout profile.');
  const payload=details||{};
  const account={
-  user_id:session.user.id,full_name:payload.full_name||session.user.user_metadata?.full_name||'Scout account',
-  organisation:payload.organisation||'Independent scouting',
-  job_title:payload.job_title||null,contact_email:payload.contact_email||session.user.email,
-  country:payload.country||'Not supplied',website_url:payload.website_url||null
+  user_id:session.user.id,full_name:String(payload.full_name||'').trim(),
+  organisation:String(payload.organisation||'').trim(),
+  job_title:String(payload.job_title||'').trim()||null,
+  contact_email:String(payload.contact_email||session.user.email||'').trim(),
+  country:String(payload.country||'').trim(),
+  website_url:String(payload.website_url||'').trim()||null
  };
  const inserted=await db.from('football_scout_accounts').insert(account).select('*').single();
  if(inserted.error)throw inserted.error;
  return inserted.data;
+}
+function renderScoutAccountSetup(){
+ el('scout-session').innerHTML='<p class="meta">Signed in as '+esc(session.user.email)+'. Complete your professional scout profile to request verification.</p><form id="scout-profile-form" class="form-grid"><div class="field"><label>Full name</label><input name="full_name" required minlength="2" maxlength="120"></div><div class="field"><label>Club, agency or organisation</label><input name="organisation" required minlength="2" maxlength="160"></div><div class="field"><label>Professional role</label><input name="job_title" placeholder="Scout, head scout, agent"></div><div class="field"><label>Country</label><input name="country" required></div><div class="field"><label>Contact email</label><input name="contact_email" type="email" required value="'+esc(session.user.email)+'"></div><div class="field"><label>Organisation website</label><input name="website_url" type="url" placeholder="https://"></div><div class="field wide"><button class="dark">Submit scout profile for verification</button></div></form><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
+ el('scout-profile-form').onsubmit=async e=>{
+  e.preventDefault();const f=new FormData(e.target);
+  try{await createScoutAccount(Object.fromEntries(f.entries()));await refreshSession();status('Scout details submitted. Account status is pending until reviewed.');}
+  catch(error){status(error.message,true);}
+ };
+ el('scout-signout').onclick=async()=>{await db.auth.signOut();await refreshSession();status('Signed out.');};
 }
 async function loadMyEnquiries(){
  if(!session)return;
@@ -262,6 +276,11 @@ async function refreshSession(){
   scoutAccount=await ensureScoutAccount();
   const dev=await db.rpc('football_scout_portal_is_developer');
   isDeveloper=!dev.error&&dev.data===true;
+  if(!scoutAccount){
+   renderScoutAccountSetup();
+   await loadDeveloperReview();
+   return;
+  }
   const accountStatus=esc(scoutAccount.verification_status);
   el('scout-session').innerHTML='<div class="player-top"><strong>'+esc(scoutAccount.full_name)+'</strong><span class="verify">'+(scoutAccount.verification_status==='verified'?'VERIFIED':'ACCOUNT '+accountStatus.toUpperCase())+'</span></div><p class="meta">'+esc(scoutAccount.organisation)+' · '+esc(scoutAccount.country)+'</p><p class="hint">Signed in as '+esc(session.user.email)+'. '+(scoutAccount.verification_status==='verified'?'You can send enquiries to clubs.':'Your account is awaiting platform review or needs attention.')+'</p><div class="field"><label>My scouting enquiries</label><div id="my-enquiries"><div class="empty">Loading enquiries…</div></div></div><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
   el('scout-signout').onclick=async()=>{await db.auth.signOut();await refreshSession();status('Signed out.');};
@@ -280,7 +299,7 @@ el('register-form').onsubmit=async e=>{
   const r=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
   if(r.error)throw r.error;
   if(r.data.session){
-   session=r.data.session;scoutAccount=await ensureScoutAccount(details);await refreshSession();
+   session=r.data.session;scoutAccount=await createScoutAccount(details);await refreshSession();
    status('Scout account registered. Confirm your email and wait for Koroma Leone Tech review before sending enquiries.');
   }else{
    status('Registration started. Check your email to confirm the account, then return here and sign in. Your account will remain pending until verified.');
