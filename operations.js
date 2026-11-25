@@ -128,7 +128,7 @@
         <button id="wlLedgerInventory" type="button">Inventory valuation</button>
         <div id="wlLedgerReport" class="ops-muted">Choose a financial report to view posted ledger entries.</div>
         <h4>Month-end accounting period close</h4>
-        <div class="ops-muted">Close the period selected above after reviewing the trial balance and financial statements. Closed periods are protected against back-dated journals; an owner or administrator can reopen a period with an audit reason.</div>
+        <div class="ops-muted">Close the period selected above after reviewing the trial balance and financial statements. Month-end closing is blocked until all daily branch closes submitted in the selected period are approved. Closed periods are protected against back-dated journals; an owner or administrator can reopen a period with an audit reason.</div>
         <button id="wlLedgerClosePeriod" type="button">Close selected accounting period</button>
         <div id="wlLedgerClosedPeriods" class="ops-muted">Closed accounting periods will appear here.</div>
         <h4>Manual journal entry</h4>
