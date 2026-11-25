@@ -25,12 +25,18 @@ async function refresh(){
   fill(application);
   const status=application.status||'pending';
   $('applicationStatus').hidden=false;
-  message($('applicationStatus'),(words[$('language').value]||words.en)[status]||status);
+  const dict=words[$('language').value]||words.en;
+  message($('applicationStatus'),dict[status]||status);
   $('applicationForm').classList.toggle('hidden',status==='pending'||status==='approved');
-  if(status==='approved')$('applicationStatus').innerHTML=(words[$('language').value]||words.en).approved+' <a href="./index.html">Open workspace</a>';
-  else if(status==='pending')$('applicationStatus').innerHTML=(words[$('language').value]||words.en).pending+' <a href="./index.html">Return to sign in</a>';
-  else if(status==='needs_information')$('applicationForm').classList.remove('hidden');
-  else if(status==='rejected')$('applicationForm').classList.remove('hidden');
+  if(status==='approved')$('applicationStatus').innerHTML=dict.approved+' <a href="./index.html">Open workspace</a>';
+  else if(status==='pending')$('applicationStatus').innerHTML=dict.pending+' <a href="./index.html">Return to sign in</a>';
+  else if(status==='needs_information'||status==='rejected')$('applicationForm').classList.remove('hidden');
+  if(application.review_note){
+    const note=document.createElement('p');
+    note.style.cssText='margin:10px 0 0;padding:10px;border-radius:8px;background:#fff8e8;color:#6d5420';
+    note.textContent='Developer review note: '+application.review_note;
+    $('applicationStatus').appendChild(note);
+  }
  }else{$('applicationForm').classList.remove('hidden');$('applicationStatus').classList.add('hidden')}
 }
 async function showSession(){
