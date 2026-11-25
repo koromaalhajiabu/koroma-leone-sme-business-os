@@ -93,7 +93,7 @@ async function start(){
   if(!profileResult.error)playerProfiles=profileResult.data||[];
  }catch(_){playerProfiles=[];}
  const playerProfileBySquad=Object.fromEntries(playerProfiles.filter(p=>p.squad_member_id&&p.public_slug).map(p=>[p.squad_member_id,p]));
- const nav=[['about','About'],['news','News'],['squad','Squad'],['fixtures','Fixtures'],['gallery','Gallery'],['contact','Contact']].concat(pages.filter(p=>p.show_in_navigation).map(p=>[p.slug,p.title])).map(x=>'<a href="#'+esc(x[0])+'">'+esc(x[1])+'</a>').join('')+'<a href="./football-scouting.html?club='+encodeURIComponent(s.slug)+'">International Scouting</a><a href="./football-player-marketplace.html">Player Transfer Market</a>';
+ const nav=[['football-platform.html','Football platform'],['about','About'],['news','News'],['squad','Squad'],['fixtures','Fixtures'],['gallery','Gallery'],['contact','Contact']].concat(pages.filter(p=>p.show_in_navigation).map(p=>[p.slug,p.title])).map(x=>'<a href="#'+esc(x[0])+'">'+esc(x[1])+'</a>').join('')+'<a href="./football-scouting.html?club='+encodeURIComponent(s.slug)+'">International Scouting</a><a href="./football-player-marketplace.html">Player Transfer Market</a>';
  const hero=s.hero_image_url?'background-image:linear-gradient(90deg,#07180fdd,#07180f55),url("'+esc(safe(s.hero_image_url))+'")':'';
  const custom=pages.map(p=>section(p.slug,esc(p.title),esc(p.summary||''),'<div class="profile"><p>'+esc(p.body||'').replace(/\\n/g,'<br>')+'</p></div>')).join('');
  const newsCards=news.sort((a,b)=>Number(!!b.is_featured)-Number(!!a.is_featured)).map(n=>card(n.title,esc(n.excerpt||n.body||'')+'<br><small>'+esc(n.category||'Club news')+' · '+esc(date(n.published_at||n.created_at))+'</small>',n.cover_image_url,n.is_featured?'Featured':n.category));
