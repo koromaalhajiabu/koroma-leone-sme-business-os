@@ -1079,6 +1079,33 @@ const WL_UI_COVERAGE_ROWS=[
 ["Multi-industry business","Entreprise multi-sectorielle","Negocio multisectorial","نشاط متعدد القطاعات","बहु-उद्योग व्यवसाय","多行业企业"],
 ["Other / not listed","Autre / non répertorié","Otro / no incluido","أخرى / غير مدرجة","अन्य / सूची में नहीं","其他 / 未列出"],
 ["Alert","Alerte","Alerta","تنبيه","अलर्ट","提醒"]
+
+["Supermarket","Supermarché","Supermercado","سوبرماركت","सुपरमार्केट","超市"],
+["Mini-market","Supérette","Minimercado","متجر صغير","मिनी मार्केट","迷你超市"],
+["Restaurant","Restaurant","Restaurante","مطعم","रेस्टोरेंट","餐厅"],
+["Cafeteria","Cafétéria","Cafetería","كافتيريا","कैफेटेरिया","自助餐厅"],
+["Bakery","Boulangerie","Panadería","مخبز","बेकरी","面包店"],
+["Hotel","Hôtel","Hotel","فندق","होटल","酒店"],
+["Guesthouse","Maison d’hôtes","Casa de huéspedes","بيت ضيافة","गेस्टहाउस","宾馆"],
+["Lodge","Lodge","Alojamiento rural","نُزل","लॉज","小旅馆"],
+["Dental supply business","Fournisseur de matériel dentaire","Negocio de suministros dentales","نشاط مستلزمات طب الأسنان","दंत आपूर्ति व्यवसाय","牙科用品业务"],
+["Healthcare product retailer","Détaillant de produits de santé","Comerciante minorista de productos sanitarios","متجر منتجات الرعاية الصحية","स्वास्थ्य उत्पाद खुदरा विक्रेता","医疗保健产品零售商"],
+["Hardware wholesaler","Grossiste en quincaillerie","Mayorista de ferretería","تاجر جملة للأدوات والمواد المعدنية","हार्डवेयर थोक व्यापारी","五金批发商"],
+["Furniture manufacturer","Fabricant de meubles","Fabricante de muebles","مصنع أثاث","फर्नीचर निर्माता","家具制造商"],
+["Industrial equipment supplier","Fournisseur d’équipements industriels","Proveedor de equipos industriales","مورد معدات صناعية","औद्योगिक उपकरण आपूर्तिकर्ता","工业设备供应商"],
+["Welding and fabrication workshop","Atelier de soudage et de fabrication métallique","Taller de soldadura y fabricación","ورشة لحام وتصنيع","वेल्डिंग और फैब्रिकेशन कार्यशाला","焊接与金属加工车间"],
+["Barbershop","Salon de barbier","Barbería","صالون حلاقة رجالي","नाई की दुकान","理发店"],
+["Spa","Spa et centre de bien-être","Spa","منتجع صحي","स्पा","水疗中心"],
+["School management system","Système de gestion scolaire","Sistema de gestión escolar","نظام إدارة المدارس","स्कूल प्रबंधन प्रणाली","学校管理系统"],
+["Bookshop and learning-material distributor","Librairie et distributeur de matériel pédagogique","Librería y distribuidor de material didáctico","مكتبة وموزع مواد تعليمية","पुस्तकालय और शिक्षण सामग्री वितरक","书店及学习材料经销商"],
+["Agricultural produce wholesaler","Grossiste en produits agricoles","Mayorista de productos agrícolas","تاجر جملة للمنتجات الزراعية","कृषि उपज थोक व्यापारी","农产品批发商"],
+["Food processing business","Entreprise de transformation alimentaire","Empresa de procesamiento de alimentos","نشاط تصنيع الأغذية","खाद्य प्रसंस्करण व्यवसाय","食品加工企业"],
+["Equipment rental business","Location d’équipements","Negocio de alquiler de equipos","نشاط تأجير معدات","उपकरण किराये का व्यवसाय","设备租赁业务"],
+["Vehicle hire business","Location de véhicules","Alquiler de vehículos","تأجير مركبات","वाहन किराये का व्यवसाय","汽车租赁业务"],
+["Event equipment rental company","Entreprise de location de matériel événementiel","Empresa de alquiler de equipos para eventos","شركة تأجير معدات الفعاليات","कार्यक्रम उपकरण किराये की कंपनी","活动设备租赁公司"],
+["Property maintenance company","Société d’entretien immobilier","Empresa de mantenimiento de propiedades","شركة صيانة عقارات","संपत्ति रखरखाव कंपनी","物业维护公司"],
+["Business administration service provider","Prestataire de services d’administration des entreprises","Proveedor de servicios de administración empresarial","مزود خدمات إدارة الأعمال","व्यवसाय प्रशासन सेवा प्रदाता","企业行政服务提供商"],
+["Sports event organiser","Organisateur d’événements sportifs","Organizador de eventos deportivos","منظم فعاليات رياضية","खेल आयोजन आयोजक","体育赛事组织者"]
 ];
 for(const row of WL_UI_COVERAGE_ROWS){
  if(!Array.isArray(row)||row.length!==6||typeof row[0]!=='string'){
