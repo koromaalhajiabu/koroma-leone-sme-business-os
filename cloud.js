@@ -568,7 +568,7 @@
       .select('module_key,is_enabled').eq('business_id', business.id).order('module_key');
     $('wlModules').textContent = error ? 'Module list unavailable: ' + error.message :
       (modules || []).filter(m => m.is_enabled).map(m => m.module_key.replaceAll('_',' ')).join(' · ') || 'No modules enabled';
-    say('Signed in as ' + session.user.email + '. Workspace: ' + business.name + '. Cloud sync is available for products, customers, suppliers and expenses.');
+    say('Signed in as ' + session.user.email + '. Workspace: ' + business.name + '. The Sync Control Centre is ready for this workspace.');
     updateSyncStatus();
     window.dispatchEvent(new CustomEvent('whiteLionWorkspaceChanged', { detail: { business, modules: modules || [] } }));
     await loadBranches();
@@ -1493,7 +1493,7 @@
     }
     host.innerHTML = found.length ? found.map(item => {
       const fields = item.row.cloudConflictSnapshot.fields || {};
-      const preview = Object.entries(fields).slice(0, 4).map(([key,value]) => key + ': ' + String(value ?? '')).join(' · ');
+      const preview = Object.entries(fields).slice(0, 4).map(([key,value]) => key + ': device ' + String(item.row[key] ?? '—') + ' / cloud ' + String(value ?? '—')).join(' · ');
       const label = item.row.name || item.row.description || item.row.category || item.row.id;
       return '<div class="wl-sync-conflict"><div><strong>' + syncSafe(item.type.slice(0,-1)) + ': ' + syncSafe(label) + '</strong><br>' +
         '<span>Cloud update ' + syncSafe(item.row.cloudConflictSnapshot.updatedAt || 'time unavailable') + '</span><br>' +
