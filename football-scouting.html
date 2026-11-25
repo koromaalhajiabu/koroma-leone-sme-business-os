@@ -68,6 +68,14 @@
             <div class="field"><label>Country</label><input name="country" required value=""></div>
             <div class="field"><label>Contact email</label><input name="contact_email" type="email" required></div>
             <div class="field"><label>Organisation website (optional)</label><input name="website_url" type="url" placeholder="https://"></div>
+            <div class="field"><label>Years of scouting experience</label><input name="years_experience" type="number" min="0" max="60" value="0"></div>
+            <div class="field"><label>Scouting specialities (comma-separated)</label><input name="scouting_specialties" maxlength="300" placeholder="Youth development, West Africa, forwards"></div>
+            <div class="field"><label>Professional profile URL</label><input name="professional_profile_url" type="url" placeholder="LinkedIn or club profile URL"></div>
+            <div class="field"><label>Credential / public reference URL</label><input name="verification_evidence_url" type="url" placeholder="Public professional credential or organisation page"></div>
+            <div class="field"><label>Professional reference name</label><input name="reference_contact_name" maxlength="120"></div>
+            <div class="field"><label>Professional reference email</label><input name="reference_contact_email" type="email" maxlength="180"></div>
+            <div class="field"><label>Public directory contact email</label><input name="public_contact_email" type="email" maxlength="180"></div>
+            <div class="field"><label><input name="public_contact_opt_in" type="checkbox" style="width:auto"> Show my contact email in the verified scout directory</label></div>
             <div class="field"><label>Account email</label><input name="auth_email" type="email" autocomplete="email" required></div>
             <div class="field"><label>Password</label><input name="password" type="password" autocomplete="new-password" minlength="8" required></div>
             <div class="field wide"><button class="dark" type="submit">Create scout account</button></div>
@@ -258,14 +266,30 @@ async function createScoutAccount(details){
   job_title:String(payload.job_title||'').trim()||null,
   contact_email:String(payload.contact_email||session.user.email||'').trim(),
   country:String(payload.country||'').trim(),
-  website_url:String(payload.website_url||'').trim()||null
+  website_url:String(payload.website_url||'').trim()||null,
+  years_experience:Number(payload.years_experience||0),
+  scouting_specialties:String(payload.scouting_specialties||'').split(',').map(x=>x.trim()).filter(Boolean),
+  professional_profile_url:String(payload.professional_profile_url||'').trim()||null,
+  verification_evidence_url:String(payload.verification_evidence_url||'').trim()||null,
+  reference_contact_name:String(payload.reference_contact_name||'').trim()||null,
+  reference_contact_email:String(payload.reference_contact_email||'').trim()||null,
+  public_contact_opt_in:!!payload.public_contact_opt_in,
+  public_contact_email:String(payload.public_contact_email||'').trim()||null
  };
  const inserted=await db.from('football_scout_accounts').insert(account).select('*').single();
  if(inserted.error)throw inserted.error;
  return inserted.data;
 }
 function renderScoutAccountSetup(){
- el('scout-session').innerHTML='<p class="meta">Signed in as '+esc(session.user.email)+'. Complete your professional scout profile to request verification.</p><form id="scout-profile-form" class="form-grid"><div class="field"><label>Full name</label><input name="full_name" required minlength="2" maxlength="120"></div><div class="field"><label>Club, agency or organisation</label><input name="organisation" required minlength="2" maxlength="160"></div><div class="field"><label>Professional role</label><input name="job_title" placeholder="Scout, head scout, agent"></div><div class="field"><label>Country</label><input name="country" required></div><div class="field"><label>Contact email</label><input name="contact_email" type="email" required value="'+esc(session.user.email)+'"></div><div class="field"><label>Organisation website</label><input name="website_url" type="url" placeholder="https://"></div><div class="field wide"><button class="dark">Submit scout profile for verification</button></div></form><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
+ el('scout-session').innerHTML='<p class="meta">Signed in as '+esc(session.user.email)+'. Complete your professional scout profile to request verification.</p><form id="scout-profile-form" class="form-grid"><div class="field"><label>Full name</label><input name="full_name" required minlength="2" maxlength="120"></div><div class="field"><label>Club, agency or organisation</label><input name="organisation" required minlength="2" maxlength="160"></div><div class="field"><label>Professional role</label><input name="job_title" placeholder="Scout, head scout, agent"></div><div class="field"><label>Country</label><input name="country" required></div><div class="field"><label>Contact email</label><input name="contact_email" type="email" required value="'+esc(session.user.email)+'"></div><div class="field"><label>Organisation website</label><input name="website_url" type="url" placeholder="https://"></div>
+            <div class="field"><label>Years of scouting experience</label><input name="years_experience" type="number" min="0" max="60" value="0"></div>
+            <div class="field"><label>Scouting specialities (comma-separated)</label><input name="scouting_specialties" maxlength="300" placeholder="Youth development, West Africa, forwards"></div>
+            <div class="field"><label>Professional profile URL</label><input name="professional_profile_url" type="url" placeholder="LinkedIn or club profile URL"></div>
+            <div class="field"><label>Credential / public reference URL</label><input name="verification_evidence_url" type="url" placeholder="Public professional credential or organisation page"></div>
+            <div class="field"><label>Professional reference name</label><input name="reference_contact_name" maxlength="120"></div>
+            <div class="field"><label>Professional reference email</label><input name="reference_contact_email" type="email" maxlength="180"></div>
+            <div class="field"><label>Public directory contact email</label><input name="public_contact_email" type="email" maxlength="180"></div>
+            <div class="field"><label><input name="public_contact_opt_in" type="checkbox" style="width:auto"> Show my contact email in the verified scout directory</label></div><div class="field wide"><button class="dark">Submit scout profile for verification</button></div></form><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
  el('scout-profile-form').onsubmit=async e=>{
   e.preventDefault();const f=new FormData(e.target);
   try{await createScoutAccount(Object.fromEntries(f.entries()));await refreshSession();status('Scout details submitted. Account status is pending until reviewed.');}
@@ -328,7 +352,15 @@ async function refreshSession(){
    return;
   }
   const accountStatus=esc(scoutAccount.verification_status);
-  el('scout-session').innerHTML='<div class="player-top"><strong>'+esc(scoutAccount.full_name)+'</strong><span class="verify">'+(scoutAccount.verification_status==='verified'?'VERIFIED':'ACCOUNT '+accountStatus.toUpperCase())+'</span></div><p class="meta">'+esc(scoutAccount.organisation)+' · '+esc(scoutAccount.country)+'</p><p class="hint">Signed in as '+esc(session.user.email)+'. '+(scoutAccount.verification_status==='verified'?'You can send enquiries to clubs.':'Your account is awaiting platform review or needs attention.')+'</p><details style="margin:12px 0"><summary style="cursor:pointer;font-size:11px;font-weight:850;color:#075b35">Edit professional scout profile</summary><form id="scout-profile-edit" class="form-grid" style="margin-top:12px"><div class="field"><label>Full name</label><input name="full_name" required value="'+esc(scoutAccount.full_name)+'"></div><div class="field"><label>Organisation</label><input name="organisation" required value="'+esc(scoutAccount.organisation)+'"></div><div class="field"><label>Professional role</label><input name="job_title" value="'+esc(scoutAccount.job_title||'')+'"></div><div class="field"><label>Country</label><input name="country" required value="'+esc(scoutAccount.country)+'"></div><div class="field"><label>Contact email</label><input name="contact_email" type="email" required value="'+esc(scoutAccount.contact_email)+'"></div><div class="field"><label>Organisation website</label><input name="website_url" type="url" value="'+esc(scoutAccount.website_url||'')+'"></div><div class="field wide"><button class="soft">Save professional profile</button><small class="hint">Changing verified identity or organisation details sends the account back for re-verification.</small></div></form></details><div class="field"><label>My scouting enquiries</label><div id="my-enquiries"><div class="empty">Loading enquiries…</div></div></div><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
+  el('scout-session').innerHTML='<div class="player-top"><strong>'+esc(scoutAccount.full_name)+'</strong><span class="verify">'+(scoutAccount.verification_status==='verified'?'VERIFIED':'ACCOUNT '+accountStatus.toUpperCase())+'</span></div><p class="meta">'+esc(scoutAccount.organisation)+' · '+esc(scoutAccount.country)+'</p><p class="hint">Signed in as '+esc(session.user.email)+'. '+(scoutAccount.verification_status==='verified'?'You can send enquiries to clubs.':'Your account is awaiting platform review or needs attention.')+'</p><details style="margin:12px 0"><summary style="cursor:pointer;font-size:11px;font-weight:850;color:#075b35">Edit professional scout profile</summary><form id="scout-profile-edit" class="form-grid" style="margin-top:12px"><div class="field"><label>Full name</label><input name="full_name" required value="'+esc(scoutAccount.full_name)+'"></div><div class="field"><label>Organisation</label><input name="organisation" required value="'+esc(scoutAccount.organisation)+'"></div><div class="field"><label>Professional role</label><input name="job_title" value="'+esc(scoutAccount.job_title||'')+'"></div><div class="field"><label>Country</label><input name="country" required value="'+esc(scoutAccount.country)+'"></div><div class="field"><label>Contact email</label><input name="contact_email" type="email" required value="'+esc(scoutAccount.contact_email)+'"></div><div class="field"><label>Organisation website</label><input name="website_url" type="url" value="'+esc(scoutAccount.website_url||'')+'"></div>
+            <div class="field"><label>Years of scouting experience</label><input name="years_experience" type="number" min="0" max="60" value="0"></div>
+            <div class="field"><label>Scouting specialities (comma-separated)</label><input name="scouting_specialties" maxlength="300" placeholder="Youth development, West Africa, forwards"></div>
+            <div class="field"><label>Professional profile URL</label><input name="professional_profile_url" type="url" placeholder="LinkedIn or club profile URL"></div>
+            <div class="field"><label>Credential / public reference URL</label><input name="verification_evidence_url" type="url" placeholder="Public professional credential or organisation page"></div>
+            <div class="field"><label>Professional reference name</label><input name="reference_contact_name" maxlength="120"></div>
+            <div class="field"><label>Professional reference email</label><input name="reference_contact_email" type="email" maxlength="180"></div>
+            <div class="field"><label>Public directory contact email</label><input name="public_contact_email" type="email" maxlength="180"></div>
+            <div class="field"><label><input name="public_contact_opt_in" type="checkbox" style="width:auto"> Show my contact email in the verified scout directory</label></div><div class="field wide"><button class="soft">Save professional profile</button><small class="hint">Changing verified identity or organisation details sends the account back for re-verification.</small></div></form></details><div class="field"><label>My scouting enquiries</label><div id="my-enquiries"><div class="empty">Loading enquiries…</div></div></div><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
   el('scout-signout').onclick=async()=>{await db.auth.signOut();await refreshSession();status('Signed out.');};
   el('scout-profile-edit').onsubmit=async e=>{
    e.preventDefault();const f=new FormData(e.target);
@@ -339,6 +371,14 @@ async function refreshSession(){
     country:String(f.get('country')).trim(),
     contact_email:String(f.get('contact_email')).trim(),
     website_url:String(f.get('website_url')||'').trim()||null,
+    years_experience:Number(f.get('years_experience')||0),
+    scouting_specialties:String(f.get('scouting_specialties')||'').split(',').map(x=>x.trim()).filter(Boolean),
+    professional_profile_url:String(f.get('professional_profile_url')||'').trim()||null,
+    verification_evidence_url:String(f.get('verification_evidence_url')||'').trim()||null,
+    reference_contact_name:String(f.get('reference_contact_name')||'').trim()||null,
+    reference_contact_email:String(f.get('reference_contact_email')||'').trim()||null,
+    public_contact_opt_in:f.get('public_contact_opt_in')==='on',
+    public_contact_email:String(f.get('public_contact_email')||'').trim()||null,
     updated_at:new Date().toISOString()
    };
    const saved=await db.from('football_scout_accounts').update(changes).eq('user_id',session.user.id).select('*').single();
@@ -355,7 +395,7 @@ el('register-form').onsubmit=async e=>{
  const f=new FormData(e.target);
  const details={
   full_name:f.get('full_name'),organisation:f.get('organisation'),job_title:f.get('job_title'),
-  contact_email:f.get('contact_email'),country:f.get('country'),website_url:f.get('website_url')
+  contact_email:f.get('contact_email'),country:f.get('country'),website_url:f.get('website_url'),years_experience:f.get('years_experience'),scouting_specialties:f.get('scouting_specialties'),professional_profile_url:f.get('professional_profile_url'),verification_evidence_url:f.get('verification_evidence_url'),reference_contact_name:f.get('reference_contact_name'),reference_contact_email:f.get('reference_contact_email'),public_contact_opt_in:f.get('public_contact_opt_in')==='on',public_contact_email:f.get('public_contact_email')
  };
  const email=String(f.get('auth_email')||'').trim(),password=String(f.get('password')||'');
  try{
