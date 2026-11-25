@@ -121,9 +121,10 @@
     #wlSyncCentre .wl-sync-history li,#wlSyncCentre .wl-sync-conflict{padding:8px;border:1px solid #e3ece6;border-radius:9px;background:#fff;font-size:9px;color:#53675b;line-height:1.5}
     #wlSyncCentre .wl-sync-history strong,#wlSyncCentre .wl-sync-conflict strong{color:#244b40}
     #wlSyncCentre .wl-sync-conflict{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;margin-top:7px}
+    #wlSyncCentre .wl-sync-conflict-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex:0 0 auto}
     #wlSyncCentre .wl-sync-conflict button{flex:0 0 auto;margin:0;padding:6px 8px;font-size:9px}
     #wlSyncCentre .wl-sync-empty{margin:8px 0 0;color:#718078;font-size:9px;line-height:1.6}
-    @media(max-width:520px){#wlSyncCentre{padding:11px}#wlSyncCentre .wl-sync-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#wlSyncCentre .wl-sync-conflict{display:block}#wlSyncCentre .wl-sync-conflict button{margin-top:7px}}
+    @media(max-width:520px){#wlSyncCentre{padding:11px}#wlSyncCentre .wl-sync-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#wlSyncCentre .wl-sync-conflict{display:block}#wlSyncCentre .wl-sync-conflict-actions{margin-top:7px}#wlSyncCentre .wl-sync-conflict button{margin-top:0}}
   `;
   document.head.appendChild(style);
 
@@ -1495,17 +1496,28 @@
       const fields = item.row.cloudConflictSnapshot.fields || {};
       const preview = Object.entries(fields).slice(0, 4).map(([key,value]) => key + ': device ' + String(item.row[key] ?? '—') + ' / cloud ' + String(value ?? '—')).join(' · ');
       const label = item.row.name || item.row.description || item.row.category || item.row.id;
+      const keepLocalAction = item.type === 'expenses'
+        ? '<span class="wl-sync-empty">Expense changes must follow this business\'s approval rules; only the cloud copy can be applied here.</span>'
+        : '<button type="button" data-wl-conflict-keep="true" data-wl-conflict-store="' + syncSafe(item.type) +
+          '" data-wl-conflict-id="' + syncSafe(item.row.id) + '">Keep device copy</button>';
       return '<div class="wl-sync-conflict"><div><strong>' + syncSafe(item.type.slice(0,-1)) + ': ' + syncSafe(label) + '</strong><br>' +
         '<span>Cloud update ' + syncSafe(item.row.cloudConflictSnapshot.updatedAt || 'time unavailable') + '</span><br>' +
         '<span>' + syncSafe(preview || 'A newer cloud copy is available.') + '</span></div>' +
-        '<button type="button" data-wl-conflict-apply="true" data-wl-conflict-store="' + syncSafe(item.type) +
-        '" data-wl-conflict-id="' + syncSafe(item.row.id) + '">Apply cloud version</button></div>';
+        '<div class="wl-sync-conflict-actions"><button type="button" data-wl-conflict-apply="true" data-wl-conflict-store="' + syncSafe(item.type) +
+        '" data-wl-conflict-id="' + syncSafe(item.row.id) + '">Use cloud copy</button>' + keepLocalAction + '</div></div>';
     }).join('') : '<p class="wl-sync-empty">No unresolved remote changes for this workspace. Download cloud records to check again.</p>';
     host.querySelectorAll('[data-wl-conflict-apply]').forEach(button => {
       button.onclick = async () => {
         button.disabled = true;
         try { await resolveCloudConflict(button.dataset.wlConflictStore, button.dataset.wlConflictId); }
         catch (error) { syncStatus('Could not apply cloud version: ' + error.message); button.disabled = false; }
+      };
+    });
+    host.querySelectorAll('[data-wl-conflict-keep]').forEach(button => {
+      button.onclick = async () => {
+        button.disabled = true;
+        try { await keepDeviceConflict(button.dataset.wlConflictStore, button.dataset.wlConflictId); }
+        catch (error) { syncStatus('Could not keep device version: ' + error.message); button.disabled = false; }
       };
     });
     return found.length;
@@ -1543,6 +1555,37 @@
     await recordSyncHistory({mode:'conflict review',status:'resolved',message:'Applied the cloud version to the local ' + type.slice(0,-1) + ' record ' + String(id) + '. Cloud data was not changed.'});
     await updateSyncStatus();
     syncStatus('Cloud version applied to this device. No new transaction was posted.');
+  }
+  async function keepDeviceConflict(type, id) {
+    if (!['products','customers','suppliers'].includes(type)) {
+      throw new Error('This record type cannot be safely overwritten by the local copy. Expense changes must follow approval rules.');
+    }
+    if (!activeBusiness || !client || !session) throw new Error('Sign in and select the correct business workspace first.');
+    const rows = await all(type);
+    const row = rows.find(item => String(item.id) === String(id));
+    if (!row || !row.cloudConflictSnapshot) throw new Error('This conflict is no longer available. Refresh the list.');
+    if (row.localBusinessId && row.localBusinessId !== activeBusiness.id) throw new Error('This record belongs to another business workspace.');
+    const stableId = row.cloudClientRecordId;
+    if (!stableId) throw new Error('The record has no stable cloud identity and cannot be safely reconciled.');
+    const snapshot = row.cloudConflictSnapshot;
+    row.localBusinessId = activeBusiness.id;
+    row.cloudSyncedFor = null;
+    row.cloudPendingSyncEventId = type + ':' + stableId + ':conflict:' + (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+    if (type === 'products' && snapshot.branchId) row.cloudPendingSyncBranchId = snapshot.branchId;
+    row.cloudConflictSnapshot = null;
+    row.cloudConflictAt = null;
+    row.cloudSyncError = null;
+    row.cloudConflictResolution = 'keep_device';
+    row.cloudSyncQueuedAt = new Date().toISOString();
+    await put(type, row);
+    await recordSyncHistory({
+      mode:'conflict review',
+      status:'queued',
+      message:'Kept the device version of ' + type.slice(0,-1) + ' ' + String(id) + '. It is queued for an idempotent cloud update.'
+    });
+    await updateSyncStatus();
+    syncStatus('Device copy selected. It is queued for this workspace; the remote receipt will be re-used for retries of this update.');
+    scheduleAutomaticSync('device-conflict-resolution', 700);
   }
   async function updateSyncStatus() {
     if (!activeBusiness) return;
@@ -1770,11 +1813,12 @@
             await put(type, row);
           }
           if (row.cloudSyncedFor === activeBusiness.id) { if (!row.localBusinessId) { row.localBusinessId=activeBusiness.id; await put(type,row); } continue; }
-          if (type === 'products' && !selectedBranch?.id) throw new Error('Select an active branch before syncing product opening stock.');
-          const localBranchStock = type === 'products' ? localBranchStocks.find(x => String(x.productId)===String(row.id) && (!x.businessId || x.businessId===activeBusiness.id) && (x.branchId===selectedBranch.id || x.branchId==='local-main')) : null;
+          if (type === 'products' && !(row.cloudPendingSyncBranchId || selectedBranch?.id)) throw new Error('Select an active branch before syncing product opening stock.');
+          const targetBranchId = type === 'products' ? (row.cloudPendingSyncBranchId || selectedBranch?.id) : null;
+          const localBranchStock = type === 'products' ? localBranchStocks.find(x => String(x.productId)===String(row.id) && (!x.businessId || x.businessId===activeBusiness.id) && (x.branchId===targetBranchId || x.branchId==='local-main')) : null;
           const openingStock = localBranchStock ? Number(localBranchStock.quantity||0) : Number(row.stock||0);
           const payload = type === 'products' ? {
-            branch_id:selectedBranch.id,
+            branch_id:targetBranchId,
             client_record_id:stableId, sku:row.sku || null, barcode:row.barcode || null, name:row.name || 'Unnamed product',
             category:row.category || null, unit:row.unit || 'unit',
             cost_price:Number(row.cost || 0), selling_price:Number(row.price || 0),
@@ -1820,7 +1864,7 @@
           }
           const {data,error} = await client.rpc('sync_local_records', {
             p_business_id:activeBusiness.id,
-            p_event_id:type + ':' + stableId,
+            p_event_id:row.cloudPendingSyncEventId || (type + ':' + stableId),
             p_record_type:type,
             p_records:[payload]
           });
@@ -1828,8 +1872,11 @@
           row.localBusinessId = activeBusiness.id;
           row.cloudSyncedFor = activeBusiness.id;
           row.cloudSyncedAt = new Date().toISOString();
+          delete row.cloudPendingSyncEventId;
+          delete row.cloudPendingSyncBranchId;
+          row.cloudSyncError = null;
           await put(type,row);
-          if(type==='products'&&selectedBranch?.id){await put('branchInventory',{id:String(selectedBranch.id)+'|'+String(row.id),businessId:activeBusiness.id,branchId:selectedBranch.id,productId:row.id,quantity:openingStock});}
+          if(type==='products'&&targetBranchId){await put('branchInventory',{id:String(targetBranchId)+'|'+String(row.id),businessId:activeBusiness.id,branchId:targetBranchId,productId:row.id,quantity:openingStock});}
           total++;
         }
       }
