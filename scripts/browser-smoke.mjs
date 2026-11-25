@@ -90,7 +90,9 @@ async function runViewport(name, viewport) {
         active: window.wlGetLanguage?.() || null,
         top: top.value,
         side: side.value,
-        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
+        visibleText: document.body.innerText || '',
+        sidebarText: document.querySelector('#sidebar')?.textContent || ''
       };
       const probe = document.createElement('span');
       probe.textContent = 'Business name';
@@ -120,10 +122,11 @@ async function runViewport(name, viewport) {
       'Bon retour',
       'Gérez votre entreprise',
       'Un espace de travail connecté pour les ventes',
-      'Travaillez de partout',
-      'Aide et assistance'
+      'Travaillez de partout'
     ].every(value => languageCheck.french?.visibleText?.includes(value)) &&
-      !['Welcome back','Run your business','One connected workspace for sales','Work from anywhere','Help & Support'].some(value => languageCheck.french?.visibleText?.includes(value));
+      languageCheck.french?.sidebarText?.includes('Aide et assistance') &&
+      !['Welcome back','Run your business','One connected workspace for sales','Work from anywhere'].some(value => languageCheck.french?.visibleText?.includes(value)) &&
+      !languageCheck.french?.sidebarText?.includes('Help & Support');
     const frenchPassed = languageCheck.french?.ready &&
       languageCheck.french.code === 'fr' && languageCheck.french.active === 'fr' &&
       languageCheck.french.top === 'fr' && languageCheck.french.side === 'fr' &&
