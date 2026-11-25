@@ -872,7 +872,8 @@ const WL_UI_COVERAGE_ROWS=[
 ["Sports association / federation","Association sportive / fédération","Asociación deportiva / federación","جمعية رياضية / اتحاد","खेल संघ / महासंघ","体育协会 / 联合会"],
 ["General business","Entreprise générale","Negocio general","نشاط تجاري عام","सामान्य व्यवसाय","一般业务"],
 ["Multi-industry business","Entreprise multi-sectorielle","Negocio multisectorial","نشاط متعدد القطاعات","बहु-उद्योग व्यवसाय","多行业企业"],
-["Other / not listed","Autre / non répertorié","Otro / no incluido","أخرى / غير مدرجة","अन्य / सूची में नहीं","其他 / 未列出"]
+["Other / not listed","Autre / non répertorié","Otro / no incluido","أخرى / غير مدرجة","अन्य / सूची में नहीं","其他 / 未列出"],
+["Alert","Alerte","Alerta","تنبيه","अलर्ट","提醒"]
 ];
 for(const row of WL_UI_COVERAGE_ROWS){
  if(!Array.isArray(row)||row.length!==6||typeof row[0]!=='string'){
@@ -898,7 +899,8 @@ function buildTranslationMaps(){
    if(normalized&&typeof value==='string')map.set(normalized,value);
   });
   translationMaps[code]=map;
-  translationKeys[code]=[...map.keys()].filter(key=>key.length>=9).sort((a,b)=>b.length-a.length);
+  const safeShortKeys=new Set(['and','or','items','refresh','alert']);
+  translationKeys[code]=[...map.keys()].filter(key=>key.length>=9||safeShortKeys.has(key.toLowerCase())).sort((a,b)=>b.length-a.length);
  });
 }
 buildTranslationMaps();

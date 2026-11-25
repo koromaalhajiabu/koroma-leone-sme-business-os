@@ -156,6 +156,11 @@ async function runViewport(name, viewport) {
       french.industryChoice = window.wlTranslateText?.('Grocery shop') || '';
       french.hospitalityChoice = window.wlTranslateText?.('Bar or lounge') || '';
       french.farmChoice = window.wlTranslateText?.('Poultry farm') || '';
+      french.joiner = window.wlTranslateText?.('and') || '';
+      french.itemCount = window.wlTranslateText?.('0 items') || '';
+      french.refresh = window.wlTranslateText?.('Refresh') || '';
+      french.refreshSentence = window.wlTranslateText?.('Refresh customer registrations') || '';
+      french.alertSingular = window.wlTranslateText?.('Alert') || '';
       french.receiptTitle = window.wlTranslateText?.('SALES RECEIPT') || '';
       french.dialogText = window.wlTranslateText?.('Delete this record?') || '';
       mixedProbe.remove();
@@ -244,6 +249,15 @@ async function runViewport(name, viewport) {
       languageCheck.french.industryChoice === 'Épicerie' &&
       languageCheck.french.hospitalityChoice === 'Bar ou salon' &&
       languageCheck.french.farmChoice === 'Élevage de volailles' &&
+      languageCheck.french.joiner === 'et' &&
+      languageCheck.french.itemCount === '0 articles' &&
+      languageCheck.french.refresh === 'Actualiser' &&
+      languageCheck.french.refreshSentence.startsWith('Actualiser') &&
+      languageCheck.french.alertSingular === 'Alerte' &&
+      !/\band\b/i.test(languageCheck.french.domText) &&
+      !/\bitems\b/i.test(languageCheck.french.domText) &&
+      !/\bRefresh\b/i.test(languageCheck.french.domText) &&
+      !languageCheck.french.sidebarText.includes('undefined') &&
       languageCheck.french.receiptTitle === 'REÇU DE VENTE' &&
       languageCheck.french.dialogText === 'Supprimer cet enregistrement ?' &&
       languageCheck.french.scriptTextUnchanged && frenchCopyPassed;
