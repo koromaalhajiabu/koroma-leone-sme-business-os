@@ -209,3 +209,8 @@ No players, transfer offers, fees, scout reports or sample clubs are seeded. Clu
   - `20261124144223_football_club_onboarding_private_rpc_hardening.sql`
 
 Email-confirmed applicants can submit club details and optional private supporting evidence. The platform developer can request information, reject, or approve an application. Approval atomically approves the platform account, creates a club-owned workspace, assigns the applicant as workspace owner, activates the football website module, creates a verified but unpublished website draft, and leaves developer delegation inactive until the club explicitly authorises it. A verified badge represents Koroma Leone Tech's platform review only; it is not FIFA, SLFA, league or government accreditation.
+
+
+## Global Scout Recruitment Centre
+
+The private developer console links to `football-scout-recruitment.html`, a developer-only outreach CRM for recording professional scout, club recruitment, academy and agency prospects; tracking contact status and follow-up dates; and drafting invitation emails for the developer to review and send. It does not automatically contact prospects, create scout accounts or mark anyone verified. Actual scout registration and platform verification continue through `football-scouting.html`. Apply `supabase/migrations/20261125180000_football_scout_recruitment_centre.sql` in the connected Supabase SQL Editor before using the centre. The migration exposes developer-checked RPCs and does not grant public or ordinary business users access to recruitment records.
