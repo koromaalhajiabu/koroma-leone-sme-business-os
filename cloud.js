@@ -258,6 +258,7 @@
     dev.innerHTML = `
       <h3>KOROMA LEONE · PRIVATE DEVELOPER CONSOLE</h3>
       <div id="wlDevIdentity" class="dev-meta">Verifying developer permissions…</div>
+      <div style="margin:10px 0;padding:10px;border:1px solid #8d7548;border-radius:10px;background:#1a2b43"><strong style="color:#f0d28b">GLOBAL SCOUT RECRUITMENT</strong><div class="dev-meta" style="margin:5px 0 8px">Track real scout organisations, invitations, responses and follow-ups.</div><a href="./football-scout-recruitment.html" target="_blank" rel="noopener" style="display:inline-block;padding:9px 12px;border-radius:8px;background:#d6ad57;color:#152238;font-weight:800;text-decoration:none">Open Recruitment Centre ↗</a></div>
       <div id="wlDevStatus" class="cloud-status">Loading secure platform controls…</div>
       <div id="wlDevStats" class="dev-meta"></div>
       <div id="wlDevAlertSettingsPanel" style="display:block;visibility:visible;margin:14px 0;padding:14px;border:2px solid #4f8a5b;border-radius:12px;background:#152a1e;color:#fff;position:relative;z-index:2">
