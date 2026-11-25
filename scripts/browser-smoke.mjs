@@ -179,7 +179,7 @@ async function runViewport(name, viewport) {
         direction: document.documentElement.dir,
         top: top.value,
         side: side.value,
-        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         operationsCoverage: operationCoverage()
       };
       await choose(side, 'es');
@@ -187,7 +187,7 @@ async function runViewport(name, viewport) {
         code: document.documentElement.lang,
         top: top.value,
         side: side.value,
-        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         operationsCoverage: operationCoverage()
       };
       await choose(top, 'hi');
@@ -195,7 +195,7 @@ async function runViewport(name, viewport) {
         code: document.documentElement.lang,
         top: top.value,
         side: side.value,
-        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         operationsCoverage: operationCoverage()
       };
       await choose(side, 'zh');
@@ -203,7 +203,7 @@ async function runViewport(name, viewport) {
         code: document.documentElement.lang,
         top: top.value,
         side: side.value,
-        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         operationsCoverage: operationCoverage()
       };
       await choose(top, 'en');
