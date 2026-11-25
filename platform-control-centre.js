@@ -48,7 +48,7 @@
       card('🛡️','Security & audit','Read business and platform audit history','audit')+
       card('⚙️','System settings','Open the current workspace settings','settings')+
       '</div></div>'+
-      '<div class="panel"><div class="panel-head"><div><h3>Applications</h3><div class="panel-sub">One directory for the platform's existing applications.</div></div></div><div class="quick-grid">'+
+      '<div class="panel"><div class="panel-head"><div><h3>Applications</h3><div class="panel-sub">One directory for existing platform applications.</div></div></div><div class="quick-grid">'+
       card('⚽','Football club & player platform','Clubs, player profiles and scouting','football-platform-hub')+
       card('🏫','School management','Admissions, staff, students and results','school')+
       card('🏥','Hospital management','Patients, appointments and clinical operations','hospital')+
