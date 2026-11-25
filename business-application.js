@@ -264,13 +264,6 @@ function fill(app){
  }
  syncApplicationKind();
 }
- if(!app||!Object.keys(app).length)return;
- for(const key of ['full_name','phone','business_name','industry_group','business_type','currency_code','contact_email','contact_phone','country','address','website','tax_registration_number','notes'])if($(key)&&app[key]!=null)$(key).value=app[key];
- if($('application_kind'))$('application_kind').value=app.application_kind||'business';
- const club=app.club_details||{};
- for(const key of ['official_club_name','short_name','club_type','district','city','competition_name','home_ground','club_registration_body','club_registration_number','manager_full_name','manager_role','proposed_website_slug','authority_statement','evidence_reference'])if($(key)&&club[key]!=null)$(key).value=club[key];
- syncApplicationKind();
-}
 function syncApplicationKind(){
  const isClub=$('application_kind')?.value==='football_club';
  $('footballClubFields')?.classList.toggle('hidden',!isClub);
