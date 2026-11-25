@@ -51,12 +51,12 @@ $('signIn').addEventListener('click',async()=>{
  finally{$('signIn').disabled=false}
 });
 $('applicationForm').addEventListener('submit',async e=>{
- e.preventDefault();if(!session){message($('applicationStatus'),(words[$('language'].value]||words.en).loginRequired,true);return}
+ e.preventDefault();if(!session){message($('applicationStatus'),(words[$('language').value]||words.en).loginRequired,true);return}
  const f=new FormData(e.currentTarget),v=k=>String(f.get(k)||'').trim();
  const payload={p_full_name:v('full_name'),p_phone:v('phone'),p_business_name:v('business_name'),p_industry_group:v('industry_group'),p_business_type:v('business_type'),p_currency_code:v('currency_code'),p_contact_email:v('contact_email'),p_contact_phone:v('contact_phone'),p_country:v('country'),p_address:v('address'),p_website:v('website'),p_tax_registration_number:v('tax_registration_number'),p_notes:v('notes')};
  $('submitApplication').disabled=true;
- try{const {data,error}=await client.rpc('submit_platform_business_application',payload);if(error)throw error;await refresh();message($('applicationStatus'),(words[$('language'].value]||words.en).pending)}
- catch(err){message($('applicationStatus'),(words[$('language'].value]||words.en).error+(err.message||'Submission failed'),true)}
+ try{const {data,error}=await client.rpc('submit_platform_business_application',payload);if(error)throw error;await refresh();message($('applicationStatus'),(words[$('language').value]||words.en).pending)}
+ catch(err){message($('applicationStatus'),(words[$('language').value]||words.en).error+(err.message||'Submission failed'),true)}
  finally{$('submitApplication').disabled=false}
 });
 client.auth.onAuthStateChange((_event,next)=>{session=next;if(next)setTimeout(()=>showSession().catch(e=>message($('authStatus'),e.message,true)),0)});
