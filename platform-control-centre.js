@@ -3,7 +3,7 @@
   'use strict';
   var $=function(id){return document.getElementById(id)};
   var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){var m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};return m[c];});};
-  var platformAccess=false, checking=false;
+  var platformAccess=false, checking=false, authBound=false;
   function context(){var api=window.whiteLionCloud;return{api:api,client:api&&api.getClient?api.getClient():null,session:api&&api.getSession?api.getSession():null,business:api&&api.getActiveBusiness?api.getActiveBusiness():null};}
   async function checkAccess(){
     if(checking)return platformAccess;
@@ -84,7 +84,7 @@
     shell('Reports & Analytics','A single directory for existing reporting tools.',html);
     var view=$('view');view.querySelectorAll('[data-cc-page]').forEach(function(b){b.addEventListener('click',function(){route(b.getAttribute('data-cc-page'));});});
   }
-  async function refresh(){await checkAccess();}
+  async function refresh(){var c=context();if(c.client&&!authBound&&c.client.auth&&c.client.auth.onAuthStateChange){authBound=true;c.client.auth.onAuthStateChange(function(){setTimeout(checkAccess,0);});}await checkAccess();}
   window.KoromaPlatformControlCentre={open:open,openReports:openReports,refresh:refresh,checkAccess:checkAccess};
   window.addEventListener('whiteLionCloudReady',refresh);
   window.addEventListener('whiteLionWorkspaceChanged',refresh);
