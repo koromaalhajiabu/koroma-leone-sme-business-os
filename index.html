@@ -44,7 +44,7 @@ setTimeout(function () {
 <link rel="icon" type="image/svg+xml" href="icons/koroma-leone-tech-crest.svg?v=3">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/white-lion-180.png">
 <script src="./shared.js?v=2"></script>
-<script src="./i18n.js?v=16" defer></script>
+<script src="./i18n.js?v=17" defer></script>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Koroma Leone Tech SME Business OS">
@@ -1318,10 +1318,11 @@ async function render(){
   const subtotal=()=>roundMoney(cart.reduce((n,x)=>n+roundMoney(x.quantity*x.unitPrice),0));
   const totals=()=>{const sub=subtotal(),discount=roundMoney(Math.max(0,Number(document.getElementById('retailDiscount')?.value||0))),taxRate=Math.max(0,Number(document.getElementById('retailTax')?.value||0)),tax=roundMoney(Math.max(0,sub-discount)*taxRate/100);return{sub,discount,tax,total:roundMoney(Math.max(0,sub-discount+tax))}};
   const printReceipt=sale=>{
+    const tr=window.wlTranslateText||((value)=>value);
     const rows=(sale.items||[]).map(i=>'<tr><td>'+esc(i.name)+'</td><td>'+Number(i.quantity)+'</td><td>'+money(i.unitPrice)+'</td><td>'+money(Number(i.quantity)*Number(i.unitPrice))+'</td></tr>').join('');
     const w=window.open('','_blank','width=420,height=720');if(!w){toast('Allow pop-ups to print receipts');return}
     w.onload=()=>{try{w.focus();w.print()}catch(e){}};
-    w.document.write(`<!doctype html><html><head><title>${esc(sale.receipt)}</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:13px Arial;padding:18px;color:#111}h2,p{text-align:center;margin:4px}table{width:100%;border-collapse:collapse;margin:16px 0}td,th{padding:7px 3px;border-bottom:1px solid #ddd;text-align:left;font-size:11px}.right{text-align:right}.total{font-size:17px;font-weight:bold;text-align:right;margin-top:12px}.muted{text-align:center;color:#666;font-size:10px;margin-top:20px}</style></head><body><h2>${esc(state.business.name||'Koroma Leone Tech')}</h2><p>${esc(state.business.phone||'')}</p><p>${esc(state.business.email||'')}</p><p>${esc(state.business.address||'')}</p><p>${esc(state.business.taxId?'Tax / Reg: '+state.business.taxId:'')}</p><p>${esc(state.business.website||'')}</p><p>SALES RECEIPT</p><hr><p>Receipt: ${esc(sale.receipt)}</p><p>Date: ${esc(sale.date)}</p><p>Customer: ${esc(sale.customer||'Walk-in')}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table><p class="right">Subtotal: ${money(sale.subtotal??sale.total)}</p><p class="right">Discount: ${money(sale.discount||0)}</p><p class="right">Tax: ${money(sale.tax||0)}</p><div class="total">TOTAL: ${money(sale.total)}</div><p>Payment: ${esc(sale.payment||'Cash')}</p><div class="muted">${esc(state.business.receiptFooter||'Thank you for shopping with us.')}<br>Designed by Alhaji Abu Koroma</div>
+    w.document.write(`<!doctype html><html><head><title>${esc(sale.receipt)}</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:13px Arial;padding:18px;color:#111}h2,p{text-align:center;margin:4px}table{width:100%;border-collapse:collapse;margin:16px 0}td,th{padding:7px 3px;border-bottom:1px solid #ddd;text-align:left;font-size:11px}.right{text-align:right}.total{font-size:17px;font-weight:bold;text-align:right;margin-top:12px}.muted{text-align:center;color:#666;font-size:10px;margin-top:20px}</style></head><body><h2>${esc(state.business.name||'Koroma Leone Tech')}</h2><p>${esc(state.business.phone||'')}</p><p>${esc(state.business.email||'')}</p><p>${esc(state.business.address||'')}</p><p>${esc(state.business.taxId?'Tax / Reg: '+state.business.taxId:'')}</p><p>${esc(state.business.website||'')}</p><p>${esc(tr('SALES RECEIPT'))}</p><hr><p>${esc(tr('Receipt'))}: ${esc(sale.receipt)}</p><p>${esc(tr('Date'))}: ${esc(sale.date)}</p><p>${esc(tr('Customer'))}: ${esc(sale.customer||tr('Walk-in'))}</p><table><thead><tr><th>${esc(tr('Item'))}</th><th>${esc(tr('Qty'))}</th><th>${esc(tr('Price'))}</th><th>${esc(tr('Total'))}</th></tr></thead><tbody>${rows}</tbody></table><p class="right">${esc(tr('Subtotal'))}: ${money(sale.subtotal??sale.total)}</p><p class="right">${esc(tr('Discount'))}: ${money(sale.discount||0)}</p><p class="right">${esc(tr('Tax'))}: ${money(sale.tax||0)}</p><div class="total">${esc(tr('TOTAL'))}: ${money(sale.total)}</div><p>${esc(tr('Payment'))}: ${esc(tr(sale.payment||'Cash'))}</p><div class="muted">${esc(state.business.receiptFooter||tr('Thank you for shopping with us.'))}<br>Designed by Alhaji Abu Koroma</div>
 </body></html>`);
     w.document.close();
     w.document.close();
@@ -1766,7 +1767,7 @@ function csv(rows){const keys=['receipt','date','customer','payment','total'];co
 window.addEventListener('whiteLionBranchChanged',()=>{if(state.page==='sales'||state.page==='purchases'||state.page==='intelligence'||state.page==='stockcontrol')render()});
 (async()=>{const v=document.getElementById('view');try{db=await openDB();state.business=await setting('business')||state.business;await setting('business',state.business);await render();window.__wlStartupComplete=true}catch(e){window.__wlStartupComplete=true;console.error('Koroma Leone startup failed:',e);v.innerHTML='<div class="panel"><h2>Koroma Leone could not finish starting</h2><p class="panel-sub">Your saved local records have not been deleted. The startup error is: '+esc(e&&e.message?e.message:String(e))+'</p><button class="btn primary" id="wlRetryStartup" type="button">Try again</button></div>';const b=document.getElementById('wlRetryStartup');if(b)b.onclick=()=>location.reload()}})();
 
-if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=126',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=127',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
 </script>
 <script id="wl-simple-pwa-install">
 (function(){

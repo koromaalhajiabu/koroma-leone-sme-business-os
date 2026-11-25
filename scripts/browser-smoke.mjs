@@ -128,6 +128,8 @@ async function runViewport(name, viewport) {
       document.body.appendChild(mixedProbe);
       await new Promise(resolve => setTimeout(resolve, 80));
       french.mixedCopy = mixedProbe.textContent.trim();
+      french.receiptTitle = window.wlTranslateText?.('SALES RECEIPT') || '';
+      french.dialogText = window.wlTranslateText?.('Delete this record?') || '';
       mixedProbe.remove();
 
       await choose(side, 'ar');
@@ -186,6 +188,8 @@ async function runViewport(name, viewport) {
       languageCheck.french.salesEmptyState === 'Scannez ou sélectionnez un produit pour commencer.' &&
       languageCheck.french.mixedCopy.includes('Thème actuel') &&
       languageCheck.french.mixedCopy.includes('Mode clair') &&
+      languageCheck.french.receiptTitle === 'REÇU DE VENTE' &&
+      languageCheck.french.dialogText === 'Supprimer cet enregistrement ?' &&
       languageCheck.french.scriptTextUnchanged && frenchCopyPassed;
     const arabicPassed = languageCheck.arabic?.code === 'ar' &&
       languageCheck.arabic.direction === 'rtl' &&

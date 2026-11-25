@@ -311,6 +311,17 @@ const WL_UI_COVERAGE_ROWS=[
 ["Purchase name · no supplier profile","Nom d’achat · aucun profil fournisseur","Nombre de compra · sin perfil de proveedor","اسم الشراء · لا يوجد ملف مورد","खरीद नाम · आपूर्तिकर्ता प्रोफ़ाइल नहीं","采购名称 · 无供应商资料"],
 ["Edit","Modifier","Editar","تعديل","संपादित करें","编辑"],
 ["Delete","Supprimer","Eliminar","حذف","हटाएँ","删除"]
+["SALES RECEIPT","REÇU DE VENTE","RECIBO DE VENTA","إيصال مبيعات","बिक्री रसीद","销售收据"],
+["Item","Article","Artículo","عنصر","आइटम","商品"],
+["Qty","Qté","Cant.","الكمية","मात्रा","数量"],
+["Price","Prix","Precio","السعر","मूल्य","价格"],
+["Subtotal","Sous-total","Subtotal","المجموع الفرعي","उप-योग","小计"],
+["Discount","Remise","Descuento","الخصم","छूट","折扣"],
+["Tax","Taxe","Impuesto","الضريبة","कर","税费"],
+["Payment","Paiement","Pago","الدفع","भुगतान","付款"],
+["TOTAL","TOTAL","TOTAL","الإجمالي","कुल","总计"],
+["Cash","Espèces","Efectivo","نقداً","नकद","现金"],
+["Credit","Crédit","Crédito","ائتمان","उधार","赊账"]
 ];
 for(const row of WL_UI_COVERAGE_ROWS){
  const [key,fr,es,ar,hi,zh]=row;
@@ -432,6 +443,14 @@ function handleLanguageControl(event){
  if(target&&(target.id==='wlLanguage'||target.id==='wlLanguageSidebar'))setLanguage(target.value);
 }
 window.wlSetLanguage=setLanguage;
+window.wlTranslateText=translateString;
+if(!window.__wlI18nDialogsWrapped){
+ window.__wlI18nDialogsWrapped=true;
+ const nativeAlert=window.alert?.bind(window),nativeConfirm=window.confirm?.bind(window),nativePrompt=window.prompt?.bind(window);
+ if(nativeAlert)window.alert=message=>nativeAlert(translateString(message));
+ if(nativeConfirm)window.confirm=message=>nativeConfirm(translateString(message));
+ if(nativePrompt)window.prompt=(message,defaultValue)=>nativePrompt(translateString(message),defaultValue);
+}
 window.wlGetLanguage=()=>current;
 window.wlRefreshTranslations=()=>scan(document.body||document.documentElement);
 document.addEventListener('change',handleLanguageControl,true);
