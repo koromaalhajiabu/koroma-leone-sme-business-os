@@ -188,7 +188,7 @@ async function runViewport(name, viewport) {
       const spanish = {
         code: document.documentElement.lang,
         top: top.value,
-        side: side.value,
+        side: side?.value || top.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         operationsCoverage: operationCoverage()
       };
@@ -196,7 +196,7 @@ async function runViewport(name, viewport) {
       const hindi = {
         code: document.documentElement.lang,
         top: top.value,
-        side: side.value,
+        side: side?.value || top.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         operationsCoverage: operationCoverage()
       };
@@ -204,7 +204,7 @@ async function runViewport(name, viewport) {
       const chinese = {
         code: document.documentElement.lang,
         top: top.value,
-        side: side.value,
+        side: side?.value || top.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         operationsCoverage: operationCoverage()
       };
@@ -212,7 +212,7 @@ async function runViewport(name, viewport) {
       const english = {
         code: document.documentElement.lang,
         top: top.value,
-        side: side.value,
+        side: side?.value || top.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
       };
       return { french, arabic, spanish, hindi, chinese, english };
@@ -541,7 +541,12 @@ await runViewport('android-large', { width: 412, height: 915, isMobile: true, ha
 await runViewport('desktop', { width: 1365, height: 900 });
 
 const all = report.browsers.flatMap(browser => browser.checks);
-report.failedChecks = all.filter(check => check.pass === false);
+const fatalChecks = report.browsers.filter(browser => browser.fatal).map(browser => ({
+  name: 'fatal browser execution: ' + browser.name,
+  pass: false,
+  error: browser.fatal
+}));
+report.failedChecks = all.filter(check => check.pass === false).concat(fatalChecks);
 report.skippedChecks = all.filter(check => check.skipped);
 report.summary = report.failedChecks.length
   ? 'FAIL'
