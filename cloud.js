@@ -670,8 +670,24 @@
     if (error) { host.textContent = 'Could not load business applications: ' + error.message; return; }
     const rows = Array.isArray(data) ? data : [];
     host.innerHTML = rows.length ? rows.map(a => {
+      const club = a.club_details || {};
+      const isClub = a.application_kind === 'football_club';
+      const clubLines = isClub ? [
+        'Club category: ' + (club.club_type || ''),
+        'Manager: ' + (club.manager_full_name || a.full_name || ''),
+        'Manager role: ' + (club.manager_role || ''),
+        'District / city: ' + [club.district,club.city].filter(Boolean).join(', '),
+        'Competition: ' + (club.competition_name || ''),
+        'Home ground: ' + (club.home_ground || ''),
+        'Club registration: ' + [club.club_registration_body,club.club_registration_number].filter(Boolean).join(' · '),
+        'Public website address: ' + (club.proposed_website_slug || ''),
+        'Club contact: ' + [club.contact_email,club.contact_phone].filter(Boolean).join(' · '),
+        'Authority statement: ' + (club.authority_statement || ''),
+        club.evidence_reference ? 'Evidence reference: ' + club.evidence_reference : '',
+        club.evidence_path ? 'Private supporting evidence attached' : 'No supporting evidence attached'
+      ] : [];
       const details = [
-        a.business_type || a.industry_group,
+        isClub ? 'Football Club Workspace' : (a.business_type || a.industry_group),
         a.industry_group,
         a.country,
         a.currency_code,
@@ -680,24 +696,48 @@
         a.address,
         a.website,
         a.tax_registration_number ? 'Tax/registration: ' + a.tax_registration_number : '',
-        a.notes ? 'Notes: ' + a.notes : ''
+        a.notes ? 'Notes: ' + a.notes : '',
+        ...clubLines
       ].filter(Boolean).map(esc).join(' · ');
+      const title = isClub ? 'FOOTBALL CLUB APPLICATION · ' + (club.official_club_name || a.business_name) : (a.business_name || 'Business application');
       return '<article class="dev-row" style="align-items:flex-start"><div style="min-width:0;flex:1"><strong>' +
-        esc(a.business_name || 'Business application') + '</strong><div class="dev-meta">' +
+        esc(title) + '</strong><div class="dev-meta">' +
         esc(a.full_name || 'Applicant') + ' · ' + esc(a.email || '') + '</div><div class="dev-meta">' +
         esc(details) + '</div><div class="dev-meta">Submitted: ' + esc(new Date(a.created_at).toLocaleString()) +
         ' · ' + esc(a.status || 'pending') + '</div><div class="dev-meta">Application ID: ' + esc(a.id) +
-        '</div></div><div class="dev-actions"><button data-review-business="' + esc(a.id) + '" data-decision="approve">Approve &amp; create workspace</button>' +
+        (isClub ? ' · Club application ID: ' + esc(a.special_application_id || '') : '') +
+        '</div></div><div class="dev-actions">' +
+        (club.evidence_path ? '<button type="button" data-club-evidence="' + esc(a.id) + '">Open private evidence</button>' : '') +
+        '<button data-review-business="' + esc(a.id) + '" data-decision="approve">' + (isClub ? 'Approve &amp; create club workspace' : 'Approve &amp; create workspace') + '</button>' +
         '<button data-review-business="' + esc(a.id) + '" data-decision="needs_information">Request information</button>' +
         '<button class="danger" data-review-business="' + esc(a.id) + '" data-decision="reject">Reject</button></div></article>';
     }).join('') : '<div class="dev-meta">No business applications are awaiting review.</div>';
+    host.querySelectorAll('[data-club-evidence]').forEach(button => {
+      button.onclick = async () => {
+        button.disabled = true;
+        try {
+          const latest = await client.rpc('get_platform_pending_business_applications');
+          if (latest.error) throw latest.error;
+          const application = (Array.isArray(latest.data) ? latest.data : []).find(a => a.id === button.dataset.clubEvidence);
+          const path = application?.club_details?.evidence_path;
+          if (!path) throw new Error('No private supporting evidence is attached.');
+          const signed = await client.storage.from('club-onboarding-evidence').createSignedUrl(path, 300);
+          if (signed.error) throw signed.error;
+          window.open(signed.data.signedUrl, '_blank', 'noopener');
+        } catch (error) {
+          alert('Could not open private club evidence: ' + (error.message || 'Unknown error'));
+        } finally { button.disabled = false; }
+      };
+    });
     host.querySelectorAll('[data-review-business]').forEach(button => {
       button.onclick = async () => {
         const decision = button.dataset.decision;
         const applicationId = button.dataset.reviewBusiness;
+        const currentApp = rows.find(a => a.id === applicationId);
+        const isClub = currentApp?.application_kind === 'football_club';
         const promptText = decision === 'approve'
-          ? 'Approve this business application and automatically create the workspace under the applicant’s account?'
-          : decision === 'reject' ? 'Reject this business application?' : 'Request more information from this applicant?';
+          ? (isClub ? 'Approve this football club application, create its club workspace and website draft, and give the manager access under this account?' : 'Approve this business application and automatically create the workspace under the applicant’s account?')
+          : decision === 'reject' ? 'Reject this application?' : 'Request more information from this applicant?';
         if (!confirm(promptText)) return;
         const note = decision === 'needs_information' || decision === 'reject'
           ? (prompt('Enter a short note for the applicant:', '') || '') : '';
@@ -714,7 +754,7 @@
         await loadDeveloperApprovals();
         if (decision === 'approve') {
           await loadDeveloperDashboard();
-          say('Business approved. Its workspace has been created under the customer’s account.');
+          say(isClub ? 'Football club approved. Its club workspace, manager access and website draft have been created under the same account.' : 'Business approved. Its workspace has been created under the customer’s account.');
         } else {
           say(decision === 'reject' ? 'Business application rejected.' : 'More information requested.');
         }
