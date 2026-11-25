@@ -146,6 +146,11 @@ async function runViewport(name, viewport) {
       french.stockStatus = window.wlTranslateText?.('Out of stock') || '';
       french.managerBadge = window.wlTranslateText?.('Manager-led') || '';
       french.playerBadge = window.wlTranslateText?.('Consent-gated') || '';
+      french.hospitalModule = window.wlTranslateText?.('Patient records') || '';
+      french.hospitalCharge = window.wlTranslateText?.('Record a hospital service or admission charge') || '';
+      french.studentPortalFail = window.wlTranslateText?.('Student portal failed to load.') || '';
+      french.subscriptionState = window.wlTranslateText?.('Paid subscription active') || '';
+      french.playerConsent = window.wlTranslateText?.('This club requires manager approval. Your draft profile will be submitted to the existing Approval inbox.') || '';
       french.receiptTitle = window.wlTranslateText?.('SALES RECEIPT') || '';
       french.dialogText = window.wlTranslateText?.('Delete this record?') || '';
       mixedProbe.remove();
@@ -224,6 +229,11 @@ async function runViewport(name, viewport) {
       languageCheck.french.stockStatus === 'En rupture de stock' &&
       languageCheck.french.managerBadge === 'Géré par le responsable' &&
       languageCheck.french.playerBadge === 'Soumis au consentement' &&
+      languageCheck.french.hospitalModule === 'Dossiers des patients' &&
+      languageCheck.french.hospitalCharge === 'Enregistrer une prestation hospitalière ou des frais d’admission' &&
+      languageCheck.french.studentPortalFail === 'Le portail étudiant n’a pas pu se charger.' &&
+      languageCheck.french.subscriptionState === 'Abonnement payant actif' &&
+      languageCheck.french.playerConsent.startsWith('Ce club exige l’approbation') &&
       languageCheck.french.receiptTitle === 'REÇU DE VENTE' &&
       languageCheck.french.dialogText === 'Supprimer cet enregistrement ?' &&
       languageCheck.french.scriptTextUnchanged && frenchCopyPassed;
