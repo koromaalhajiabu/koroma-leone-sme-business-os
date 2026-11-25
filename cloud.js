@@ -332,7 +332,7 @@
         <button id="wlDevResetData" class="danger">Reset all business data</button>
       </div>
       <div id="wlDevBusinesses"></div>
-<section style="margin-top:16px;padding:13px;border:1px solid #d6ad57;border-radius:12px;background:#192a43"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0;color:#f0d28b">Customer approval queue</h3><button id="wlDevApprovalRefresh" type="button">Refresh queue</button></div><div id="wlDevApprovals" class="dev-meta" style="margin-top:9px">Loading verified customer registrations…</div></section>
+<section style="margin-top:16px;padding:13px;border:1px solid #d6ad57;border-radius:12px;background:#192a43"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0;color:#f0d28b">Business application review</h3><button id="wlDevApprovalRefresh" type="button">Refresh applications</button></div><p class="dev-meta">Review the submitted business details. Approval creates the workspace, assigns the customer as owner, creates Main Branch, activates industry modules and applies the existing trial/subscription rules.</p><div id="wlDevApprovals" class="dev-meta" style="margin-top:9px">Loading business applications…</div></section>
 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px"><h3 style="margin:0">New business registrations</h3><button id="wlDevBusinessRegistrationsRefresh" type="button">Refresh businesses</button></div><div id="wlDevBusinessRegistrations" class="dev-meta">Business registration notifications load after developer verification.</div><section class="dev-role-manager" id="wlDevAccountInvitePanel"><h3 style="margin:0 0 6px;color:#f0d28b">Invite administrator account</h3><div class="dev-role-help">Send a secure email invitation and grant access to one selected business workspace. The invited person sets their own password.</div><div class="dev-role-grid"><div><label for="wlDevInviteName">Full name</label><input id="wlDevInviteName" type="text" autocomplete="name" placeholder="Administrator full name"></div><div><label for="wlDevInviteEmail">Email address</label><input id="wlDevInviteEmail" type="email" autocomplete="email" placeholder="admin@example.com"></div><div><label for="wlDevInviteBusiness">Business workspace</label><select id="wlDevInviteBusiness"><option value="">Loading workspaces…</option></select></div><div><label for="wlDevInviteRole">Business role</label><select id="wlDevInviteRole"><option value="admin" selected>Administrator</option><option value="manager">Manager</option><option value="accountant">Accountant</option><option value="storekeeper">Storekeeper</option><option value="cashier">Cashier</option><option value="viewer">Viewer</option></select></div></div><button id="wlDevInviteSubmit" type="button">Send administrator invitation</button><div id="wlDevInviteStatus" class="dev-role-help">Invitation is sent through Supabase Auth. No password is created or displayed here.</div></section><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px"><h3 style="margin:0">Registered accounts</h3><button id="wlDevAccountsRefresh">Refresh accounts</button></div>
       <div id="wlDevAccounts" class="dev-meta">Account directory loads after developer verification.</div>
       <div class="dev-meta" style="margin-top:10px">Deletion requests suspend access immediately. Accounts remain recoverable for 30 days. Business owners and developer accounts are protected. Permanent deletion is only available after the recovery period through the secure server-side function.</div>
@@ -427,11 +427,14 @@
     const verified = !!status?.email_confirmed;
     const workspacePending = !!status?.workspace_pending;
     const heading = workspacePending ? 'Approved — Awaiting Workspace Assignment' : 'Awaiting Developer Approval';
-    const explanation = workspacePending ? 'Your account has been approved. The Koroma Leone platform developer is preparing and assigning your business workspace. Business operations will appear here once your workspace is assigned.' : (verified ? 'Your registration is awaiting review by the Koroma Leone platform developer. Your business workspace will become available after approval and assignment.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.');
+    const applicationStatus = status?.application_status || 'not_submitted';
+    const explanation = workspacePending ? 'Your business application is approved. Your workspace assignment is being completed; refresh this page shortly.' : applicationStatus === 'pending' ? 'Your business application has been submitted and is waiting for developer review.' : applicationStatus === 'needs_information' ? 'The developer has requested more information. Open your application to update the details.' : applicationStatus === 'rejected' ? 'Your business application was not approved. Review the developer note and contact support if you need clarification.' : (verified ? 'Your account is verified. Complete the business application so the developer can review your business and create its workspace.' : 'Please confirm your email using the link sent by Supabase. You can sign in again after confirming it.');
     panel.innerHTML = '<div style="font-size:38px;margin-bottom:10px">⏳</div><div style="font-size:10px;letter-spacing:1.8px;font-weight:850;color:#087a43">KOROMA LEONE CUSTOMER ONBOARDING</div><h1 style="font-size:25px;margin:10px 0;color:#173d29">' + heading + '</h1><p style="font-size:13px;line-height:1.8;color:#66776d">Your account is ' + (verified ? 'email-verified' : 'registered') + '. ' + explanation + '</p><div style="padding:12px;border-radius:11px;background:#f3faf5;color:#356448;font-size:11px">Account: ' + esc(session?.user?.email || '') + '<br>Approval status: ' + esc(status?.approval_status || 'pending') + '</div><p style="font-size:11px;color:#819087;margin:16px 0">You may sign out and return later. Approval does not require you to share your password.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button id="wlApprovalCheck" style="border:0;border-radius:9px;padding:11px 18px;background:#087a43;color:#fff;font-weight:800">Check approval status</button><button id="wlApprovalSignOut" style="border:1px solid #b9cfc0;border-radius:9px;padding:11px 18px;background:#fff;color:#075b35;font-weight:800">Sign out</button></div>';
     $('wlApprovalCheck').onclick = async () => { $('wlApprovalCheck').disabled=true; $('wlApprovalCheck').textContent='Checking…'; await loadBusinesses(); if ($('wlApprovalCheck')) { $('wlApprovalCheck').disabled=false; $('wlApprovalCheck').textContent='Check approval status'; } };
     $('wlApprovalSignOut').onclick = async () => { await client.auth.signOut(); session=null; activeBusiness=null; panel.hidden=true; showSignedOut(); };
-    $('wlCloudStatus').textContent = verified ? 'Email verified. Awaiting developer approval.' : 'Email confirmation required.';
+    const applyLink = verified && !workspacePending ? '<p style="margin:16px 0"><a href="./business-application.html" style="display:inline-block;padding:12px 18px;border-radius:10px;background:#087a43;color:#fff;text-decoration:none;font-weight:800">' + (applicationStatus === 'pending' ? 'View business application' : 'Complete / update business application') + ' →</a></p>' : '';
+    panel.insertAdjacentHTML('beforeend', applyLink);
+    $('wlCloudStatus').textContent = !verified ? 'Email confirmation required.' : applicationStatus === 'pending' ? 'Business application awaiting review.' : 'Email verified. Business application required.';
   }
   async function loadBusinesses() {
     // Developer authorization and customer approval are checked by Supabase before
@@ -662,21 +665,59 @@
   async function loadDeveloperApprovals() {
     const host = $('wlDevApprovals');
     if (!host || !session || session.user.email?.toLowerCase() !== 'koromaalhajiabu0@gmail.com') return;
-    host.textContent = 'Loading customer approval queue…';
-    const {data,error} = await client.rpc('get_platform_pending_customers');
-    if (error) { host.textContent = 'Could not load approval queue: ' + error.message; return; }
+    host.textContent = 'Loading business applications…';
+    const {data,error} = await client.rpc('get_platform_pending_business_applications');
+    if (error) { host.textContent = 'Could not load business applications: ' + error.message; return; }
     const rows = Array.isArray(data) ? data : [];
-    host.innerHTML = rows.length ? rows.map(u => '<div class="dev-row"><div><strong>' + esc(u.full_name || 'New customer') + '</strong><div class="dev-meta">' + esc(u.email || '') + ' · Registered ' + esc(new Date(u.created_at).toLocaleString()) + '</div><div class="dev-meta">' + (u.email_confirmed ? 'EMAIL VERIFIED · READY FOR REVIEW' : 'EMAIL NOT YET VERIFIED') + '</div></div><div class="dev-actions">' + (u.email_confirmed ? '<button data-approve-customer="' + esc(u.user_id) + '">Approve</button><button class="danger" data-reject-customer="' + esc(u.user_id) + '">Reject</button>' : '<button disabled>Awaiting email verification</button>') + '</div></div>').join('') : '<div class="dev-meta">No customer accounts are awaiting approval.</div>';
-    host.querySelectorAll('[data-approve-customer],[data-reject-customer]').forEach(button => {
+    host.innerHTML = rows.length ? rows.map(a => {
+      const details = [
+        a.business_type || a.industry_group,
+        a.industry_group,
+        a.country,
+        a.currency_code,
+        a.contact_email || a.email,
+        a.contact_phone || a.phone,
+        a.address,
+        a.website,
+        a.tax_registration_number ? 'Tax/registration: ' + a.tax_registration_number : '',
+        a.notes ? 'Notes: ' + a.notes : ''
+      ].filter(Boolean).map(esc).join(' · ');
+      return '<article class="dev-row" style="align-items:flex-start"><div style="min-width:0;flex:1"><strong>' +
+        esc(a.business_name || 'Business application') + '</strong><div class="dev-meta">' +
+        esc(a.full_name || 'Applicant') + ' · ' + esc(a.email || '') + '</div><div class="dev-meta">' +
+        esc(details) + '</div><div class="dev-meta">Submitted: ' + esc(new Date(a.created_at).toLocaleString()) +
+        ' · ' + esc(a.status || 'pending') + '</div><div class="dev-meta">Application ID: ' + esc(a.id) +
+        '</div></div><div class="dev-actions"><button data-review-business="' + esc(a.id) + '" data-decision="approve">Approve &amp; create workspace</button>' +
+        '<button data-review-business="' + esc(a.id) + '" data-decision="needs_information">Request information</button>' +
+        '<button class="danger" data-review-business="' + esc(a.id) + '" data-decision="reject">Reject</button></div></article>';
+    }).join('') : '<div class="dev-meta">No business applications are awaiting review.</div>';
+    host.querySelectorAll('[data-review-business]').forEach(button => {
       button.onclick = async () => {
-        const approved = button.hasAttribute('data-approve-customer');
-        const userId = button.getAttribute(approved ? 'data-approve-customer' : 'data-reject-customer');
-        if (!confirm((approved ? 'Approve' : 'Reject') + ' this verified customer registration?')) return;
+        const decision = button.dataset.decision;
+        const applicationId = button.dataset.reviewBusiness;
+        const promptText = decision === 'approve'
+          ? 'Approve this business application and automatically create the workspace under the applicant’s account?'
+          : decision === 'reject' ? 'Reject this business application?' : 'Request more information from this applicant?';
+        if (!confirm(promptText)) return;
+        const note = decision === 'needs_information' || decision === 'reject'
+          ? (prompt('Enter a short note for the applicant:', '') || '') : '';
+        if (decision !== 'approve' && !note.trim()) { alert('A review note is required for this decision.'); return; }
         button.disabled = true;
-        const result = await client.rpc('set_platform_customer_approval',{p_user_id:userId,p_approved:approved,p_note:''});
-        if (result.error) { host.textContent = 'Approval update failed: ' + result.error.message; return; }
+        const result = await client.rpc('review_platform_business_application', {
+          p_application_id: applicationId, p_decision: decision, p_review_note: note
+        });
+        if (result.error) {
+          alert('Review failed: ' + result.error.message);
+          await loadDeveloperApprovals();
+          return;
+        }
         await loadDeveloperApprovals();
-        say(approved ? 'Customer approved. Create or assign their workspace from the developer controls.' : 'Customer registration rejected.');
+        if (decision === 'approve') {
+          await loadDeveloperDashboard();
+          say('Business approved. Its workspace has been created under the customer’s account.');
+        } else {
+          say(decision === 'reject' ? 'Business application rejected.' : 'More information requested.');
+        }
       };
     });
   }
