@@ -24,6 +24,18 @@
     #wlOpsPanel .ops-tile strong{display:block;font-size:15px;color:#075b35;margin-top:4px}
     #wlOpsPanel video{width:100%;max-height:210px;background:#102c1d;border-radius:10px}
     #wlOpsPanel .ops-row button{padding:6px 9px}
+    #wlDailyClosePanel{margin:12px 0;border:1px solid #cfe5d5;border-radius:13px;padding:12px;background:linear-gradient(135deg,#f6fbf7,#fff)}
+    #wlDailyClosePanel>summary{margin:0;background:#eff8f1}
+    #wlDailyClosePanel textarea{resize:vertical;min-height:55px}
+    #wlDailyClosePanel .daily-close-card{padding:12px;margin:9px 0;border:1px solid #e1ebe4;border-radius:10px;background:#fff}
+    #wlDailyClosePanel .daily-close-card strong{color:#075b35}
+    #wlDailyClosePanel .daily-close-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:8px 0}
+    #wlDailyClosePanel .daily-close-metrics span{display:block;padding:8px;border-radius:8px;background:#f3f8f4;color:#627369}
+    #wlDailyClosePanel .daily-close-metrics b{display:block;margin-top:3px;color:#17432b;font-size:12px}
+    #wlDailyClosePanel .daily-close-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    #wlDailyClosePanel .daily-close-actions input{flex:1;min-width:180px}
+    #wlDailyClosePanel .daily-close-flag{display:inline-block;margin:3px 4px 3px 0;padding:4px 7px;border-radius:6px;background:#fff5e5;color:#805313;font-size:10px}
+    #wlLedgerClosedPeriods .ops-row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
     #wlOwnerDashboard{margin:12px 0 16px;padding:15px;border:1px solid #cfe5d5;border-radius:14px;background:linear-gradient(135deg,#f5fbf6,#fff)}
     #wlOwnerDashboard h4{margin:0 0 5px;font-size:14px}
     #wlOwnerDashboard .owner-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:12px 0}
@@ -115,6 +127,10 @@
         <div class="ops-grid"><button id="wlLedgerBalance" type="button">Balance sheet</button><button id="wlLedgerCash" type="button">Cash flow</button></div>
         <button id="wlLedgerInventory" type="button">Inventory valuation</button>
         <div id="wlLedgerReport" class="ops-muted">Choose a financial report to view posted ledger entries.</div>
+        <h4>Month-end accounting period close</h4>
+        <div class="ops-muted">Close the period selected above after reviewing the trial balance and financial statements. Closed periods are protected against back-dated journals; an owner or administrator can reopen a period with an audit reason.</div>
+        <button id="wlLedgerClosePeriod" type="button">Close selected accounting period</button>
+        <div id="wlLedgerClosedPeriods" class="ops-muted">Closed accounting periods will appear here.</div>
         <h4>Manual journal entry</h4>
         <div class="ops-muted">Two-line journal entry. Debits and credits must balance. Posted journals are locked; corrections require a reversing journal.</div>
         <input id="wlLedgerMemo" maxlength="500" placeholder="Journal description">
@@ -126,6 +142,18 @@
         <input id="wlOpsObligationDesc" placeholder="Description / reference"><div class="ops-grid"><input id="wlOpsObligationAmount" type="number" min="0.01" step="0.01" placeholder="Amount (SLE)"><input id="wlOpsDueDate" type="date"></div>
         <button id="wlOpsObligationSave">Save receivable / payable</button><div id="wlOpsObligations" class="ops-muted"></div>
         <div class="ops-muted">Finance overview is business-wide. Trading balance is a simple sales-minus-purchases-minus-expenses estimate, not audited profit or a formal accrual P&L. Cashbook entries remain separate to avoid double-counting.</div>
+      </details>
+      <details id="wlDailyClosePanel">
+        <summary>Daily branch cash close & management review</summary>
+        <div class="ops-muted">Prepare and submit one branch cash summary for the selected business date. The expected amount is calculated from cloud-synced records; drafts can be saved on this device while offline.</div>
+        <div class="ops-grid"><select id="wlDailyCloseBranch" aria-label="Branch"></select><input id="wlDailyCloseDate" type="date" aria-label="Close date"></div>
+        <div class="ops-grid"><input id="wlDailyOpenFloat" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Opening cash float (SLE)"><input id="wlDailyCountedCash" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Counted closing cash (SLE)"></div>
+        <textarea id="wlDailyCloseNote" rows="2" maxlength="1000" placeholder="Closing note (optional)"></textarea>
+        <button id="wlDailyPreview" type="button">Preview expected cash</button><button id="wlDailySubmit" type="button">Submit daily close</button><button id="wlDailyRefresh" type="button">Refresh close history</button>
+        <div id="wlDailyPreviewBox" class="ops-muted">Select a branch and date, then preview the expected cash balance.</div>
+        <h4>Closing history & management approvals</h4>
+        <div class="ops-muted">A submitted close locks the underlying branch records. An authorised owner or administrator must reopen it before corrections or late offline transactions can be added.</div>
+        <div id="wlDailyCloseRows" class="ops-muted">Daily cash closes will appear here.</div>
       </details>
       <details id="wlOpsAudit" hidden><summary>Audit trail & compliance</summary>
         <div class="ops-muted">Business-scoped activity history. Only authorised management roles can view this panel. Events are read from the protected audit log; this screen cannot edit or delete audit records.</div>
@@ -152,7 +180,8 @@
     const bind=(id,fn)=>document.getElementById(id).addEventListener('click',fn);
     bind('wlOpsTransferCreate',createTransfer);bind('wlOwnerRefresh',renderOwnerDashboard);
     document.getElementById('wlOwnerPeriod').addEventListener('change',renderOwnerDashboard);bind('wlOpsAssignPending',assignPendingTransactions);bind('wlOpsCashSave',saveCashbook);
-    bind('wlLedgerInit',initializeLedger);bind('wlLedgerTrial',()=>loadLedgerReport('trial'));bind('wlLedgerIncome',()=>loadLedgerReport('income'));bind('wlLedgerBalance',()=>loadLedgerReport('balance'));bind('wlLedgerCash',()=>loadLedgerReport('cash'));bind('wlLedgerInventory',loadInventoryValuation);bind('wlLedgerPost',postLedgerJournal);
+    bind('wlLedgerInit',initializeLedger);bind('wlLedgerTrial',()=>loadLedgerReport('trial'));bind('wlLedgerIncome',()=>loadLedgerReport('income'));bind('wlLedgerBalance',()=>loadLedgerReport('balance'));bind('wlLedgerCash',()=>loadLedgerReport('cash'));bind('wlLedgerInventory',loadInventoryValuation);bind('wlLedgerPost',postLedgerJournal);bind('wlLedgerClosePeriod',closeAccountingPeriod);
+    document.getElementById('wlLedgerClosedPeriods').addEventListener('click',handleAccountingPeriodAction);
     bind('wlOpsObligationSave',saveObligation);bind('wlOpsCashbookExport',exportCashbook);bind('wlOpsBankCreate',createBankAccount);bind('wlOpsBankImport',importBankStatement);bind('wlOpsBankRefresh',renderBankReconciliation);document.getElementById('wlOpsBankRows').addEventListener('click',handleBankMatch);bind('wlOpsBarcodeFind',findBarcode);bind('wlOpsBarcodeSave',saveBarcode);
     bind('wlOpsScanStart',startScanner);bind('wlOpsScanStop',stopScanner);
     bind('wlOpsBatchSave',receiveBatch);bind('wlOpsAdjustRequest',requestAdjustment);
@@ -162,6 +191,12 @@
     ['wlOpsCashbookPeriod','wlOpsCashbookType','wlOpsCashbookBranch'].forEach(id=>document.getElementById(id).addEventListener('change',renderCashbookRegister));
     document.getElementById('wlOpsCashbookSearch').addEventListener('input',renderCashbookRegister);
     document.getElementById('wlOpsSource').addEventListener('change',renderTransferStock);
+    bind('wlDailyPreview',previewDailyCashClose);bind('wlDailySubmit',submitDailyCashClose);bind('wlDailyRefresh',renderDailyCashCloses);
+    document.getElementById('wlDailyCloseBranch').addEventListener('change',restoreDailyCashCloseDraft);
+    document.getElementById('wlDailyCloseDate').addEventListener('change',restoreDailyCashCloseDraft);
+    ['wlDailyOpenFloat','wlDailyCountedCash','wlDailyCloseNote'].forEach(id=>document.getElementById(id).addEventListener('input',()=>saveDailyCashCloseDraft(false)));
+    document.getElementById('wlDailyCloseRows').addEventListener('click',handleDailyCashCloseAction);
+    window.addEventListener('online',()=>{if(client&&business)flushDailyCashCloseDrafts().catch(e=>say(e.message,true));});
   }
   function say(msg,bad=false){const el=document.getElementById('wlOpsStatus');if(el){el.textContent=msg;el.style.color=bad?'#ffb4b4':'#f0d28b';}}
   async function init(){
@@ -186,6 +221,7 @@
     const opts=branches.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');document.getElementById('wlOpsPendingBranch').innerHTML=opts;
     ['wlOpsSource','wlOpsDestination'].forEach(id=>document.getElementById(id).innerHTML=opts);
     const current=api.getSelectedBranch?.()?.id;
+    await initializeDailyCashCloseControls(branches,current);
     if(current)document.getElementById('wlOpsSource').value=current;
     if(branches.length>1)document.getElementById('wlOpsDestination').value=branches.find(x=>x.id!==document.getElementById('wlOpsSource').value)?.id||'';
     const prodOpts=products.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+(x.sku?' · '+esc(x.sku):'')+'</option>').join('');
@@ -198,7 +234,8 @@
     if(ledgerTo)ledgerTo.value=new Date().toISOString().slice(0,10);
     await loadLedgerAccounts();
     await renderBankReconciliation();
-    await Promise.all([renderTransfers(),renderFinance(),renderCashbookRegister(),renderBatches(),renderAdjustments(),renderPendingCount(),renderConflicts(),renderOwnerDashboard()]);
+    await Promise.all([renderAccountingPeriodCloses(),renderDailyCashCloses(),renderTransfers(),renderFinance(),renderCashbookRegister(),renderBatches(),renderAdjustments(),renderPendingCount(),renderConflicts(),renderOwnerDashboard()]);
+    await flushDailyCashCloseDrafts();
     say('Operations controls loaded for '+business.name+'.');
   }
   async function initializeLedger(){
@@ -776,6 +813,284 @@
     const csv=[keys.join(','),...rows.map(r=>keys.map(k=>cell(r[k])).join(','))].join('\n');
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');
     a.href=url;a.download='white-lion-audit-trail-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);say(rows.length+' audit event(s) exported.');
+  }
+
+
+  function dailyCashCloseUserId(){return api?.getSession?.()?.user?.id||null;}
+  function dailyCashCloseKey(branchId,date){
+    const userId=dailyCashCloseUserId();
+    return business&&userId&&branchId&&date
+      ? 'koroma-leone-daily-close:'+business.id+':'+userId+':'+branchId+':'+date : '';
+  }
+  function dailyCashClosePayloadFromForm(queued){
+    const branchId=document.getElementById('wlDailyCloseBranch')?.value;
+    const date=document.getElementById('wlDailyCloseDate')?.value;
+    const opening=Number(document.getElementById('wlDailyOpenFloat')?.value||0);
+    const counted=Number(document.getElementById('wlDailyCountedCash')?.value);
+    if(!branchId||!date)throw new Error('Select a branch and closing date.');
+    if(!Number.isFinite(opening)||opening<0)throw new Error('Opening cash float must be zero or greater.');
+    if(!Number.isFinite(counted)||counted<0)throw new Error('Enter the physical closing cash count.');
+    const userId=dailyCashCloseUserId();
+    if(!userId)throw new Error('Sign in before preparing a daily close.');
+    const key=dailyCashCloseKey(branchId,date);
+    let existing={};
+    try{existing=JSON.parse(localStorage.getItem(key)||'{}')||{};}catch(_){}
+    const requestId=existing.client_request_id||window.crypto?.randomUUID?.();
+    if(!requestId)throw new Error('Secure request ID generation is unavailable on this device.');
+    return {
+      key,
+      queued:Boolean(queued),
+      business_id:business.id,
+      user_id:userId,
+      branch_id:branchId,
+      close_date:date,
+      opening_cash_float:opening,
+      counted_cash:counted,
+      note:String(document.getElementById('wlDailyCloseNote')?.value||'').trim(),
+      client_request_id:requestId
+    };
+  }
+  function saveDailyCashCloseDraft(queued=false){
+    if(!business)return;
+    try{
+      const branchId=document.getElementById('wlDailyCloseBranch')?.value;
+      const date=document.getElementById('wlDailyCloseDate')?.value;
+      if(!branchId||!date)return;
+      const key=dailyCashCloseKey(branchId,date);
+      const old=JSON.parse(localStorage.getItem(key)||'{}')||{};
+      const requestId=old.client_request_id||window.crypto?.randomUUID?.();
+      if(!requestId)return;
+      const draft={
+        queued:Boolean(queued),business_id:business.id,user_id:dailyCashCloseUserId(),
+        branch_id:branchId,close_date:date,
+        opening_cash_float:Number(document.getElementById('wlDailyOpenFloat')?.value||0),
+        counted_cash:document.getElementById('wlDailyCountedCash')?.value===''?null:Number(document.getElementById('wlDailyCountedCash')?.value),
+        note:String(document.getElementById('wlDailyCloseNote')?.value||'').trim(),
+        client_request_id:requestId
+      };
+      localStorage.setItem(key,JSON.stringify(draft));
+    }catch(error){say('Could not save the daily close draft on this device: '+error.message,true);}
+  }
+  function restoreDailyCashCloseDraft(){
+    const branchId=document.getElementById('wlDailyCloseBranch')?.value;
+    const date=document.getElementById('wlDailyCloseDate')?.value;
+    const key=dailyCashCloseKey(branchId,date);
+    if(!key)return;
+    try{
+      const draft=JSON.parse(localStorage.getItem(key)||'null');
+      if(!draft)return;
+      document.getElementById('wlDailyOpenFloat').value=draft.opening_cash_float??0;
+      document.getElementById('wlDailyCountedCash').value=draft.counted_cash??'';
+      document.getElementById('wlDailyCloseNote').value=draft.note||'';
+      if(draft.queued){
+        const box=document.getElementById('wlDailyPreviewBox');
+        if(box)box.textContent='An offline daily close draft is saved on this device and waiting to sync.';
+      }
+    }catch(_){}
+  }
+  async function initializeDailyCashCloseControls(branches,currentBranch){
+    const panel=document.getElementById('wlDailyClosePanel');
+    if(!panel)return;
+    const allowed=['owner','admin','manager','accountant','cashier'].includes(memberRole);
+    panel.hidden=!allowed;
+    if(!allowed)return;
+    let available=branches||[];
+    if(memberRole==='cashier'){
+      const {data,error}=await client.from('branch_members').select('branch_id')
+        .eq('business_id',business.id).eq('user_id',dailyCashCloseUserId()).eq('is_active',true);
+      if(error){document.getElementById('wlDailyCloseRows').textContent='Assigned branches could not be loaded: '+error.message;return;}
+      const ids=new Set((data||[]).map(x=>x.branch_id));
+      available=available.filter(x=>ids.has(x.id));
+    }
+    const branchSelect=document.getElementById('wlDailyCloseBranch');
+    branchSelect.innerHTML=available.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('')
+      ||'<option value="">No assigned branch available</option>';
+    if(currentBranch&&available.some(x=>x.id===currentBranch))branchSelect.value=currentBranch;
+    else if(available.length)branchSelect.value=available[0].id;
+    const date=document.getElementById('wlDailyCloseDate');
+    if(!date.value)date.value=new Date().toISOString().slice(0,10);
+    const reviewQueue=document.getElementById('wlDailyCloseRows');
+    if(reviewQueue)reviewQueue.dataset.canReview=String(['owner','admin','manager','accountant'].includes(memberRole));
+    restoreDailyCashCloseDraft();
+  }
+  async function previewDailyCashClose(){
+    const box=document.getElementById('wlDailyPreviewBox');
+    if(!navigator.onLine){
+      if(box)box.textContent='You are offline. Save the counted amount as a local draft; the expected cash amount will be calculated securely after reconnection.';
+      return;
+    }
+    try{
+      const branchId=document.getElementById('wlDailyCloseBranch').value;
+      const date=document.getElementById('wlDailyCloseDate').value;
+      const opening=Number(document.getElementById('wlDailyOpenFloat').value||0);
+      if(!branchId||!date)throw new Error('Select a branch and closing date.');
+      if(!Number.isFinite(opening)||opening<0)throw new Error('Opening cash float must be zero or greater.');
+      const {data,error}=await client.rpc('get_daily_cash_close_preview',{
+        p_business_id:business.id,p_branch_id:branchId,p_close_date:date,p_opening_cash_float:opening
+      });
+      if(error)throw error;
+      const currency=business.currency_code||'SLE';
+      const cash=n=>currency+' '+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+      const sales=Object.entries(data.sales_by_tender||{}).map(([k,v])=>'<div class="ops-row">'+esc(k)+': <b>'+cash(v)+'</b></div>').join('')||'<div class="ops-muted">No sales recorded.</div>';
+      const flows=Object.entries(data.cashbook_by_tender||{}).map(([k,v])=>'<div class="ops-row">'+esc(k)+': '+cash(v.income)+' received / '+cash(v.expense)+' paid</div>').join('')||'<div class="ops-muted">No cashbook movements recorded.</div>';
+      const unmatched=Number(data.unmatched_statement_count||0);
+      box.innerHTML='<div class="ops-summary">'
+        +'<div class="ops-tile"><span>Expected cash</span><strong>'+cash(data.expected_cash)+'</strong></div>'
+        +'<div class="ops-tile"><span>Cash sales</span><strong>'+cash(data.cash_sales)+'</strong></div>'
+        +'<div class="ops-tile"><span>Cashbook receipts</span><strong>'+cash(data.cashbook_cash_income)+'</strong></div>'
+        +'<div class="ops-tile"><span>Cashbook payments</span><strong>'+cash(data.cashbook_cash_expense)+'</strong></div>'
+        +'<div class="ops-tile"><span>Cash expenses</span><strong>'+cash(data.expense_module_cash_expense)+'</strong></div>'
+        +'<div class="ops-tile"><span>Unmatched statement lines</span><strong>'+unmatched+' · '+cash(data.unmatched_statement_amount)+'</strong></div>'
+        +'</div><b>Sales by payment method</b>'+sales+'<b>Cashbook movements by payment method</b>'+flows
+        +'<div class="ops-muted">Refunds already recorded through the returns workflow are included as cashbook outflows. Do not record the same expense in both Expenses and Cashbook. Duplicate bank/mobile-money statement references are blocked during import.</div>';
+      saveDailyCashCloseDraft(false);
+    }catch(error){if(box)box.textContent='Expected cash preview failed: '+(error.message||error);say(error.message||'Expected cash preview failed.',true);}
+  }
+  async function submitDailyCashClose(){
+    let draft;
+    try{draft=dailyCashClosePayloadFromForm(!navigator.onLine);}
+    catch(error){return say(error.message,true);}
+    const key=draft.key;
+    const stored={
+      queued:draft.queued,business_id:draft.business_id,user_id:draft.user_id,
+      branch_id:draft.branch_id,close_date:draft.close_date,
+      opening_cash_float:draft.opening_cash_float,counted_cash:draft.counted_cash,
+      note:draft.note,client_request_id:draft.client_request_id
+    };
+    try{localStorage.setItem(key,JSON.stringify(stored));}catch(error){return say('Could not save this close on the device: '+error.message,true);}
+    if(!navigator.onLine){
+      say('You are offline. The daily close is saved locally and will sync when the connection returns.');
+      const box=document.getElementById('wlDailyPreviewBox');if(box)box.textContent='Offline draft saved on this device. It will sync when the connection returns.';
+      return;
+    }
+    const button=document.getElementById('wlDailySubmit');if(button)button.disabled=true;
+    try{
+      const {data,error}=await client.rpc('submit_daily_cash_close',{
+        p_business_id:draft.business_id,p_branch_id:draft.branch_id,p_close_date:draft.close_date,
+        p_opening_cash_float:draft.opening_cash_float,p_counted_cash:draft.counted_cash,
+        p_note:draft.note,p_client_request_id:draft.client_request_id
+      });
+      if(error)throw error;
+      localStorage.removeItem(key);
+      say('Daily cash close submitted for management review.');
+      await Promise.all([renderDailyCashCloses(),previewDailyCashClose()]);
+    }catch(error){say('Daily close submission failed: '+(error.message||error),true);}
+    finally{if(button)button.disabled=false;}
+  }
+  async function flushDailyCashCloseDrafts(){
+    if(!business||!client||!navigator.onLine)return;
+    const userId=dailyCashCloseUserId();
+    if(!userId)return;
+    const prefix='koroma-leone-daily-close:'+business.id+':'+userId+':';
+    let synced=0;
+    let keys=[];
+    try{keys=Object.keys(localStorage).filter(k=>k.startsWith(prefix));}catch(_){return;}
+    for(const key of keys){
+      let draft;try{draft=JSON.parse(localStorage.getItem(key)||'null');}catch(_){continue;}
+      if(!draft?.queued||draft.business_id!==business.id||draft.user_id!==userId)continue;
+      const {error}=await client.rpc('submit_daily_cash_close',{
+        p_business_id:draft.business_id,p_branch_id:draft.branch_id,p_close_date:draft.close_date,
+        p_opening_cash_float:Number(draft.opening_cash_float||0),p_counted_cash:Number(draft.counted_cash),
+        p_note:draft.note||'',p_client_request_id:draft.client_request_id
+      });
+      if(error){say('Offline daily close is waiting for sync: '+error.message,true);continue;}
+      localStorage.removeItem(key);synced++;
+    }
+    if(synced){
+      say('Pending offline daily close drafts synced.');
+      await renderDailyCashCloses();
+    }
+  }
+  async function renderDailyCashCloses(){
+    const box=document.getElementById('wlDailyCloseRows');if(!box||!client||!business)return;
+    box.textContent='Loading daily cash closes…';
+    const {data,error}=await client.from('daily_cash_closings')
+      .select('id,branch_id,close_date,status,opening_cash_float,cash_sales,cashbook_cash_income,cashbook_cash_expense,expense_module_cash_expense,expected_cash,counted_cash,cash_variance,unmatched_statement_count,unmatched_statement_amount,flags,note,submitted_by,submitted_at,reviewed_by,reviewed_at,review_note,reopened_at,reopen_reason')
+      .eq('business_id',business.id).order('close_date',{ascending:false}).limit(80);
+    if(error){box.textContent='Daily close history could not be loaded: '+error.message;return;}
+    const canReview=['owner','admin','manager','accountant'].includes(memberRole);
+    const canReopen=['owner','admin'].includes(memberRole);
+    const currentUser=dailyCashCloseUserId();
+    const branchNames=new Map(branchesCache.map(x=>[x.id,x.name]));
+    const currency=business.currency_code||'SLE';
+    const cash=n=>currency+' '+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    const statusLabel={submitted:'Submitted',approved:'Approved',rejected:'Rejected',reopened:'Reopened'};
+    if(!data?.length){box.textContent='No daily closes have been submitted for this workspace yet.';return;}
+    box.innerHTML=data.map(row=>{
+      const flags=Array.isArray(row.flags)?row.flags:[];
+      const flagHtml=flags.length?flags.map(flag=>'<span class="daily-close-flag">'+esc(flag==='cash_variance_requires_review'?'Cash variance requires management review':flag==='unmatched_bank_statement_lines'?'Unmatched bank/mobile-money statement lines':flag)+'</span>').join(''):'<span class="ops-muted">No outstanding flags.</span>';
+      const canReviewRow=canReview&&row.status==='submitted'&&row.submitted_by!==currentUser;
+      const review=canReviewRow?'<div class="daily-close-actions"><input id="wlDailyReviewNote_'+esc(row.id)+'" maxlength="1000" placeholder="Review note (required for a variance or rejection)"><button type="button" data-wl-daily-review="approved" data-id="'+esc(row.id)+'">Approve</button><button type="button" data-wl-daily-review="rejected" data-id="'+esc(row.id)+'">Reject</button></div>':'';
+      const reopen=canReopen&&['submitted','approved'].includes(row.status)?'<button type="button" data-wl-daily-reopen="'+esc(row.id)+'">Reopen close</button>':'';
+      return '<article class="daily-close-card"><strong>'+esc(branchNames.get(row.branch_id)||'Branch')+' · '+esc(row.close_date)+'</strong>'
+        +'<div class="ops-muted">'+esc(statusLabel[row.status]||row.status)+' · Submitted '+esc(new Date(row.submitted_at).toLocaleString())+'</div>'
+        +'<div class="daily-close-metrics"><span>Expected cash<b>'+cash(row.expected_cash)+'</b></span><span>Counted cash<b>'+cash(row.counted_cash)+'</b></span><span>Variance<b>'+cash(row.cash_variance)+'</b></span><span>Cash sales<b>'+cash(row.cash_sales)+'</b></span><span>Cashbook payments<b>'+cash(row.cashbook_cash_expense)+'</b></span><span>Cash expenses<b>'+cash(row.expense_module_cash_expense)+'</b></span></div>'
+        +'<div class="ops-muted">Unmatched statement lines: '+Number(row.unmatched_statement_count||0)+' · '+cash(row.unmatched_statement_amount)+'</div>'
+        +'<div>'+flagHtml+'</div>'+(row.note?'<div class="ops-muted">Closing note: '+esc(row.note)+'</div>':'')
+        +(row.review_note?'<div class="ops-muted">Management note: '+esc(row.review_note)+'</div>':'')
+        +(row.reopen_reason?'<div class="ops-muted">Reopening reason: '+esc(row.reopen_reason)+'</div>':'')
+        +review+reopen+'</article>';
+    }).join('');
+  }
+  async function handleDailyCashCloseAction(event){
+    const reviewButton=event.target.closest('[data-wl-daily-review]');
+    const reopenButton=event.target.closest('[data-wl-daily-reopen]');
+    if(reviewButton){
+      const id=reviewButton.dataset.id,decision=reviewButton.dataset.wlDailyReview;
+      const note=document.getElementById('wlDailyReviewNote_'+id)?.value.trim()||'';
+      if(decision==='rejected'&&note.length<10)return say('Provide a review note of at least 10 characters.',true);
+      if(decision==='approved'&&note.length<10){
+        const row=(await client.from('daily_cash_closings').select('cash_variance,unmatched_statement_count').eq('id',id).maybeSingle()).data;
+        if(row&&(Math.abs(Number(row.cash_variance||0))>0.01||Number(row.unmatched_statement_count||0)>0))
+          return say('A variance or unmatched statement line requires a review note of at least 10 characters.',true);
+      }
+      reviewButton.disabled=true;
+      const {error}=await client.rpc('review_daily_cash_close',{p_close_id:id,p_decision:decision,p_note:note});
+      if(error){say(error.message,true);reviewButton.disabled=false;return;}
+      say(decision==='approved'?'Daily cash close approved.':'Daily cash close rejected.');
+      await renderDailyCashCloses();
+      return;
+    }
+    if(reopenButton){
+      const reason=prompt('Enter a clear reason for reopening this daily close:');
+      if(reason===null)return;
+      const {error}=await client.rpc('reopen_daily_cash_close',{p_close_id:reopenButton.dataset.wlDailyReopen,p_reason:reason});
+      if(error)return say(error.message,true);
+      say('Daily close reopened. New transactions can now be submitted after corrections.');
+      await renderDailyCashCloses();
+    }
+  }
+  async function closeAccountingPeriod(){
+    if(!['owner','admin','accountant'].includes(memberRole))return say('Only owners, administrators or accountants can close an accounting period.',true);
+    const from=document.getElementById('wlLedgerFrom').value,to=document.getElementById('wlLedgerTo').value;
+    if(!from||!to||to<from)return say('Select a valid accounting period before closing it.',true);
+    if(!confirm('Close this accounting period? New journals dated within it will be blocked until an authorised reopening.'))return;
+    const {data,error}=await client.rpc('close_accounting_period',{p_business_id:business.id,p_period_start:from,p_period_end:to});
+    if(error)return say('Accounting period close failed: '+error.message,true);
+    say('Accounting period closed successfully. Closing journal: '+data);
+    await Promise.all([renderAccountingPeriodCloses(),loadLedgerReport('trial')]);
+  }
+  async function renderAccountingPeriodCloses(){
+    const box=document.getElementById('wlLedgerClosedPeriods');if(!box||!client||!business)return;
+    const {data,error}=await client.from('accounting_period_closes')
+      .select('id,period_start,period_end,closed_at,closed_by')
+      .eq('business_id',business.id).order('period_end',{ascending:false}).limit(30);
+    if(error){box.textContent='Accounting period history is unavailable: '+error.message;return;}
+    if(!data?.length){box.textContent='No accounting periods have been closed yet.';return;}
+    const canReopen=['owner','admin'].includes(memberRole);
+    box.innerHTML=data.map(row=>'<div class="ops-row"><span><b>'+esc(row.period_start)+' — '+esc(row.period_end)+'</b><small class="ops-muted">Closed '+esc(new Date(row.closed_at).toLocaleString())+'</small></span>'
+      +(canReopen?'<button type="button" data-wl-accounting-reopen="'+esc(row.id)+'">Reopen period</button>':'')+'</div>').join('');
+  }
+  async function handleAccountingPeriodAction(event){
+    const button=event.target.closest('[data-wl-accounting-reopen]');if(!button)return;
+    const reason=prompt('Enter a clear reason for reopening this accounting period:');
+    if(reason===null)return;
+    const {error}=await client.rpc('reopen_accounting_period',{
+      p_business_id:business.id,p_period_close_id:button.dataset.wlAccountingReopen,p_reason:reason
+    });
+    if(error)return say(error.message,true);
+    say('Accounting period reopened. The reason has been recorded in the audit trail.');
+    await renderAccountingPeriodCloses();
   }
 
   window.addEventListener('whiteLionCloudReady',()=>init().catch(e=>say(e.message,true)));
