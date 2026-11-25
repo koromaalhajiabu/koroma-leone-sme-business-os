@@ -55,23 +55,28 @@ const WL_AUDIT_UI_TRANSLATIONS={
 };
 Object.keys(WL_AUDIT_UI_TRANSLATIONS).forEach(code=>Object.assign(LANGS[code].t,WL_AUDIT_UI_TRANSLATIONS[code]));
 let current='en';
+let initialized=false;
 const originals=new WeakMap(),lastRendered=new WeakMap();
+function normalizeKey(value){return String(value??'').replace(/\s+/g,' ').trim();}
 function translateTextNode(node){
  if(!node||node.nodeType!==3)return;
  const raw=node.nodeValue;
  if(!raw||!raw.trim())return;
  let original=originals.get(node);
- if(original===undefined||lastRendered.get(node)!==raw){original=raw;originals.set(node,original)}
- const key=original.trim(),translated=LANGS[current].t[key]||LANGS[current].t[key.replace(/\s+/g,' ')];
- if(translated){
-  const leading=original.match(/^\s*/)?.[0]||'',trailing=original.match(/\s*$/)?.[0]||'';
-  const next=leading+translated+trailing;
-  if(raw!==next)node.nodeValue=next;
-  lastRendered.set(node,next);
- } else {
-  if(raw!==original)node.nodeValue=original;
-  lastRendered.set(node,original);
+ const rendered=lastRendered.get(node);
+ // Preserve source text while the node still contains our last translation.
+ // When the application itself changes the node, capture its new source text.
+ if(original===undefined||(rendered!==undefined&&raw!==rendered)||(rendered===undefined&&raw!==original)){
+  original=raw;originals.set(node,original);
  }
+ const key=normalizeKey(original);
+ const translated=LANGS[current].t[key];
+ const value=typeof translated==='string'?translated:original;
+ const leading=original.match(/^\s*/)?.[0]||'';
+ const trailing=original.match(/\s*$/)?.[0]||'';
+ const next=leading+value+trailing;
+ if(raw!==next)node.nodeValue=next;
+ lastRendered.set(node,next);
 }
 function scan(root){
  if(!root)return;
@@ -85,10 +90,18 @@ function scan(root){
 function translateAttributes(el){
  ['placeholder','title','aria-label'].forEach(attr=>{
   if(!el.hasAttribute(attr))return;
-  const key=el.getAttribute('data-wl-original-'+attr)||el.getAttribute(attr);
-  if(!el.hasAttribute('data-wl-original-'+attr))el.setAttribute('data-wl-original-'+attr,key);
-  const value=LANGS[current].t[key];
-  const next=value||key;if(el.getAttribute(attr)!==next)el.setAttribute(attr,next);
+  const originalAttr='data-wl-original-'+attr;
+  const renderedAttr='data-wl-last-'+attr;
+  const live=el.getAttribute(attr);
+  let original=el.getAttribute(originalAttr);
+  const rendered=el.getAttribute(renderedAttr);
+  if(original===null||(rendered!==null&&live!==rendered)||(rendered===null&&live!==original)){
+   original=live;el.setAttribute(originalAttr,original);
+  }
+  const translated=LANGS[current].t[normalizeKey(original)];
+  const next=typeof translated==='string'?translated:original;
+  if(live!==next)el.setAttribute(attr,next);
+  if(rendered!==next)el.setAttribute(renderedAttr,next);
  });
 }
 function setLanguage(code){
@@ -98,15 +111,18 @@ function setLanguage(code){
  document.documentElement.dir=lang.dir;
  document.documentElement.setAttribute('data-wl-language',current);
  try{localStorage.setItem('wl-sme-language',current)}catch(e){}
- document.querySelectorAll('#wlLanguage,#wlLanguageSidebar').forEach(select=>{if(select.value!==current)select.value=current;});
- scan(document.body);
+ document.querySelectorAll('#wlLanguage,#wlLanguageSidebar').forEach(select=>{
+  if(select.value!==current)select.value=current;
+ });
+ scan(document.body||document.documentElement);
  window.dispatchEvent(new CustomEvent('whiteLionLanguageChanged',{detail:{language:current,direction:lang.dir}}));
+ return current;
 }
 function init(){
- const selects=[...document.querySelectorAll('#wlLanguage,#wlLanguageSidebar')];
+ if(initialized||!document.body)return;
+ initialized=true;
  let saved='en';try{saved=localStorage.getItem('wl-sme-language')||'en'}catch(e){}
- selects.forEach(select=>{select.addEventListener('change',()=>setLanguage(select.value));select.value=LANGS[saved]?saved:'en'});
- setLanguage(saved);
+ setLanguage(LANGS[saved]?saved:'en');
  const observer=new MutationObserver(records=>{
   records.forEach(record=>{
    if(record.type==='characterData'){translateTextNode(record.target);return}
@@ -115,18 +131,17 @@ function init(){
   });
  });
  observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']});
+ window.__wlI18nReady=true;
+}
+function handleLanguageControl(event){
+ const target=event.target;
+ if(target&&(target.id==='wlLanguage'||target.id==='wlLanguageSidebar'))setLanguage(target.value);
 }
 window.wlSetLanguage=setLanguage;
 window.wlGetLanguage=()=>current;
-window.wlRefreshTranslations=()=>scan(document.body);
-// Delegate the language change from document so it survives header re-renders.
-document.addEventListener('change',function(event){
- const target=event.target;
- if(target&&(target.id==='wlLanguage'||target.id==='wlLanguageSidebar'))setLanguage(target.value);
-},true);
-document.addEventListener('input',function(event){
- const target=event.target;
- if(target&&(target.id==='wlLanguage'||target.id==='wlLanguageSidebar'))setLanguage(target.value);
-},true);
+window.wlRefreshTranslations=()=>scan(document.body||document.documentElement);
+document.addEventListener('change',handleLanguageControl,true);
+document.addEventListener('input',handleLanguageControl,true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.addEventListener('pageshow',()=>{if(!initialized)init();else scan(document.body);});
 })();

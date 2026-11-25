@@ -73,6 +73,64 @@ async function runViewport(name, viewport) {
       script: result.startup.serviceWorkerScript
     });
 
+    // Verify that both language controls translate the current screen and later-added UI.
+    const languageCheck = await page.evaluate(async () => {
+      const top = document.querySelector('#wlLanguage');
+      const side = document.querySelector('#wlLanguageSidebar');
+      if (!top || !side) return { error: 'Both language selectors must be present.' };
+      const choose = async (select, code) => {
+        select.value = code;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        await new Promise(resolve => setTimeout(resolve, 80));
+      };
+      await choose(top, 'fr');
+      const french = {
+        ready: !!window.__wlI18nReady,
+        code: document.documentElement.lang,
+        active: window.wlGetLanguage?.() || null,
+        top: top.value,
+        side: side.value,
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+      };
+      const probe = document.createElement('span');
+      probe.textContent = 'Business name';
+      document.body.appendChild(probe);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      french.dynamicText = probe.textContent.trim();
+      probe.remove();
+
+      await choose(side, 'ar');
+      const arabic = {
+        code: document.documentElement.lang,
+        direction: document.documentElement.dir,
+        top: top.value,
+        side: side.value,
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+      };
+      await choose(top, 'en');
+      const english = {
+        code: document.documentElement.lang,
+        top: top.value,
+        side: side.value,
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+      };
+      return { french, arabic, english };
+    });
+    const frenchPassed = languageCheck.french?.ready &&
+      languageCheck.french.code === 'fr' && languageCheck.french.active === 'fr' &&
+      languageCheck.french.top === 'fr' && languageCheck.french.side === 'fr' &&
+      languageCheck.french.overview.includes('Vue d’ensemble') &&
+      languageCheck.french.dynamicText === 'Nom de l’entreprise';
+    const arabicPassed = languageCheck.arabic?.code === 'ar' &&
+      languageCheck.arabic.direction === 'rtl' &&
+      languageCheck.arabic.top === 'ar' && languageCheck.arabic.side === 'ar' &&
+      languageCheck.arabic.overview.includes('نظرة عامة');
+    const englishPassed = languageCheck.english?.code === 'en' &&
+      languageCheck.english.top === 'en' && languageCheck.english.side === 'en' &&
+      languageCheck.english.overview.includes('Overview');
+    record(result, 'language selectors translate and synchronise French, Arabic and English', 
+      Boolean(frenchPassed && arabicPassed && englishPassed), languageCheck);
+
     if (viewport.isMobile) {
       const mobileLayout = await page.evaluate(() => {
         const viewportMeta = document.querySelector('meta[name="viewport"]')?.content || '';
