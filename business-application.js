@@ -57,6 +57,7 @@ function syncApplicationKind(){
 }
 $('application_kind').addEventListener('change',syncApplicationKind);
 $('official_club_name').addEventListener('input',()=>{if($('application_kind').value==='football_club')$('business_name').value=$('official_club_name').value});
+$('business_name').addEventListener('input',()=>{if($('application_kind').value==='football_club'&&!$('official_club_name').value)$('official_club_name').value=$('business_name').value});
 $('full_name').addEventListener('input',()=>{if($('application_kind').value==='football_club'&&!$('manager_full_name').value)$('manager_full_name').value=$('full_name').value});
 $('phone').addEventListener('input',()=>{if($('application_kind').value==='football_club')$('contact_phone').value=$('phone').value});
 async function refresh(){
@@ -116,7 +117,7 @@ $('applicationForm').addEventListener('submit',async e=>{
   contact_email:v('contact_email')||session.user.email,contact_phone:v('contact_phone')||v('phone'),
   official_website_url:v('website'),proposed_website_slug:v('proposed_website_slug'),
   authority_statement:v('authority_statement'),evidence_reference:v('evidence_reference'),
-  additional_notes:v('notes')
+  additional_notes:v('notes'),declaration_confirmed:f.get('club_declaration')==='on'
  }:{};
  const payload={
   p_full_name:v('full_name'),p_phone:v('phone'),
