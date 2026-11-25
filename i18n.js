@@ -292,8 +292,12 @@ function translateString(value){
  for(const key of keys){
   const translated=translationMaps[current].get(key);
   if(typeof translated!=='string'||!translated)continue;
-  const escaped=key.replace(/[.*+?^${}()|[\]\\]/g,'\\const originals=new WeakMap(),lastRendered=new WeakMap();
-function normalizeKey(value){return String(value??'').replace(/\s+/g,' ').trim();}
+  const escaped=key.replace(/[.*+?^$()|[\\]\\\\]/g,'\\\\$&');
+  const pattern=new RegExp('(^|[^A-Za-z0-9])('+escaped+')(?=$|[^A-Za-z0-9])','gi');
+  result=result.replace(pattern,(match,prefix)=>prefix+translated);
+ }
+ return result;
+}
 function translateTextNode(node){');
   const pattern=new RegExp('(^|[^A-Za-z0-9])('+escaped+')(?=$|[^A-Za-z0-9])','gi');
   result=result.replace(pattern,(match,prefix)=>prefix+translated);
