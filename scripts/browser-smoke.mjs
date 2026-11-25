@@ -140,6 +140,12 @@ async function runViewport(name, viewport) {
       french.categoryRetail = window.wlTranslateText?.('Retail') || '';
       french.categoryDelivery = window.wlTranslateText?.('Delivery') || '';
       french.starterBuild = window.wlTranslateText?.('Starter build') || '';
+      french.clubLaunchBody = window.wlTranslateText?.('Require email confirmation, review the club authority evidence, then approve the application.') || '';
+      french.executiveProfit = window.wlTranslateText?.('Cost-covered gross profit') || '';
+      french.reorderMetric = window.wlTranslateText?.('Forecast daily demand') || '';
+      french.stockStatus = window.wlTranslateText?.('Out of stock') || '';
+      french.managerBadge = window.wlTranslateText?.('Manager-led') || '';
+      french.playerBadge = window.wlTranslateText?.('Consent-gated') || '';
       french.receiptTitle = window.wlTranslateText?.('SALES RECEIPT') || '';
       french.dialogText = window.wlTranslateText?.('Delete this record?') || '';
       mixedProbe.remove();
@@ -212,6 +218,12 @@ async function runViewport(name, viewport) {
       languageCheck.french.categoryRetail === 'Commerce de détail' &&
       languageCheck.french.categoryDelivery === 'Livraison' &&
       languageCheck.french.starterBuild === 'Version de démarrage' &&
+      languageCheck.french.clubLaunchBody.startsWith('Exigez la confirmation') &&
+      languageCheck.french.executiveProfit === 'Bénéfice brut couvert par les coûts' &&
+      languageCheck.french.reorderMetric === 'Demande quotidienne prévue' &&
+      languageCheck.french.stockStatus === 'En rupture de stock' &&
+      languageCheck.french.managerBadge === 'Géré par le responsable' &&
+      languageCheck.french.playerBadge === 'Soumis au consentement' &&
       languageCheck.french.receiptTitle === 'REÇU DE VENTE' &&
       languageCheck.french.dialogText === 'Supprimer cet enregistrement ?' &&
       languageCheck.french.scriptTextUnchanged && frenchCopyPassed;
