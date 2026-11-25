@@ -894,6 +894,21 @@ const WL_OPERATION_TRANSLATIONS_V3=[["Administration","Administration","Administ
 for(const row of WL_OPERATION_TRANSLATIONS_V3){if(!Array.isArray(row)||row.length!==6||typeof row[0]!=='string')continue;const [key,fr,es,ar,hi,zh]=row;LANGS.fr.t[key]=fr;LANGS.es.t[key]=es;LANGS.ar.t[key]=ar;LANGS.hi.t[key]=hi;LANGS.zh.t[key]=zh;}
 
 let current='en';
+const WL_LOCALE_BY_LANGUAGE={en:'en-US',fr:'fr-FR',es:'es-ES',ar:'ar',hi:'hi-IN',zh:'zh-CN'};
+if(!window.__wlLocaleFormattingWrapped){
+ const wrapLocaleMethod=(prototype,method)=>{
+  const original=prototype?.[method];
+  if(typeof original!=='function')return;
+  Object.defineProperty(prototype,method,{configurable:true,writable:true,value:function(locales,options){
+   const selected=(locales===undefined||locales===null||locales==='')?WL_LOCALE_BY_LANGUAGE[current]:locales;
+   return original.call(this,selected,options);
+  }});
+ };
+ ['toLocaleString','toLocaleDateString','toLocaleTimeString'].forEach(method=>wrapLocaleMethod(Date.prototype,method));
+ wrapLocaleMethod(Number.prototype,'toLocaleString');
+ window.__wlLocaleFormattingWrapped=true;
+}
+
 let initialized=false;
 const originalDocumentTitle=document.title;
 const originals=new WeakMap(),lastRendered=new WeakMap();
