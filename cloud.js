@@ -100,6 +100,13 @@
     .wl-auth-shell #wlCloudWork .branch-create-grid{display:grid;grid-template-columns:1fr 1.4fr auto;gap:7px;align-items:center;margin:10px 0}
     @media(max-width:620px){.wl-auth-shell #wlCloudWork .branch-create-grid{grid-template-columns:1fr}.wl-auth-shell #wlCloudWork .branch-create-grid button{width:100%;min-height:42px}}
 
+    .app.wl-authenticated #wlCloudBox:not(.wl-tools-open){display:none!important}
+    .app.wl-authenticated #wlCloudBox.wl-tools-open{display:block!important;position:fixed!important;z-index:1000!important;inset:78px 16px 16px auto!important;width:min(560px,calc(100vw - 32px))!important;max-width:none!important;margin:0!important;overflow:auto!important;border:1px solid #cfe2d5!important;border-radius:18px!important;box-shadow:0 24px 80px rgba(7,35,22,.28)!important;background:#fff!important;padding:18px!important}
+    .app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-brand,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-story,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-bottom,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-heading,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-card-top,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-card-foot{display:none!important}
+    .app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-layout{display:block!important}
+    .app.wl-authenticated #wlCloudBox.wl-tools-open #wlCloudWork{max-height:none!important;overflow:visible!important}
+    .app.wl-authenticated #wlCloudBox.wl-tools-open #wlCloudAuth{display:none!important}
+    @media(max-width:620px){.app.wl-authenticated #wlCloudBox.wl-tools-open{inset:70px 8px 8px!important;width:calc(100vw - 16px)!important}}
     #wlSyncCentre{margin:12px 0 4px;padding:14px;border:1px solid #d8e9de;border-radius:14px;background:linear-gradient(145deg,#fbfefc,#f0f7f2);color:#203b2b}
     #wlSyncCentre .wl-sync-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
     #wlSyncCentre .wl-sync-kicker{font-size:9px;font-weight:900;letter-spacing:1.4px;color:#087a43}
@@ -381,7 +388,7 @@
     };
   }
   function showSignedOut() {
-    document.querySelector('.app')?.classList.add('wl-public-mode');
+    document.querySelector('.app')?.classList.add('wl-public-mode'); document.querySelector('.app')?.classList.remove('wl-authenticated');
     $('wlCloudAuth').hidden = false; $('wlCloudWork').hidden = true;
     $('wlCloudStatus').textContent = 'Not signed in. Create an account or sign in to continue.';
   }
@@ -448,7 +455,7 @@
       .select('business_id,role,is_active,businesses(id,name,industry,currency_code,contact_email,contact_phone,address,website,tax_registration_number,receipt_footer,logo_path)')
       .eq('user_id', session.user.id).eq('is_active', true);
     if (error) return say('Could not load workspaces: ' + error.message);
-    document.querySelector('.app')?.classList.remove('wl-public-mode');
+    document.querySelector('.app')?.classList.remove('wl-public-mode'); document.querySelector('.app')?.classList.add('wl-authenticated');
     const businesses = sortBusinessesByName((memberships || []).map(m => ({...m.businesses, role:m.role})).filter(b => b.id));
     if (!isDeveloper && !businesses.length) {
       showAwaitingDeveloperApproval({...access.data,workspace_pending:true});
