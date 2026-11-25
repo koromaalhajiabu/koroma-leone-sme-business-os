@@ -40,22 +40,9 @@ button:disabled{opacity:.55;cursor:wait}.secondary{background:#edf5ef;color:#176
 <div class="field"><label for="full_name" data-t="fullName">Owner / authorised representative full name *</label><input id="full_name" name="full_name" required minlength="2" maxlength="120"></div>
 <div class="field"><label for="phone" data-t="personalPhone">Applicant phone number *</label><input id="phone" name="phone" required maxlength="40" autocomplete="tel"></div>
 <div class="field"><label for="business_name" data-t="businessName">Business / organisation name *</label><input id="business_name" name="business_name" required minlength="2" maxlength="140"></div>
-<div class="field"><label for="industry_group" data-t="industry">Industry *</label><select id="industry_group" name="industry_group" required>
-<option value="Retail and trading">Retail and trading</option>
-<option value="Food, hospitality and entertainment">Food, hospitality and entertainment</option>
-<option value="Hospitals and healthcare facilities">Hospitals and healthcare facilities</option>
-<option value="Healthcare and pharmaceutical">Healthcare and pharmaceutical</option>
-<option value="Automotive and transport">Automotive and transport</option>
-<option value="Construction and industrial">Construction and industrial</option>
-<option value="Professional and personal services">Professional and personal services</option>
-<option value="Education and training">Education and training</option>
-<option value="Agriculture and fisheries">Agriculture and fisheries</option>
-<option value="Property and rental">Property and rental</option>
-<option value="Financial and administrative services">Financial and administrative services</option>
-<option value="Sports and local league management" data-t="industrySports">Sports and local league management</option>
-<option value="General and multi-industry">General and multi-industry</option>
-</select></div>
-<div class="field"><label for="business_type" data-t="businessType">Specific business type *</label><input id="business_type" name="business_type" required maxlength="140" data-t-placeholder="businessTypePlaceholder" placeholder="e.g. Building materials supplier"></div>
+<div class="field"><label for="industry_group" data-t="industry">Industry *</label><select id="industry_group" name="industry_group" required data-wl-no-translate><option value="">Choose an industry</option></select></div>
+<div class="field"><label for="business_type" data-t="businessType">Specific business type *</label><select id="business_type" name="business_type" required data-wl-no-translate><option value="">Choose a business type</option></select><small id="businessTypeHint" data-t="businessTypeHint">Choose from 111 supported business types, or enter another type.</small></div>
+<div class="field hidden" id="businessTypeCustomField"><label for="business_type_custom" data-t="businessTypeCustom">Enter your business type *</label><input id="business_type_custom" name="business_type_custom" maxlength="140" data-t-placeholder="customBusinessTypePlaceholder" placeholder="Type your business"></div>
 <section id="footballClubFields" class="subsection hidden" aria-labelledby="clubDetailsTitle">
 <h3 id="clubDetailsTitle" data-t="clubDetailsTitle">Football club details</h3>
 <p class="muted" data-t="clubDetailsIntro">These details are reviewed with your business application. The same account will own the approved club workspace.</p>
