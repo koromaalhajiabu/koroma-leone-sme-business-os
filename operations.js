@@ -940,10 +940,11 @@
         +'<div class="ops-tile"><span>Cash sales</span><strong>'+cash(data.cash_sales)+'</strong></div>'
         +'<div class="ops-tile"><span>Cashbook receipts</span><strong>'+cash(data.cashbook_cash_income)+'</strong></div>'
         +'<div class="ops-tile"><span>Cashbook payments</span><strong>'+cash(data.cashbook_cash_expense)+'</strong></div>'
+        +'<div class="ops-tile"><span>Cash refunds</span><strong>'+cash(data.cash_refunds)+' · '+Number(data.cash_refund_count||0)+' refunds</strong></div>'
         +'<div class="ops-tile"><span>Cash expenses</span><strong>'+cash(data.expense_module_cash_expense)+'</strong></div>'
         +'<div class="ops-tile"><span>Unmatched statement lines</span><strong>'+unmatched+' · '+cash(data.unmatched_statement_amount)+'</strong></div>'
         +'</div><b>Sales by payment method</b>'+sales+'<b>Cashbook movements by payment method</b>'+flows
-        +'<div class="ops-muted">Refunds already recorded through the returns workflow are included as cashbook outflows. Do not record the same expense in both Expenses and Cashbook. Duplicate bank/mobile-money statement references are blocked during import.</div>';
+        +'<div class="ops-muted">Cash refunds recorded through the returns workflow are deducted from expected physical cash. Non-cash refunds are not deducted from the physical cash count. Do not record the same expense in both Expenses and Cashbook. Duplicate bank/mobile-money statement references are blocked during import.</div>';
       saveDailyCashCloseDraft(false);
     }catch(error){if(box)box.textContent='Expected cash preview failed: '+(error.message||error);say(error.message||'Expected cash preview failed.',true);}
   }
@@ -1006,7 +1007,7 @@
     const box=document.getElementById('wlDailyCloseRows');if(!box||!client||!business)return;
     box.textContent='Loading daily cash closes…';
     const {data,error}=await client.from('daily_cash_closings')
-      .select('id,branch_id,close_date,status,opening_cash_float,cash_sales,cashbook_cash_income,cashbook_cash_expense,expense_module_cash_expense,expected_cash,counted_cash,cash_variance,unmatched_statement_count,unmatched_statement_amount,flags,note,submitted_by,submitted_at,reviewed_by,reviewed_at,review_note,reopened_at,reopen_reason')
+      .select('id,branch_id,close_date,status,opening_cash_float,cash_sales,cashbook_cash_income,cashbook_cash_expense,expense_module_cash_expense,expected_cash,counted_cash,cash_variance,unmatched_statement_count,unmatched_statement_amount,flags,note,submitted_by,submitted_at,reviewed_by,reviewed_at,review_note,reopened_at,reopen_reason,cash_refunds,cash_refund_count')
       .eq('business_id',business.id).order('close_date',{ascending:false}).limit(80);
     if(error){box.textContent='Daily close history could not be loaded: '+error.message;return;}
     const canReview=['owner','admin','manager','accountant'].includes(memberRole);
@@ -1025,7 +1026,7 @@
       const reopen=canReopen&&['submitted','approved'].includes(row.status)?'<button type="button" data-wl-daily-reopen="'+esc(row.id)+'">Reopen close</button>':'';
       return '<article class="daily-close-card"><strong>'+esc(branchNames.get(row.branch_id)||'Branch')+' · '+esc(row.close_date)+'</strong>'
         +'<div class="ops-muted">'+esc(statusLabel[row.status]||row.status)+' · Submitted '+esc(new Date(row.submitted_at).toLocaleString())+'</div>'
-        +'<div class="daily-close-metrics"><span>Expected cash<b>'+cash(row.expected_cash)+'</b></span><span>Counted cash<b>'+cash(row.counted_cash)+'</b></span><span>Variance<b>'+cash(row.cash_variance)+'</b></span><span>Cash sales<b>'+cash(row.cash_sales)+'</b></span><span>Cashbook payments<b>'+cash(row.cashbook_cash_expense)+'</b></span><span>Cash expenses<b>'+cash(row.expense_module_cash_expense)+'</b></span></div>'
+        +'<div class="daily-close-metrics"><span>Expected cash<b>'+cash(row.expected_cash)+'</b></span><span>Counted cash<b>'+cash(row.counted_cash)+'</b></span><span>Variance<b>'+cash(row.cash_variance)+'</b></span><span>Cash sales<b>'+cash(row.cash_sales)+'</b></span><span>Cash refunds<b>'+cash(row.cash_refunds)+' · '+Number(row.cash_refund_count||0)+' refunds</b></span><span>Cashbook payments<b>'+cash(row.cashbook_cash_expense)+'</b></span><span>Cash expenses<b>'+cash(row.expense_module_cash_expense)+'</b></span></div>'
         +'<div class="ops-muted">Unmatched statement lines: '+Number(row.unmatched_statement_count||0)+' · '+cash(row.unmatched_statement_amount)+'</div>'
         +'<div>'+flagHtml+'</div>'+(row.note?'<div class="ops-muted">Closing note: '+esc(row.note)+'</div>':'')
         +(row.review_note?'<div class="ops-muted">Management note: '+esc(row.review_note)+'</div>':'')
