@@ -257,7 +257,7 @@ const WL_UI_COVERAGE_ROWS=[
 ["GPA points","Points de moyenne (GPA)","Puntos de GPA","نقاط المعدل التراكمي","GPA अंक","GPA学分点"],
 ["Cumulative GPA","Moyenne cumulative (GPA)","GPA acumulado","المعدل التراكمي","संचयी GPA","累计 GPA"],
 ["Courses completed","Cours terminés","Cursos completados","المقررات المكتملة","पूरे किए गए पाठ्यक्रम","已完成课程"],
-["Student portal failed to load.","Le portail étudiant n’a pas pu se charger.","No se pudo cargar el portal del estudiante.","تعذّر تحميل بوابة الطالب.","छात्र पोर्टल लोड नहीं हो सका।","学生门户加载失败。"]
+["Student portal failed to load.","Le portail étudiant n’a pas pu se charger.","No se pudo cargar el portal del estudiante.","تعذّر تحميل بوابة الطالب.","छात्र पोर्टल लोड नहीं हो सका।","学生门户加载失败。"],
 ["Sales counter","Caisse de vente","Mostrador de ventas","نقطة البيع","बिक्री काउंटर","销售柜台"],
 ["Scan · Add items · Review · Take payment","Scanner · Ajouter des articles · Vérifier · Encaisser","Escanear · Añadir artículos · Revisar · Cobrar","امسح · أضف العناصر · راجع · استلم الدفع","स्कैन करें · आइटम जोड़ें · समीक्षा करें · भुगतान लें","扫描 · 添加商品 · 核对 · 收款"],
 ["Secure local checkout","Paiement local sécurisé","Pago local seguro","إتمام دفع محلي آمن","सुरक्षित स्थानीय चेकआउट","安全本地结账"],
@@ -310,7 +310,7 @@ const WL_UI_COVERAGE_ROWS=[
 ["Sales name · no customer profile","Nom de vente · aucun profil client","Nombre de venta · sin perfil de cliente","اسم المبيعات · لا يوجد ملف عميل","बिक्री नाम · ग्राहक प्रोफ़ाइल नहीं","销售名称 · 无客户资料"],
 ["Purchase name · no supplier profile","Nom d’achat · aucun profil fournisseur","Nombre de compra · sin perfil de proveedor","اسم الشراء · لا يوجد ملف مورد","खरीद नाम · आपूर्तिकर्ता प्रोफ़ाइल नहीं","采购名称 · 无供应商资料"],
 ["Edit","Modifier","Editar","تعديل","संपादित करें","编辑"],
-["Delete","Supprimer","Eliminar","حذف","हटाएँ","删除"]
+["Delete","Supprimer","Eliminar","حذف","हटाएँ","删除"],
 ["SALES RECEIPT","REÇU DE VENTE","RECIBO DE VENTA","إيصال مبيعات","बिक्री रसीद","销售收据"],
 ["Item","Article","Artículo","عنصر","आइटम","商品"],
 ["Qty","Qté","Cant.","الكمية","मात्रा","数量"],
@@ -321,7 +321,7 @@ const WL_UI_COVERAGE_ROWS=[
 ["Payment","Paiement","Pago","الدفع","भुगतान","付款"],
 ["TOTAL","TOTAL","TOTAL","الإجمالي","कुल","总计"],
 ["Cash","Espèces","Efectivo","نقداً","नकद","现金"],
-["Credit","Crédit","Crédito","ائتمان","उधार","赊账"]
+["Credit","Crédit","Crédito","ائتمان","उधार","赊账"],
 ["This workspace subscription has expired.","L’abonnement de cet espace de travail a expiré.","La suscripción de este espacio de trabajo ha caducado.","انتهت صلاحية اشتراك مساحة العمل هذه.","इस कार्यक्षेत्र की सदस्यता समाप्त हो गई है।","此工作空间的订阅已到期。"],
 ["Opening local storage timed out. Close any other open tabs of this app and try again.","Le chargement du stockage local a expiré. Fermez les autres onglets de cette application et réessayez.","Se agotó el tiempo de espera del almacenamiento local. Cierra las otras pestañas de esta aplicación e inténtalo de nuevo.","انتهت مهلة فتح التخزين المحلي. أغلق أي علامات تبويب أخرى لهذا التطبيق ثم حاول مرة أخرى.","स्थानीय स्टोरेज खोलने का समय समाप्त हो गया। इस ऐप के अन्य खुले टैब बंद करें और फिर प्रयास करें।","打开本地存储超时。请关闭此应用的其他打开标签页，然后重试。"],
 ["You can view this business profile, but only its owner or an administrator can edit it.","Vous pouvez consulter ce profil d’entreprise, mais seul son propriétaire ou un administrateur peut le modifier.","Puedes ver este perfil empresarial, pero solo su propietario o un administrador puede editarlo.","يمكنك عرض ملف النشاط التجاري هذا، ولكن يمكن للمالك أو المسؤول فقط تعديله.","आप इस व्यवसाय प्रोफ़ाइल को देख सकते हैं, लेकिन केवल इसका स्वामी या व्यवस्थापक इसे संपादित कर सकता है।","您可以查看此企业资料，但只有所有者或管理员可以编辑。"],
@@ -353,6 +353,10 @@ const WL_UI_COVERAGE_ROWS=[
 ["Loading campus management…","Chargement de la gestion du campus…","Cargando la gestión del campus…","جارٍ تحميل إدارة الحرم الجامعي…","कैंपस प्रबंधन लोड हो रहा है…","正在加载校园管理…"]
 ];
 for(const row of WL_UI_COVERAGE_ROWS){
+ if(!Array.isArray(row)||row.length!==6||typeof row[0]!=='string'){
+  console.warn('Skipping an invalid language translation entry:',row);
+  continue;
+ }
  const [key,fr,es,ar,hi,zh]=row;
  LANGS.fr.t[key]=fr;LANGS.es.t[key]=es;LANGS.ar.t[key]=ar;LANGS.hi.t[key]=hi;LANGS.zh.t[key]=zh;
 }
