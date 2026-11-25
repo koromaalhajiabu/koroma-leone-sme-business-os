@@ -9,6 +9,7 @@ on:
       - 'manifest.webmanifest'
       - 'sw.js'
       - 'scripts/browser-smoke.mjs'
+      - 'scripts/business-application-catalog-smoke.mjs'
       - 'scripts/delivery-tracking-security-smoke.mjs'
       - '.github/workflows/browser-smoke.yml'
   workflow_dispatch:
@@ -45,6 +46,10 @@ jobs:
           WHITE_LION_TEST_EMAIL: ${{ secrets.WHITE_LION_TEST_EMAIL }}
           WHITE_LION_TEST_PASSWORD: ${{ secrets.WHITE_LION_TEST_PASSWORD }}
         run: node scripts/browser-smoke.mjs
+      - name: Verify all business application categories and search
+        env:
+          WHITE_LION_SMOKE_URL: http://127.0.0.1:4173/
+        run: node scripts/business-application-catalog-smoke.mjs
       - name: Verify delivery tracking renders untrusted fields as text
         env:
           WHITE_LION_SMOKE_URL: http://127.0.0.1:4173/
