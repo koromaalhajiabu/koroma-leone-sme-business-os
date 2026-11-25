@@ -21,7 +21,7 @@ const LANGS={
  'Activity days':'Jours d’activité',
  'Approved':'Approuvées',
  'Rejected':'Rejetées',
- 'Reopened':'R ouvertes',
+ 'Reopened':'Réouvertes',
  'Days without close':'Jours sans clôture',
  'Variance cases':'Cas d’écart',
  'Variance value':'Valeur de l’écart',
