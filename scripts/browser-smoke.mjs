@@ -123,6 +123,27 @@ async function runViewport(name, viewport) {
         side: side.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
       };
+      await choose(side, 'es');
+      const spanish = {
+        code: document.documentElement.lang,
+        top: top.value,
+        side: side.value,
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+      };
+      await choose(top, 'hi');
+      const hindi = {
+        code: document.documentElement.lang,
+        top: top.value,
+        side: side.value,
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+      };
+      await choose(side, 'zh');
+      const chinese = {
+        code: document.documentElement.lang,
+        top: top.value,
+        side: side.value,
+        overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+      };
       await choose(top, 'en');
       const english = {
         code: document.documentElement.lang,
@@ -130,7 +151,7 @@ async function runViewport(name, viewport) {
         side: side.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
       };
-      return { french, arabic, english };
+      return { french, arabic, spanish, hindi, chinese, english };
     });
     const frenchCopyPassed = [
       'Bon retour',
@@ -151,6 +172,15 @@ async function runViewport(name, viewport) {
       languageCheck.arabic.direction === 'rtl' &&
       languageCheck.arabic.top === 'ar' && languageCheck.arabic.side === 'ar' &&
       languageCheck.arabic.overview.includes('نظرة عامة');
+    const spanishPassed = languageCheck.spanish?.code === 'es' &&
+      languageCheck.spanish.top === 'es' && languageCheck.spanish.side === 'es' &&
+      languageCheck.spanish.overview.includes('Resumen');
+    const hindiPassed = languageCheck.hindi?.code === 'hi' &&
+      languageCheck.hindi.top === 'hi' && languageCheck.hindi.side === 'hi' &&
+      languageCheck.hindi.overview.includes('अवलोकन');
+    const chinesePassed = languageCheck.chinese?.code === 'zh' &&
+      languageCheck.chinese.top === 'zh' && languageCheck.chinese.side === 'zh' &&
+      !languageCheck.chinese.overview.includes('Overview');
     const englishPassed = languageCheck.english?.code === 'en' &&
       languageCheck.english.top === 'en' && languageCheck.english.side === 'en' &&
       languageCheck.english.overview.includes('Overview');
@@ -158,8 +188,11 @@ async function runViewport(name, viewport) {
       expectedFrench: ['Bon retour','Gérez votre entreprise','Un espace de travail connecté pour les ventes','Travaillez de partout','Aide et assistance'],
       forbiddenEnglish: ['Welcome back','Run your business','One connected workspace for sales','Work from anywhere','Help & Support']
     });
-    record(result, 'language selectors translate and synchronise French, Arabic and English', 
-      Boolean(frenchPassed && arabicPassed && englishPassed), languageCheck);
+    record(result, 'all six language choices translate navigation and synchronise both selectors',
+      Boolean(frenchPassed && arabicPassed && spanishPassed && hindiPassed && chinesePassed && englishPassed), {
+        french:languageCheck.french,arabic:languageCheck.arabic,spanish:languageCheck.spanish,
+        hindi:languageCheck.hindi,chinese:languageCheck.chinese,english:languageCheck.english
+      });
 
     if (viewport.isMobile) {
       const mobileLayout = await page.evaluate(() => {
