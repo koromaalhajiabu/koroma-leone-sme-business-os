@@ -70,6 +70,16 @@
     #wlOwnerDashboard .owner-track{height:6px;background:#edf3ee;border-radius:8px;overflow:hidden;margin:3px 0 5px}
     #wlOwnerDashboard .owner-track i{display:block;height:100%;background:#087a43;border-radius:8px}
     #wlOwnerDashboard .owner-track.expense i{background:#d59b36}
+    #wlOwnerCashControls{margin:14px 0 8px;padding:13px;border:1px solid #dce9df;border-radius:11px;background:#f9fcfa}
+    #wlOwnerCashControls .owner-control-note{margin:4px 0 10px;color:#718078;font-size:10px;line-height:1.55}
+    #wlOwnerCashControls table{width:100%;min-width:900px;border-collapse:collapse;font-size:10px}
+    #wlOwnerCashControls th,#wlOwnerCashControls td{text-align:right;padding:9px 7px;border-bottom:1px solid #e5eee7;white-space:nowrap}
+    #wlOwnerCashControls th:first-child,#wlOwnerCashControls td:first-child{text-align:left}
+    #wlOwnerCashControls th{color:#64776b;font-weight:800;background:#f1f7f2}
+    #wlOwnerCashControls td:first-child{font-weight:750;color:#17432b}
+    #wlOwnerCashControls .owner-cash-exceptions{margin-top:13px}
+    #wlOwnerCashControls .owner-cash-exceptions table{min-width:720px}
+    #wlOwnerCashControls .owner-control-foot{margin-top:9px;color:#718078;font-size:9px;line-height:1.5}
     @media(max-width:760px){#wlOwnerDashboard .owner-insight-grid,#wlOwnerDashboard .owner-decision-list{grid-template-columns:1fr}}
 
     @media(max-width:760px){#wlOwnerDashboard .owner-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#wlOwnerDashboard .owner-toolbar select{max-width:none;flex:1}}
@@ -91,6 +101,14 @@
         <div id="wlOwnerKpis" class="owner-kpis"></div>
          <div id="wlOwnerInsights"></div>
         <div class="owner-table-wrap"><div id="wlOwnerBranchRows" class="ops-muted">Branch results will appear here.</div></div>
+        <section id="wlOwnerCashControls">
+          <h4>DAILY FINANCIAL CONTROL</h4>
+          <div class="owner-control-note">Daily close status, cash-count variances and unmatched bank or mobile-money statement lines across every branch in the selected reporting period.</div>
+          <div id="wlOwnerCashControlKpis" class="owner-kpis"></div>
+          <div class="owner-table-wrap"><div id="wlOwnerCashControlBranches" class="ops-muted">Loading branch financial controls…</div></div>
+          <div id="wlOwnerCashExceptions" class="owner-cash-exceptions"></div>
+          <div class="owner-control-foot">Activity days are inferred from recorded sales, purchases, expenses, returns and cashbook movements. An activity day is counted as missing a close only when no submitted or approved daily close exists. Unmatched statement values are imported statement amounts, not live provider balances.</div>
+        </section>
         <div class="owner-foot">Sales are shown after recorded refunds. Purchases and expenses are recorded values, not verified cash payments. Cashbook is displayed separately. These management indicators are not audited profit or bank reconciliation.</div>
       </section>
       <details><summary>Cloud sync conflicts</summary><div id="wlOpsConflicts" class="ops-muted">No conflicts loaded.</div></details>
@@ -294,10 +312,13 @@
     document.getElementById('wlLedgerMemo').value='';document.getElementById('wlLedgerDebit').value='';document.getElementById('wlLedgerCredit').value='';
     say('Journal posted and locked: '+String(data).slice(0,8));await loadLedgerReport('trial');
   }
-  async function fetchBusinessRows(table,columns,orderColumn){
+  async function fetchBusinessRows(table,columns,orderColumn,fromDate=null,toDate=null){
     const rows=[],pageSize=1000;let offset=0;
     while(true){
-      const {data,error}=await client.from(table).select(columns).eq('business_id',business.id).order(orderColumn,{ascending:true}).range(offset,offset+pageSize-1);
+      let query=client.from(table).select(columns).eq('business_id',business.id).order(orderColumn,{ascending:true});
+      if(fromDate&&fromDate!=='0000-01-01')query=query.gte(orderColumn,fromDate);
+      if(toDate)query=query.lte(orderColumn,toDate);
+      const {data,error}=await query.range(offset,offset+pageSize-1);
       if(error)throw error;
       rows.push(...(data||[]));
       if(!data||data.length<pageSize)break;
@@ -316,14 +337,17 @@
       const prevEnd=days===null?null:new Date(start);if(prevEnd)prevEnd.setUTCDate(prevEnd.getUTCDate()-1);
       const prevStart=prevEnd?new Date(prevEnd):null;if(prevStart)prevStart.setUTCDate(prevStart.getUTCDate()-days+1);
       const key=d=>d.toISOString().slice(0,10),from=days===null?'0000-01-01':key(start),pFrom=prevStart?key(prevStart):null,pTo=prevEnd?key(prevEnd):null;
-      const [sales,purchases,expenses,returns,cashbook,transfers,stock]=await Promise.all([
+      const [sales,purchases,expenses,returns,cashbook,transfers,stock,dailyCloses,statementLines,bankAccounts]=await Promise.all([
         fetchBusinessRows('offline_sales','branch_id,total,transaction_date','transaction_date'),
         fetchBusinessRows('offline_purchases','branch_id,total,transaction_date','transaction_date'),
         fetchBusinessRows('expenses','branch_id,category,description,amount,expense_date','expense_date'),
         fetchBusinessRows('offline_sale_returns','branch_id,refund_total,created_at','created_at'),
         fetchBusinessRows('cashbook_entries','branch_id,entry_type,amount,entry_date','entry_date'),
         fetchBusinessRows('branch_stock_transfers','source_branch_id,destination_branch_id,status,requested_at','requested_at'),
-        fetchBusinessRows('branch_inventory','branch_id,quantity_on_hand','branch_id')
+        fetchBusinessRows('branch_inventory','branch_id,quantity_on_hand','branch_id'),
+        fetchBusinessRows('daily_cash_closings','branch_id,close_date,status,cash_variance,expected_cash,counted_cash,flags,submitted_at','close_date',from,today),
+        fetchBusinessRows('bank_statement_lines','bank_account_id,transaction_date,description,reference,amount,direction,status','transaction_date',from,today),
+        fetchBusinessRows('bank_accounts','id,branch_id,account_name,institution_name,account_type','account_name')
       ]);
       const inRange=(v,lo,hi=today)=>{const d=String(v||'').slice(0,10);return !!d&&d>=lo&&d<=hi;};
       const make=(id,name)=>({id,name,sales:0,refunds:0,purchases:0,expenses:0,cash:0,stock:0});
@@ -336,6 +360,83 @@
       const sum=(map,k)=>[...map.values()].reduce((n,x)=>n+(k==='net'?x.sales-x.refunds:Number(x[k]||0)),0),net=sum(current,'net'),prevNet=sum(prior,'net'),totalPurchases=sum(current,'purchases'),totalExpenses=sum(current,'expenses'),cash=sum(current,'cash');
       const delta=(now,before)=>before>0?((now-before)/before*100):null,change=(now,before)=>{const p=delta(now,before);return p===null?'No previous baseline':(p>0?'+':'')+p.toFixed(1)+'% vs previous period';},fmt=money;
       const tile=(n,v,note='')=>'<div class="owner-kpi"><span>'+n+'</span><strong>'+v+'</strong><small>'+esc(note)+'</small></div>';
+      const controlMap=new Map();
+      const makeControl=(id,name)=>({id,name,activityDays:new Set(),approved:0,pending:0,rejected:0,reopened:0,missing:0,varianceCases:0,varianceAbs:0,unmatchedCount:0,unmatchedAmount:0});
+      branches.forEach(branch=>controlMap.set(String(branch.id),makeControl(String(branch.id),branch.name)));
+      const controlRow=(id)=>{const key=id?String(id):'unassigned';if(!controlMap.has(key))controlMap.set(key,makeControl(key,key==='unassigned'?'Unassigned / business-wide':'Branch not currently active'));return controlMap.get(key);};
+      const localDay=value=>{
+        const raw=String(value||'');if(/^\\d{4}-\\d{2}-\\d{2}$/.test(raw))return raw;
+        const dateValue=new Date(raw);if(Number.isNaN(dateValue.getTime()))return raw.slice(0,10);
+        const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Africa/Freetown',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(dateValue);
+        const part=name=>parts.find(x=>x.type===name)?.value||'';
+        return part('year')+'-'+part('month')+'-'+part('day');
+      };
+      const activity=(branchId,dateValue)=>{const date=localDay(dateValue);if(date&&inRange(date,from,today))controlRow(branchId).activityDays.add(date);};
+      sales.forEach(x=>activity(x.branch_id,x.transaction_date));
+      purchases.forEach(x=>activity(x.branch_id,x.transaction_date));
+      expenses.forEach(x=>activity(x.branch_id,x.expense_date));
+      cashbook.forEach(x=>activity(x.branch_id,x.entry_date));
+      returns.forEach(x=>activity(x.branch_id,x.created_at));
+      const acceptedCloseDays=new Set(),varianceExceptions=[];
+      (dailyCloses||[]).forEach(close=>{
+        const item=controlRow(close.branch_id),closeDate=localDay(close.close_date);
+        const closeKey=String(item.id)+'|'+closeDate;
+        if(close.status==='approved'){item.approved++;acceptedCloseDays.add(closeKey);}
+        else if(close.status==='submitted'){item.pending++;acceptedCloseDays.add(closeKey);}
+        else if(close.status==='rejected')item.rejected++;
+        else if(close.status==='reopened')item.reopened++;
+        const variance=Number(close.cash_variance||0);
+        if(Math.abs(variance)>0.01){
+          item.varianceCases++;item.varianceAbs+=Math.abs(variance);
+          varianceExceptions.push({date:closeDate,branch:item.name,type:'Cash variance',status:close.status,amount:variance,details:'Expected '+fmt(close.expected_cash)+' · Counted '+fmt(close.counted_cash)});
+        }
+      });
+      for(const item of controlMap.values()){
+        item.missing=[...item.activityDays].filter(day=>!acceptedCloseDays.has(item.id+'|'+day)).length;
+      }
+      const accountMap=new Map((bankAccounts||[]).map(account=>[String(account.id),account]));
+      const unmatchedExceptions=[];
+      (statementLines||[]).filter(line=>line.status==='unmatched').forEach(line=>{
+        const account=accountMap.get(String(line.bank_account_id));
+        const item=controlRow(account?.branch_id||null);
+        item.unmatchedCount++;item.unmatchedAmount+=Number(line.amount||0);
+        unmatchedExceptions.push({
+          date:localDay(line.transaction_date),branch:item.name,type:'Unmatched statement',status:'Unmatched',
+          amount:Number(line.amount||0),
+          details:[account?.account_name,account?.institution_name,line.direction?.toUpperCase(),line.description,line.reference?'Ref '+line.reference:''].filter(Boolean).join(' · ')
+        });
+      });
+      const controlRows=[...controlMap.values()].sort((a,b)=>a.name.localeCompare(b.name));
+      const controlTotals=controlRows.reduce((acc,item)=>{
+        ['approved','pending','rejected','reopened','missing','varianceCases','unmatchedCount'].forEach(key=>acc[key]+=item[key]);
+        acc.varianceAbs+=item.varianceAbs;acc.unmatchedAmount+=item.unmatchedAmount;acc.activityDays+=item.activityDays.size;
+        return acc;
+      },{approved:0,pending:0,rejected:0,reopened:0,missing:0,varianceCases:0,varianceAbs:0,unmatchedCount:0,unmatchedAmount:0,activityDays:0});
+      const cashControlKpis=document.getElementById('wlOwnerCashControlKpis');
+      if(cashControlKpis){
+        cashControlKpis.innerHTML=
+          tile('Daily closes',controlTotals.approved+controlTotals.pending,'Approved or awaiting management review')+
+          tile('Awaiting review',controlTotals.pending,'Submitted daily closes')+
+          tile('Activity days without a close',controlTotals.missing,'Days with recorded activity but no submitted or approved close')+
+          tile('Cash variance cases',controlTotals.varianceCases,fmt(controlTotals.varianceAbs)+' absolute variance')+
+          tile('Unmatched statement lines',controlTotals.unmatchedCount,'Bank and mobile-money imports')+
+          tile('Unmatched statement value',fmt(controlTotals.unmatchedAmount),'Total imported unmatched amount');
+      }
+      const controlTable=document.getElementById('wlOwnerCashControlBranches');
+      if(controlTable){
+        controlTable.innerHTML=controlRows.length?'<table><thead><tr><th>Branch</th><th>Activity days</th><th>Approved</th><th>Awaiting review</th><th>Rejected</th><th>Reopened</th><th>Days without close</th><th>Variance cases</th><th>Variance value</th><th>Unmatched lines</th><th>Unmatched value</th></tr></thead><tbody>'+
+          controlRows.map(item=>'<tr><td>'+esc(item.name)+'</td><td>'+item.activityDays.size+'</td><td>'+item.approved+'</td><td>'+item.pending+'</td><td>'+item.rejected+'</td><td>'+item.reopened+'</td><td>'+item.missing+'</td><td>'+item.varianceCases+'</td><td>'+fmt(item.varianceAbs)+'</td><td>'+item.unmatchedCount+'</td><td>'+fmt(item.unmatchedAmount)+'</td></tr>').join('')+
+          '</tbody><tfoot><tr><th>Business total</th><th>'+controlTotals.activityDays+'</th><th>'+controlTotals.approved+'</th><th>'+controlTotals.pending+'</th><th>'+controlTotals.rejected+'</th><th>'+controlTotals.reopened+'</th><th>'+controlTotals.missing+'</th><th>'+controlTotals.varianceCases+'</th><th>'+fmt(controlTotals.varianceAbs)+'</th><th>'+controlTotals.unmatchedCount+'</th><th>'+fmt(controlTotals.unmatchedAmount)+'</th></tr></tfoot></table>'
+          :'<div class="ops-row">No branch financial-control records are available for this period.</div>';
+      }
+      const exceptionRows=[...varianceExceptions,...unmatchedExceptions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+      const exceptionBox=document.getElementById('wlOwnerCashExceptions');
+      if(exceptionBox){
+        exceptionBox.innerHTML='<b>Recent exceptions · latest 30</b>'+(exceptionRows.length?
+          '<div class="owner-table-wrap"><table><thead><tr><th>Date</th><th>Branch</th><th>Type</th><th>Status</th><th>Amount</th><th>Details</th></tr></thead><tbody>'+
+          exceptionRows.map(item=>'<tr><td>'+esc(item.date)+'</td><td>'+esc(item.branch)+'</td><td>'+esc(item.type)+'</td><td>'+esc(item.status)+'</td><td>'+fmt(item.amount)+'</td><td>'+esc(item.details)+'</td></tr>').join('')+
+          '</tbody></table></div>':'<div class="ops-row">No cash variances or unmatched statement lines were found in this period.</div>');
+      }
       kpis.innerHTML=tile('Active branches',branches.length,'Current active locations')+tile('Net sales',fmt(net),pFrom?change(net,prevNet):'All available records')+tile('Purchases',fmt(totalPurchases),pFrom?change(totalPurchases,sum(prior,'purchases')):'Selected period')+tile('Operating expenses',fmt(totalExpenses),pFrom?change(totalExpenses,sum(prior,'expenses')):'Selected period')+tile('Pending transfers',transfers.filter(x=>x.status==='pending').length,'Awaiting approval')+tile('Cashbook net',fmt(cash),'Recorded income less expenses');
       label.textContent=(period==='all'?'All available records':'Last '+period+' days')+' · Updated '+new Date().toLocaleTimeString();
       table.innerHTML=rows.length?'<table><thead><tr><th>Rank</th><th>Branch</th><th>Net sales</th><th>Sales change</th><th>Purchases</th><th>Expenses</th><th>Cashbook net</th><th>Stock units</th></tr></thead><tbody>'+rows.map((x,i)=>{const p=priorMap.get(x.id),v=p?change(x.net,p.sales-p.refunds):'No previous branch data';return '<tr><td>'+(i+1)+'</td><td>'+esc(x.name)+'</td><td>'+fmt(x.net)+'</td><td>'+esc(v)+'</td><td>'+fmt(x.purchases)+'</td><td>'+fmt(x.expenses)+'</td><td>'+fmt(x.cash)+'</td><td>'+x.stock.toLocaleString(undefined,{maximumFractionDigits:3})+'</td></tr>';}).join('')+'</tbody><tfoot><tr><th colspan="2">Business total</th><th>'+fmt(net)+'</th><th>—</th><th>'+fmt(totalPurchases)+'</th><th>'+fmt(totalExpenses)+'</th><th>'+fmt(cash)+'</th><th>—</th></tr></tfoot></table>':'No branch performance records are available yet.';
@@ -364,7 +465,7 @@
       const months=[];for(let i=5;i>=0;i--){const d=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()-i,1)),m=key(d).slice(0,7),s=sales.filter(x=>String(x.transaction_date||'').slice(0,7)===m).reduce((n,x)=>n+Number(x.total||0),0),r=returns.filter(x=>String(x.created_at||'').slice(0,7)===m).reduce((n,x)=>n+Number(x.refund_total||0),0),e=expenses.filter(x=>String(x.expense_date||'').slice(0,7)===m).reduce((n,x)=>n+Number(x.amount||0),0);months.push({label:d.toLocaleDateString(undefined,{month:'short',year:'2-digit'}),sales:Math.max(0,s-r),expenses:e});}
       const max=Math.max(1,...months.flatMap(x=>[x.sales,x.expenses])),trend=months.map(x=>'<div class="owner-trend-row"><span>'+x.label+'</span><div><small>Net sales · '+fmt(x.sales)+'</small><div class="owner-track"><i style="width:'+(x.sales/max*100).toFixed(1)+'%"></i></div><small>Expenses · '+fmt(x.expenses)+'</small><div class="owner-track expense"><i style="width:'+(x.expenses/max*100).toFixed(1)+'%"></i></div></div></div>').join('');
       insights.innerHTML=decisionHtml+'<div class="owner-insight-grid"><section><b>Performance alerts</b>'+(alerts.join('')||'<div class="owner-alert neutral">No threshold alerts for this period.</div>')+'</section><section><b>Six-month revenue & expense trend</b><div class="owner-trend-legend"><span>Net sales</span><span>Expenses</span></div>'+trend+'</section></div><div class="owner-foot">Comparisons use equal-length calendar-day periods. Trend figures are business-wide and include unassigned records. Alerts are review indicators, not proof of cause.</div>';
-    }catch(error){label.textContent='Dashboard could not be refreshed.';table.textContent='Could not load consolidated branch data: '+(error?.message||String(error));insights.textContent='Comparisons and trends are unavailable until source records load.';}
+    }catch(error){label.textContent='Dashboard could not be refreshed.';table.textContent='Could not load consolidated branch data: '+(error?.message||String(error));insights.textContent='Comparisons and trends are unavailable until source records load.';const control=document.getElementById('wlOwnerCashControlBranches');if(control)control.textContent='Financial controls could not be loaded: '+(error?.message||String(error));const kpi=document.getElementById('wlOwnerCashControlKpis');if(kpi)kpi.textContent='Financial control totals are unavailable.';const exceptions=document.getElementById('wlOwnerCashExceptions');if(exceptions)exceptions.textContent='Recent financial exceptions are unavailable.';}
   }
   async function renderConflicts(){
     const el=document.getElementById('wlOpsConflicts');if(!el)return;
