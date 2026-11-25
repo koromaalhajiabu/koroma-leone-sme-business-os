@@ -292,7 +292,7 @@ function translateString(value){
  for(const key of keys){
   const translated=translationMaps[current].get(key);
   if(typeof translated!=='string'||!translated)continue;
-  const escaped=key.replace(/[.*+?^$()|[\\]\\\\]/g,'\\\\$&');
+  const escaped=key.split('').map(char=>'.*+?^$()|[]\\\\'.includes(char)?'\\\\'+char:char).join('');
   const pattern=new RegExp('(^|[^A-Za-z0-9])('+escaped+')(?=$|[^A-Za-z0-9])','gi');
   result=result.replace(pattern,(match,prefix)=>prefix+translated);
  }
