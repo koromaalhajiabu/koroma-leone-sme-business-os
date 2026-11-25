@@ -75,7 +75,7 @@ const APP_SHELL=[
   './dynamic-login.js?v=3',
   './public-leagues.html',
   './public-league.html',
-  './public-leagues.webmanifest?v=3'
+  './public-leagues.webmanifest?v=3',
   './club-apply.html',
   './customer-support/index.html',
   './diagnostics.html',

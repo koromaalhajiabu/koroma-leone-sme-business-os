@@ -83,6 +83,13 @@ async function runViewport(name, viewport) {
         select.dispatchEvent(new Event('change', { bubbles: true }));
         await new Promise(resolve => setTimeout(resolve, 80));
       };
+      const operationCoverage = () => ({
+        employee: window.wlTranslateText?.('Employee directory') || '',
+        inventory: window.wlTranslateText?.('Barcode lookup & scanning') || '',
+        accounting: window.wlTranslateText?.('Cloud accounting snapshot') || '',
+        attendance: window.wlTranslateText?.('Staff attendance register') || '',
+        dynamicCounts: window.wlTranslateText?.('0 sales, 0 purchases and 0 expense records.') || ''
+      });
       const guardedScript = document.querySelector('#wl-appearance-controller');
       window.__wlAppearanceScriptBefore = guardedScript?.textContent || '';
       await choose(top, 'fr');
@@ -163,6 +170,7 @@ async function runViewport(name, viewport) {
       french.alertSingular = window.wlTranslateText?.('Alert') || '';
       french.receiptTitle = window.wlTranslateText?.('SALES RECEIPT') || '';
       french.dialogText = window.wlTranslateText?.('Delete this record?') || '';
+      french.operationsCoverage = operationCoverage();
       mixedProbe.remove();
 
       await choose(side, 'ar');
@@ -172,6 +180,7 @@ async function runViewport(name, viewport) {
         top: top.value,
         side: side.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        operationsCoverage: operationCoverage()
       };
       await choose(side, 'es');
       const spanish = {
@@ -179,6 +188,7 @@ async function runViewport(name, viewport) {
         top: top.value,
         side: side.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        operationsCoverage: operationCoverage()
       };
       await choose(top, 'hi');
       const hindi = {
@@ -186,6 +196,7 @@ async function runViewport(name, viewport) {
         top: top.value,
         side: side.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        operationsCoverage: operationCoverage()
       };
       await choose(side, 'zh');
       const chinese = {
@@ -193,6 +204,7 @@ async function runViewport(name, viewport) {
         top: top.value,
         side: side.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || ''
+        operationsCoverage: operationCoverage()
       };
       await choose(top, 'en');
       const english = {
@@ -277,6 +289,27 @@ async function runViewport(name, viewport) {
     const englishPassed = languageCheck.english?.code === 'en' &&
       languageCheck.english.top === 'en' && languageCheck.english.side === 'en' &&
       languageCheck.english.overview.includes('Overview');
+    const expectedOperations = {
+      fr: { employee:'Répertoire des employés', inventory:'Recherche et scan de codes-barres', accounting:'Aperçu de la comptabilité cloud', attendance:'Registre de présence du personnel', dynamicCounts:'0 vente, 0 achat et 0 écriture de dépense.' },
+      es: { employee:'Directorio de empleados', inventory:'Búsqueda y escaneo de códigos de barras', accounting:'Resumen de contabilidad en la nube', attendance:'Registro de asistencia del personal', dynamicCounts:'0 ventas, 0 compras y 0 registros de gastos.' },
+      ar: { employee:'دليل الموظفين', inventory:'البحث عن الرموز الشريطية ومسحها', accounting:'لمحة عن المحاسبة السحابية', attendance:'سجل حضور الموظفين', dynamicCounts:'0 مبيعات و0 مشتريات و0 سجلات مصروفات.' },
+      hi: { employee:'कर्मचारी निर्देशिका', inventory:'बारकोड खोज और स्कैनिंग', accounting:'क्लाउड लेखांकन स्नैपशॉट', attendance:'कर्मचारी उपस्थिति रजिस्टर', dynamicCounts:'0 बिक्री, 0 खरीद और 0 व्यय रिकॉर्ड।' },
+      zh: { employee:'员工目录', inventory:'条码查询与扫描', accounting:'云端会计概览', attendance:'员工考勤登记', dynamicCounts:'0 笔销售、0 笔采购和 0 条费用记录。' }
+    };
+    const operationsLanguagePassed = Object.entries(expectedOperations).every(([code, expected]) =>
+      Object.entries(expected).every(([key, value]) => languageCheck[({fr:'french',es:'spanish',ar:'arabic',hi:'hindi',zh:'chinese'})[code]]?.operationsCoverage?.[key] === value)
+    );
+    record(result, 'inventory, accounting, payroll and dynamic transaction messages translate in all five languages',
+      operationsLanguagePassed, {
+        expected: expectedOperations,
+        actual: {
+          fr:languageCheck.french?.operationsCoverage,
+          es:languageCheck.spanish?.operationsCoverage,
+          ar:languageCheck.arabic?.operationsCoverage,
+          hi:languageCheck.hindi?.operationsCoverage,
+          zh:languageCheck.chinese?.operationsCoverage
+        }
+      });
     record(result, 'French translates the public sign-in copy and extended navigation', frenchCopyPassed, {
       expectedFrench: ['Bon retour','Gérez votre entreprise','Un espace de travail connecté pour les ventes','Travaillez de partout','Aide et assistance'],
       forbiddenEnglish: ['Welcome back','Run your business','One connected workspace for sales','Work from anywhere','Help & Support']
