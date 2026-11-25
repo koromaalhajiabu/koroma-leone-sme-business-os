@@ -1156,7 +1156,7 @@ async function render(){
    <p class="klt-overview-note">*Operating balance is recorded sales less recorded expenses. It is not formal net profit and excludes other accounting adjustments.</p>
   </section>\`;
   document.getElementById('newSale').onclick=()=>setPage('sales');
-  v.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setPage(b.dataset.go));
+  v.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='storefront'?window.location.assign('./storefront.html'):setPage(b.dataset.go));
   return;
  }
  if(state.page==='settings'){
