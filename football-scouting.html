@@ -310,7 +310,8 @@ async function loadVerifiedScoutDirectory(){
  const rows=r.data||[];
  node.innerHTML=rows.length?rows.map(x=>'<div class="scout-row"><div><strong>'+esc(x.full_name)+' · '+esc(x.organisation)+'</strong><span class="meta">'+esc(x.job_title||'Professional scout')+' · '+esc(x.country)+(x.years_experience!==null?' · '+x.years_experience+' years experience':'')+'</span>'+(x.scouting_specialties?.length?'<p class="hint">Specialities: '+esc(x.scouting_specialties.join(', '))+'</p>':'')+(x.professional_profile_url?'<a href="'+esc(safeUrl(x.professional_profile_url))+'" target="_blank" rel="noopener">Professional profile ↗</a> ':'')+(x.website_url?'<a href="'+esc(safeUrl(x.website_url))+'" target="_blank" rel="noopener">Organisation ↗</a>':'')+'</div>'+(x.public_contact_email?'<a class="soft" href="mailto:'+esc(x.public_contact_email)+'">Contact</a>':'')+'</div>').join(''):'<div class="empty">No scouts have opted into the public directory yet. Verified status does not automatically publish contact details.</div>';
 }
-\nasync function loadMyEnquiries(){
+
+async function loadMyEnquiries(){
  if(!session)return;
  const r=await db.from('football_scout_enquiries').select('id,scout_user_id,enquiry_type,message,status,club_response,created_at,profile:football_player_discovery_profiles(public_name,public_slug),club:football_club_websites(club_name,slug)').eq('scout_user_id',session.user.id).order('created_at',{ascending:false}).limit(100);
  if(r.error){el('scout-session').insertAdjacentHTML('beforeend','<p class="hint">'+esc(r.error.message)+'</p>');return;}
@@ -331,7 +332,7 @@ async function loadDeveloperReview(){
    :x.verification_status==='verified'
     ?'<button class="soft" data-review-scout="'+x.id+'" data-decision="suspended">Suspend</button>'
     :'<button class="dark" data-review-scout="'+x.id+'" data-decision="verified">Restore as verified</button>';
-  return '<div class="scout-row"><div><strong>'+esc(x.full_name)+' · '+esc(x.organisation)+'</strong><span class="meta">'+esc(x.job_title||'Scout')+' · '+esc(x.contact_email)+' · '+esc(x.country)+'</span><br><span class="verify">'+esc(x.verification_status.toUpperCase())+'</span>'+(x.website_url?'<br><a href="'+esc(safeUrl(x.website_url))+'" target="_blank" rel="noopener">Organisation website ↗</a>':'')+(x.verification_comment?'<p class="hint">Review note: '+esc(x.verification_comment)+'</p>':'')+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+decisionButtons+'</div></div>';
+  return '<div class="scout-row"><div><strong>'+esc(x.full_name)+' · '+esc(x.organisation)+'</strong><span class="meta">'+esc(x.job_title||'Scout')+' · '+esc(x.contact_email)+' · '+esc(x.country)+'</span><br><span class="verify">'+esc(x.verification_status.toUpperCase())+'</span>'+(x.website_url?'<br><a href="'+esc(safeUrl(x.website_url))+'" target="_blank" rel="noopener">Organisation website ↗</a>':'')+(x.professional_profile_url?'<br><a href="'+esc(safeUrl(x.professional_profile_url))+'" target="_blank" rel="noopener">Professional profile ↗</a>':'')+(x.verification_evidence_url?'<br><a href="'+esc(safeUrl(x.verification_evidence_url))+'" target="_blank" rel="noopener">Verification reference ↗</a>':'')+(x.reference_contact_name?'<p class="hint">Reference: '+esc(x.reference_contact_name)+' · '+esc(x.reference_contact_email||'')+'</p>':'')+(x.scouting_specialties?.length?'<p class="hint">Specialities: '+esc(x.scouting_specialties.join(', '))+'</p>':'')+(x.verification_comment?'<p class="hint">Review note: '+esc(x.verification_comment)+'</p>':'')+'</div><div style="display:flex;gap:6px;flex-wrap:wrap">'+decisionButtons+'</div></div>';
  }).join(''):'<div class="empty">No scout accounts have been registered yet.</div>';
  el('pending-scouts').querySelectorAll('[data-review-scout]').forEach(b=>b.onclick=async()=>{
   const decision=b.dataset.decision;
@@ -366,7 +367,7 @@ async function refreshSession(){
   }
   const accountStatus=esc(scoutAccount.verification_status);
   el('scout-session').innerHTML='<div class="player-top"><strong>'+esc(scoutAccount.full_name)+'</strong><span class="verify">'+(scoutAccount.verification_status==='verified'?'VERIFIED':'ACCOUNT '+accountStatus.toUpperCase())+'</span></div><p class="meta">'+esc(scoutAccount.organisation)+' · '+esc(scoutAccount.country)+'</p><p class="hint">Signed in as '+esc(session.user.email)+'. '+(scoutAccount.verification_status==='verified'?'You can send enquiries to clubs.':'Your account is awaiting platform review or needs attention.')+'</p><details style="margin:12px 0"><summary style="cursor:pointer;font-size:11px;font-weight:850;color:#075b35">Edit professional scout profile</summary><form id="scout-profile-edit" class="form-grid" style="margin-top:12px"><div class="field"><label>Full name</label><input name="full_name" required value="'+esc(scoutAccount.full_name)+'"></div><div class="field"><label>Organisation</label><input name="organisation" required value="'+esc(scoutAccount.organisation)+'"></div><div class="field"><label>Professional role</label><input name="job_title" value="'+esc(scoutAccount.job_title||'')+'"></div><div class="field"><label>Country</label><input name="country" required value="'+esc(scoutAccount.country)+'"></div><div class="field"><label>Contact email</label><input name="contact_email" type="email" required value="'+esc(scoutAccount.contact_email)+'"></div><div class="field"><label>Organisation website</label><input name="website_url" type="url" value="'+esc(scoutAccount.website_url||'')+'"></div>
-            <div class="field"><label>Years of scouting experience</label><input name="years_experience" type="number" min="0" max="60" value="0" value="'+esc(scoutAccount.years_experience??0)+'"></div>
+            <div class="field"><label>Years of scouting experience</label><input name="years_experience" type="number" min="0" max="60" value="'+esc(scoutAccount.years_experience??0)+'"></div>
             <div class="field"><label>Scouting specialities (comma-separated)</label><input name="scouting_specialties" maxlength="300" placeholder="Youth development, West Africa, forwards" value="'+esc((scoutAccount.scouting_specialties||[]).join(', '))+'"></div>
             <div class="field"><label>Professional profile URL</label><input name="professional_profile_url" type="url" placeholder="LinkedIn or club profile URL" value="'+esc(scoutAccount.professional_profile_url||'')+'"></div>
             <div class="field"><label>Credential / public reference URL</label><input name="verification_evidence_url" type="url" placeholder="Public professional credential or organisation page" value="'+esc(scoutAccount.verification_evidence_url||'')+'"></div>
@@ -439,6 +440,7 @@ db.auth.onAuthStateChange((_event,newSession)=>{
  try{
   if(clubParam){el('search').placeholder='Showing published profiles for this club';}
   await loadDirectory();
+  await loadVerifiedScoutDirectory();
   await refreshSession();
  }catch(error){el('players').innerHTML='<div class="empty">'+esc(error.message||'Portal loading failed')+'</div>';}
 })();
