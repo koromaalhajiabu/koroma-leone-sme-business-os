@@ -197,7 +197,7 @@ No players, transfer offers, fees, scout reports or sample clubs are seeded. Clu
 
 ## Football Club Onboarding & Verification
 
-- Public club application: `football-club-apply.html`
+- Public club application (unified business registration): `business-application.html?application=football-club`
 - Developer review module: `football-club-onboarding-admin.js`
 - Public website verification badge: `club-website.html`
 - Club manager workspace: sign in through `index.html`; the Football Club Website Studio opens automatically for the `Sports & Local League Management` workspace.
