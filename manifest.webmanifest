@@ -1,5 +1,5 @@
 {
-  "name": "Koroma Leone Tech Business Operating System",
+  "name": "Koroma Leone Tech SME Business OS",
   "short_name": "Koroma Leone Tech",
   "id": "./?app=koroma-leone-tech-v5",
   "start_url": "./?app=koroma-leone-tech-v5",
@@ -12,8 +12,20 @@
   "orientation": "any",
   "background_color": "#f4f8f5",
   "theme_color": "#087a43",
-  "description": "Multi-industry business operations platform by Koroma Leone Tech.",
+  "description": "Multi-industry business operating system by Koroma Leone Tech.",
   "icons": [
+    {
+      "src": "./icons/white-lion-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/white-lion-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "./icons/koroma-leone-tech-crest.svg?v=3",
       "sizes": "any",
