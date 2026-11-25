@@ -28,12 +28,242 @@ extraWords.es.businessTypePlaceholder='p. ej. proveedor de materiales de constru
 extraWords.ar.businessTypePlaceholder='مثال: مورد مواد البناء';extraWords.ar.clubWebsiteSlugPlaceholder='نموذج-نادي-الاتحاد';extraWords.ar.websiteUrlPlaceholder='https://';extraWords.ar.industrySports='الرياضة وإدارة الدوريات المحلية';extraWords.ar.footballClubType='نادي كرة قدم';
 extraWords.hi.businessTypePlaceholder='उदाहरण: निर्माण सामग्री आपूर्तिकर्ता';extraWords.hi.clubWebsiteSlugPlaceholder='example-united-fc';extraWords.hi.websiteUrlPlaceholder='https://';extraWords.hi.industrySports='खेल और स्थानीय लीग प्रबंधन';extraWords.hi.footballClubType='फुटबॉल क्लब';
 extraWords.zh.businessTypePlaceholder='例如：建筑材料供应商';extraWords.zh.clubWebsiteSlugPlaceholder='示例-united-fc';extraWords.zh.websiteUrlPlaceholder='https://';extraWords.zh.industrySports='体育与本地联赛管理';extraWords.zh.footballClubType='足球俱乐部';
+
+Object.assign(extraWords.en,{
+  chooseIndustry:'Choose an industry',chooseBusinessType:'Choose a business type',
+  businessTypeSearchLabel:'Search all 111 supported business types',
+  businessTypeSearchPlaceholder:'Type a business name to find it',
+  businessTypeSearchHint:'All available business types are grouped by industry. Choosing a type also selects its industry.',
+  businessTypeHint:'111 supported business types are available, plus a custom option.',
+  businessTypeCustom:'Enter your business type *',customBusinessTypePlaceholder:'Type your business',
+  customBusinessTypeOption:'My business type is not listed — enter it',
+  customBusinessTypeGroup:'Other business type',
+  industryRetail:'Retail and trading',industryFood:'Food, hospitality and entertainment',
+  industryHospitals:'Hospitals and healthcare facilities',industryHealthcare:'Healthcare and pharmaceutical',
+  industryAutomotive:'Automotive and transport',industryConstruction:'Construction and industrial',
+  industryProfessional:'Professional and personal services',industryEducation:'Education and training',
+  industryAgriculture:'Agriculture and fisheries',industryProperty:'Property and rental',
+  industryFinancial:'Financial and administrative services',industrySports:'Sports and local league management',
+  industryGeneral:'General and multi-industry'
+});
+Object.assign(extraWords.fr,{
+  chooseIndustry:'Choisissez un secteur',chooseBusinessType:'Choisissez un type d’activité',
+  businessTypeSearchLabel:'Rechercher parmi les 111 types d’entreprise',
+  businessTypeSearchPlaceholder:'Saisissez un nom d’activité pour le trouver',
+  businessTypeSearchHint:'Tous les types sont regroupés par secteur. Le choix d’un type sélectionne aussi son secteur.',
+  businessTypeHint:'111 types d’entreprise sont disponibles, avec une option personnalisée.',
+  businessTypeCustom:'Précisez votre type d’activité *',customBusinessTypePlaceholder:'Saisissez votre activité',
+  customBusinessTypeOption:'Mon activité n’est pas répertoriée — la saisir',
+  customBusinessTypeGroup:'Autre type d’activité',
+  industryRetail:'Commerce de détail et négoce',industryFood:'Restauration, hôtellerie et divertissement',
+  industryHospitals:'Hôpitaux et établissements de santé',industryHealthcare:'Santé et pharmacie',
+  industryAutomotive:'Automobile et transport',industryConstruction:'Construction et industrie',
+  industryProfessional:'Services professionnels et personnels',industryEducation:'Éducation et formation',
+  industryAgriculture:'Agriculture et pêche',industryProperty:'Immobilier et location',
+  industryFinancial:'Services financiers et administratifs',industrySports:'Sport et gestion des ligues locales',
+  industryGeneral:'Activités générales et multisectorielles'
+});
+Object.assign(extraWords.es,{
+  chooseIndustry:'Elige un sector',chooseBusinessType:'Elige un tipo de negocio',
+  businessTypeSearchLabel:'Buscar entre los 111 tipos de negocio disponibles',
+  businessTypeSearchPlaceholder:'Escribe el nombre de un negocio',
+  businessTypeSearchHint:'Todos los tipos están agrupados por sector. Al elegir un tipo también se selecciona su sector.',
+  businessTypeHint:'Hay 111 tipos de negocio disponibles y una opción personalizada.',
+  businessTypeCustom:'Especifica tu tipo de negocio *',customBusinessTypePlaceholder:'Escribe tu negocio',
+  customBusinessTypeOption:'Mi negocio no aparece — escribirlo',
+  customBusinessTypeGroup:'Otro tipo de negocio',
+  industryRetail:'Comercio minorista y distribución',industryFood:'Alimentación, hostelería y entretenimiento',
+  industryHospitals:'Hospitales y centros sanitarios',industryHealthcare:'Salud y productos farmacéuticos',
+  industryAutomotive:'Automoción y transporte',industryConstruction:'Construcción e industria',
+  industryProfessional:'Servicios profesionales y personales',industryEducation:'Educación y formación',
+  industryAgriculture:'Agricultura y pesca',industryProperty:'Inmobiliaria y alquiler',
+  industryFinancial:'Servicios financieros y administrativos',industrySports:'Deportes y gestión de ligas locales',
+  industryGeneral:'Negocios generales y multisectoriales'
+});
+Object.assign(extraWords.ar,{
+  chooseIndustry:'اختر قطاعًا',chooseBusinessType:'اختر نوع النشاط التجاري',
+  businessTypeSearchLabel:'ابحث في جميع أنواع الأنشطة التجارية الـ111',
+  businessTypeSearchPlaceholder:'اكتب اسم النشاط للبحث عنه',
+  businessTypeSearchHint:'جميع الأنشطة مصنفة حسب القطاع. اختيار النشاط يحدد قطاعه تلقائيًا.',
+  businessTypeHint:'تتوفر 111 نوعًا من الأنشطة التجارية، بالإضافة إلى خيار مخصص.',
+  businessTypeCustom:'أدخل نوع نشاطك التجاري *',customBusinessTypePlaceholder:'اكتب نوع نشاطك',
+  customBusinessTypeOption:'نشاطي غير مدرج — أدخله',
+  customBusinessTypeGroup:'نوع نشاط آخر',
+  industryRetail:'التجارة بالتجزئة والجملة',industryFood:'الأغذية والضيافة والترفيه',
+  industryHospitals:'المستشفيات ومرافق الرعاية الصحية',industryHealthcare:'الرعاية الصحية والأدوية',
+  industryAutomotive:'السيارات والنقل',industryConstruction:'البناء والصناعة',
+  industryProfessional:'الخدمات المهنية والشخصية',industryEducation:'التعليم والتدريب',
+  industryAgriculture:'الزراعة ومصايد الأسماك',industryProperty:'العقارات والتأجير',
+  industryFinancial:'الخدمات المالية والإدارية',industrySports:'الرياضة وإدارة الدوريات المحلية',
+  industryGeneral:'الأعمال العامة والمتعددة القطاعات'
+});
+Object.assign(extraWords.hi,{
+  chooseIndustry:'उद्योग चुनें',chooseBusinessType:'व्यवसाय का प्रकार चुनें',
+  businessTypeSearchLabel:'सभी 111 उपलब्ध व्यवसाय प्रकार खोजें',
+  businessTypeSearchPlaceholder:'व्यवसाय का नाम खोजने के लिए लिखें',
+  businessTypeSearchHint:'सभी प्रकार उद्योग के अनुसार समूहित हैं। प्रकार चुनने पर उसका उद्योग भी चुना जाएगा।',
+  businessTypeHint:'111 व्यवसाय प्रकार और एक कस्टम विकल्प उपलब्ध हैं।',
+  businessTypeCustom:'अपने व्यवसाय का प्रकार लिखें *',customBusinessTypePlaceholder:'अपने व्यवसाय का नाम लिखें',
+  customBusinessTypeOption:'मेरा व्यवसाय सूची में नहीं है — लिखें',
+  customBusinessTypeGroup:'अन्य व्यवसाय प्रकार',
+  industryRetail:'खुदरा और व्यापार',industryFood:'खाद्य, आतिथ्य और मनोरंजन',
+  industryHospitals:'अस्पताल और स्वास्थ्य सुविधाएँ',industryHealthcare:'स्वास्थ्य सेवा और फार्मास्यूटिकल',
+  industryAutomotive:'ऑटोमोटिव और परिवहन',industryConstruction:'निर्माण और उद्योग',
+  industryProfessional:'पेशेवर और व्यक्तिगत सेवाएँ',industryEducation:'शिक्षा और प्रशिक्षण',
+  industryAgriculture:'कृषि और मत्स्य पालन',industryProperty:'संपत्ति और किराया',
+  industryFinancial:'वित्तीय और प्रशासनिक सेवाएँ',industrySports:'खेल और स्थानीय लीग प्रबंधन',
+  industryGeneral:'सामान्य और बहु-उद्योग व्यवसाय'
+});
+Object.assign(extraWords.zh,{
+  chooseIndustry:'选择行业',chooseBusinessType:'选择业务类型',
+  businessTypeSearchLabel:'搜索全部 111 种支持的业务类型',
+  businessTypeSearchPlaceholder:'输入业务名称进行搜索',
+  businessTypeSearchHint:'所有业务类型按行业分组。选择业务类型时也会自动选择相应行业。',
+  businessTypeHint:'提供 111 种业务类型，另有自定义选项。',
+  businessTypeCustom:'填写您的业务类型 *',customBusinessTypePlaceholder:'输入您的业务类型',
+  customBusinessTypeOption:'未找到我的业务类型 — 手动填写',
+  customBusinessTypeGroup:'其他业务类型',
+  industryRetail:'零售与贸易',industryFood:'食品、酒店与娱乐',
+  industryHospitals:'医院与医疗机构',industryHealthcare:'医疗保健与制药',
+  industryAutomotive:'汽车与运输',industryConstruction:'建筑与工业',
+  industryProfessional:'专业与个人服务',industryEducation:'教育与培训',
+  industryAgriculture:'农业与渔业',industryProperty:'房地产与租赁',
+  industryFinancial:'金融与行政服务',industrySports:'体育与本地联赛管理',
+  industryGeneral:'综合及多行业业务'
+});
+
 Object.keys(extraWords).forEach(lang=>Object.assign(words[lang],extraWords[lang]));
 
-function setLanguage(lang){const dict=words[lang]||words.en;document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{const k=el.dataset.t;if(dict[k])el.textContent=dict[k]});document.querySelectorAll('[data-t-placeholder]').forEach(el=>{const k=el.dataset.tPlaceholder;if(dict[k])el.placeholder=dict[k]});$('language').value=lang;try{localStorage.setItem('klt-business-application-language',lang)}catch(_){}if(typeof syncApplicationKind==='function')syncApplicationKind()}
+function setLanguage(lang){const dict=words[lang]||words.en;document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';if(typeof window.wlSetLanguage==='function'&&window.wlGetLanguage?.()!==lang)window.wlSetLanguage(lang);document.querySelectorAll('[data-t]').forEach(el=>{const k=el.dataset.t;if(dict[k])el.textContent=dict[k]});document.querySelectorAll('[data-t-placeholder]').forEach(el=>{const k=el.dataset.tPlaceholder;if(dict[k])el.placeholder=dict[k]});$('language').value=lang;try{localStorage.setItem('klt-business-application-language',lang)}catch(_){}if(typeof renderBusinessCatalog==='function')renderBusinessCatalog();if(typeof syncApplicationKind==='function')syncApplicationKind()}
 $('language').addEventListener('change',e=>setLanguage(e.target.value));
 function message(el,text,error=false){el.textContent=text;el.classList.toggle('error',error);el.classList.remove('hidden')}
+
+const BUSINESS_INDUSTRY_GROUPS=Array.isArray(window.KLT_BUSINESS_INDUSTRY_GROUPS)?window.KLT_BUSINESS_INDUSTRY_GROUPS:[];
+const INDUSTRY_LABEL_KEYS={
+ 'Retail and trading':'industryRetail',
+ 'Food, hospitality and entertainment':'industryFood',
+ 'Hospitals and healthcare facilities':'industryHospitals',
+ 'Healthcare and pharmaceutical':'industryHealthcare',
+ 'Automotive and transport':'industryAutomotive',
+ 'Construction and industrial':'industryConstruction',
+ 'Professional and personal services':'industryProfessional',
+ 'Education and training':'industryEducation',
+ 'Agriculture and fisheries':'industryAgriculture',
+ 'Property and rental':'industryProperty',
+ 'Financial and administrative services':'industryFinancial',
+ 'Sports and local league management':'industrySports',
+ 'General and multi-industry':'industryGeneral'
+};
+function applicationDictionary(){return words[$('language')?.value]||words.en}
+function translateCatalogBusinessType(value){
+ const translated=typeof window.wlTranslateText==='function'?window.wlTranslateText(value):value;
+ return translated&&translated!==value?translated:value;
+}
+function translateIndustryGroup(value){
+ const dict=applicationDictionary(),key=INDUSTRY_LABEL_KEYS[value];
+ return (key&&dict[key])||translateCatalogBusinessType(value);
+}
+function isCustomBusinessType(value){
+ return value==='__custom__'||value==='Other / not listed';
+}
+function updateCustomBusinessTypeField(){
+ const custom=isCustomBusinessType($('business_type')?.value);
+ const host=$('businessTypeCustomField'),input=$('business_type_custom');
+ if(host)host.classList.toggle('hidden',!custom);
+ if(input){input.required=custom;input.disabled=!custom;}
+}
+function populateIndustryOptions(selected){
+ const select=$('industry_group');if(!select)return;
+ const dict=applicationDictionary();
+ select.replaceChildren(new Option(dict.chooseIndustry||'Choose an industry',''));
+ BUSINESS_INDUSTRY_GROUPS.forEach(group=>select.add(new Option(translateIndustryGroup(group.label),group.label)));
+ if(selected!==undefined)select.value=selected;
+}
+function populateBusinessTypeOptions(selected,filter){
+ const select=$('business_type');if(!select)return;
+ const dict=applicationDictionary();
+ const query=String(filter===undefined?$('businessTypeSearch')?.value||'':filter).trim().toLocaleLowerCase();
+ select.replaceChildren(new Option(dict.chooseBusinessType||'Choose a business type',''));
+ let matchedSelected=false;
+ BUSINESS_INDUSTRY_GROUPS.forEach(group=>{
+  const items=(group.items||[]).filter(item=>!query||item.toLocaleLowerCase().includes(query)||translateCatalogBusinessType(item).toLocaleLowerCase().includes(query));
+  if(!items.length)return;
+  const optgroup=document.createElement('optgroup');optgroup.label=translateIndustryGroup(group.label);
+  items.forEach(item=>{
+   const option=new Option(translateCatalogBusinessType(item),item);
+   if(item===selected)matchedSelected=true;
+   optgroup.appendChild(option);
+  });
+  select.appendChild(optgroup);
+ });
+ const customGroup=document.createElement('optgroup');
+ customGroup.label=dict.customBusinessTypeGroup||'Other business type';
+ customGroup.appendChild(new Option(dict.customBusinessTypeOption||'My business type is not listed — enter it','__custom__'));
+ select.appendChild(customGroup);
+ if(selected){
+  if(selected==='__custom__'||selected==='Other / not listed')select.value=selected;
+  else if(matchedSelected)select.value=selected;
+  else{
+   select.value='__custom__';
+   if($('business_type_custom'))$('business_type_custom').value=selected;
+  }
+ }
+ updateCustomBusinessTypeField();
+}
+function renderBusinessCatalog(){
+ if(!BUSINESS_INDUSTRY_GROUPS.length)return;
+ const groupValue=$('industry_group')?.value||'';
+ const typeValue=$('business_type')?.value||'';
+ populateIndustryOptions(groupValue);
+ populateBusinessTypeOptions(typeValue,$('businessTypeSearch')?.value||'');
+}
+function getSelectedBusinessType(formValue){
+ if(isCustomBusinessType(formValue))return $('business_type_custom')?.value.trim()||'';
+ return formValue;
+}
+function initialiseBusinessCatalog(){
+ if(!BUSINESS_INDUSTRY_GROUPS.length){
+  message($('applicationStatus'),'The business catalogue could not be loaded. Refresh the page and try again.',true);
+  return;
+ }
+ populateIndustryOptions('');
+ populateBusinessTypeOptions('');
+ $('industry_group').addEventListener('change',()=>{
+  const selected=$('business_type').value;
+  const typeGroup=BUSINESS_INDUSTRY_GROUPS.find(group=>(group.items||[]).includes(selected));
+  if(typeGroup&&typeGroup.label!==$('industry_group').value)$('business_type').value='';
+  updateCustomBusinessTypeField();
+ });
+ $('business_type').addEventListener('change',()=>{
+  const selected=$('business_type').value;
+  const typeGroup=BUSINESS_INDUSTRY_GROUPS.find(group=>(group.items||[]).includes(selected));
+  if(typeGroup)$('industry_group').value=typeGroup.label;
+  updateCustomBusinessTypeField();
+ });
+ $('businessTypeSearch').addEventListener('input',()=>{
+  const selected=$('business_type').value;
+  const query=$('businessTypeSearch').value.trim().toLocaleLowerCase();
+  const selectedIsCatalog=BUSINESS_INDUSTRY_GROUPS.some(group=>(group.items||[]).includes(selected));
+  const stillMatches=selectedIsCatalog&&(!query||selected.toLocaleLowerCase().includes(query)||translateCatalogBusinessType(selected).toLocaleLowerCase().includes(query));
+  populateBusinessTypeOptions(selected==='__custom__'||selected==='Other / not listed'?selected:(stillMatches?selected:''),query);
+ });
+}
+
 function fill(app){
+ if(!app||!Object.keys(app).length)return;
+ for(const key of ['full_name','phone','business_name','currency_code','contact_email','contact_phone','country','address','website','tax_registration_number','notes'])if($(key)&&app[key]!=null)$(key).value=app[key];
+ if($('application_kind'))$('application_kind').value=app.application_kind||'business';
+ const club=app.club_details||{};
+ for(const key of ['official_club_name','short_name','club_type','district','city','competition_name','home_ground','club_registration_body','club_registration_number','manager_full_name','manager_role','proposed_website_slug','authority_statement','evidence_reference'])if($(key)&&club[key]!=null)$(key).value=club[key];
+ if(app.application_kind!=='football_club'){
+  $('industry_group').value=app.industry_group||'';
+  $('businessTypeSearch').value='';
+  populateBusinessTypeOptions(app.business_type||'');
+ }else{
+  $('industry_group').value='Sports and local league management';
+ }
+ syncApplicationKind();
+}
  if(!app||!Object.keys(app).length)return;
  for(const key of ['full_name','phone','business_name','industry_group','business_type','currency_code','contact_email','contact_phone','country','address','website','tax_registration_number','notes'])if($(key)&&app[key]!=null)$(key).value=app[key];
  if($('application_kind'))$('application_kind').value=app.application_kind||'business';
@@ -47,16 +277,20 @@ function syncApplicationKind(){
  document.querySelectorAll('[data-club-required]').forEach(el=>{el.disabled=!isClub;el.required=isClub});
  if(isClub){
   $('industry_group').value='Sports and local league management';
-  $('business_type').value=(words[$('language').value]||words.en).footballClubType||'Football club';
-  $('business_type').readOnly=true;
+  populateBusinessTypeOptions('Sports club / football club','');
+  $('business_type').value='Sports club / football club';
+  $('industry_group').disabled=true;$('business_type').disabled=true;$('businessTypeSearch').disabled=true;
+  $('businessTypeCustomField').classList.add('hidden');$('business_type_custom').disabled=true;$('business_type_custom').required=false;
   if(!$('official_club_name').value)$('official_club_name').value=$('business_name').value;
   if(!$('business_name').value)$('business_name').value=$('official_club_name').value;
   if(!$('manager_full_name').value)$('manager_full_name').value=$('full_name').value;
   if(!$('contact_email').value)$('contact_email').value=session?.user?.email||'';
   if(!$('contact_phone').value)$('contact_phone').value=$('phone').value;
  }else{
+  $('industry_group').disabled=false;$('business_type').disabled=false;$('businessTypeSearch').disabled=false;
+  $('business_type_custom').disabled=!isCustomBusinessType($('business_type').value);
   $('business_type').readOnly=false;
-  $('business_type').placeholder='e.g. Building materials supplier';
+  updateCustomBusinessTypeField();
  }
  const submit=$('submitApplication');
  if(submit)submit.textContent=(words[$('language').value]||words.en)[isClub?'submitClub':'submit'];
@@ -113,6 +347,9 @@ $('applicationForm').addEventListener('submit',async e=>{
  const isClub=kind==='football_club';
  const file=$('evidence_file')?.files?.[0]||null;
  if(file&&file.size>10*1024*1024){message($('applicationStatus'),'The supporting evidence file must be 10 MB or smaller.',true);return}
+ const businessTypeValue=isClub?'Football club':getSelectedBusinessType(v('business_type'));
+ if(!isClub&&!v('industry_group')){message($('applicationStatus'),(words[$('language').value]||words.en).chooseIndustry||'Choose an industry.',true);return}
+ if(!isClub&&!businessTypeValue){message($('applicationStatus'),(words[$('language').value]||words.en).businessTypeCustom||'Enter your business type.',true);return}
  const clubPayload=isClub?{
   official_club_name:v('official_club_name')||v('business_name'),
   short_name:v('short_name'),club_type:v('club_type'),country:v('country'),
@@ -129,7 +366,7 @@ $('applicationForm').addEventListener('submit',async e=>{
   p_full_name:v('full_name'),p_phone:v('phone'),
   p_business_name:isClub?(v('official_club_name')||v('business_name')):v('business_name'),
   p_industry_group:isClub?'Sports and local league management':v('industry_group'),
-  p_business_type:isClub?'Football club':v('business_type'),
+  p_business_type:businessTypeValue,
   p_currency_code:isClub?'SLE':v('currency_code'),
   p_contact_email:v('contact_email'),p_contact_phone:v('contact_phone'),
   p_country:v('country'),p_address:isClub?[v('home_ground'),v('city'),v('district'),v('country')].filter(Boolean).join(', '):v('address'),
@@ -158,6 +395,7 @@ $('applicationForm').addEventListener('submit',async e=>{
  finally{$('submitApplication').disabled=false;syncApplicationKind()}
 });
 client.auth.onAuthStateChange((_event,next)=>{session=next;if(next)setTimeout(()=>showSession().catch(e=>message($('authStatus'),e.message,true)),0)});
+initialiseBusinessCatalog();
 setLanguage(localStorage.getItem('klt-business-application-language')||'en');
 const queryKind=new URLSearchParams(window.location.search).get('application');
 if(queryKind==='football-club'||queryKind==='football_club')$('application_kind').value='football_club';
