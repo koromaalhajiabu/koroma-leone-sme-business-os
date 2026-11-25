@@ -826,10 +826,11 @@
     const branchId=document.getElementById('wlDailyCloseBranch')?.value;
     const date=document.getElementById('wlDailyCloseDate')?.value;
     const opening=Number(document.getElementById('wlDailyOpenFloat')?.value||0);
-    const counted=Number(document.getElementById('wlDailyCountedCash')?.value);
+    const countedRaw=document.getElementById('wlDailyCountedCash')?.value;
+    const counted=Number(countedRaw);
     if(!branchId||!date)throw new Error('Select a branch and closing date.');
     if(!Number.isFinite(opening)||opening<0)throw new Error('Opening cash float must be zero or greater.');
-    if(!Number.isFinite(counted)||counted<0)throw new Error('Enter the physical closing cash count.');
+    if(countedRaw===''||countedRaw===null||countedRaw===undefined||!Number.isFinite(counted)||counted<0)throw new Error('Enter the physical closing cash count.');
     const userId=dailyCashCloseUserId();
     if(!userId)throw new Error('Sign in before preparing a daily close.');
     const key=dailyCashCloseKey(branchId,date);
