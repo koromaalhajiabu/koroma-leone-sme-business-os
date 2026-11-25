@@ -14,7 +14,7 @@ a{color:#087a43;font-weight:700}.shell{width:min(980px,calc(100% - 28px));margin
 .hero{padding:28px 30px;border-radius:20px;background:linear-gradient(120deg,#075b35,#0e7547);color:#fff;box-shadow:0 18px 42px #075b3520}
 .kicker{font-size:10px;letter-spacing:2px;font-weight:850;opacity:.8}.hero h1{font-size:clamp(25px,5vw,38px);margin:10px 0}.hero p{max-width:700px;line-height:1.7;color:#e1f2e7;margin:0}
 .card{margin-top:18px;padding:24px;background:#fff;border:1px solid #e0eae3;border-radius:18px;box-shadow:0 12px 34px #183d2610}
-.card h2{margin:0 0 6px;font-size:20px}.muted{color:#6d7e73;font-size:12px;line-height:1.6;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px}.subsection{grid-column:1/-1;padding:16px;border:1px solid #dfeae2;border-radius:13px;background:#f8fbf9}.subsection h3{margin:0 0 6px;font-size:17px;color:#075b35}.subsection .grid{margin-top:12px}.muted{color:#6d7e73;font-size:12px;line-height:1.6;margin:0 0 18px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{min-width:0}.field.full{grid-column:1/-1}
 label{display:block;font-size:11px;font-weight:800;color:#345443;margin:0 0 6px}
 input,select,textarea{width:100%;padding:12px;border:1px solid #d9e5dd;border-radius:10px;background:#fbfdfb;color:#193b2a;font:inherit;font-size:13px;outline:none}
@@ -36,6 +36,7 @@ button:disabled{opacity:.55;cursor:wait}.secondary{background:#edf5ef;color:#176
 <section class="card" id="authCard"><h2 data-t="authTitle">Sign in to continue</h2><p class="muted" data-t="authIntro">Use the account you created on the main platform. Your email must be confirmed before you can submit an application.</p><div class="grid"><div class="field"><label for="email" data-t="email">Account email</label><input id="email" type="email" autocomplete="email"></div><div class="field"><label for="password" data-t="password">Password</label><input id="password" type="password" autocomplete="current-password"></div></div><div class="actions"><button id="signIn" data-t="signIn">Sign in securely</button><a href="./index.html" data-t="createAccount">Create an account first</a></div><div class="status" id="authStatus" role="status">Sign in with your verified account.</div></section>
 <section class="card hidden" id="applicationCard"><h2 data-t="formTitle">Business application</h2><p class="muted" data-t="formIntro">Submit accurate details. The developer reviews this application before any workspace is created.</p><form id="applicationForm">
 <div class="grid">
+<div class="field"><label for="application_kind" data-t="applicationType">What are you registering? *</label><select id="application_kind" name="application_kind" required><option value="business" data-t="businessWorkspace">Business workspace</option><option value="football_club" data-t="footballClubWorkspace">Football club workspace</option></select></div>
 <div class="field"><label for="full_name" data-t="fullName">Owner / authorised representative full name *</label><input id="full_name" name="full_name" required minlength="2" maxlength="120"></div>
 <div class="field"><label for="phone" data-t="personalPhone">Applicant phone number *</label><input id="phone" name="phone" required maxlength="40" autocomplete="tel"></div>
 <div class="field"><label for="business_name" data-t="businessName">Business / organisation name *</label><input id="business_name" name="business_name" required minlength="2" maxlength="140"></div>
@@ -55,6 +56,28 @@ button:disabled{opacity:.55;cursor:wait}.secondary{background:#edf5ef;color:#176
 <option value="General and multi-industry">General and multi-industry</option>
 </select></div>
 <div class="field"><label for="business_type" data-t="businessType">Specific business type *</label><input id="business_type" name="business_type" required maxlength="140" placeholder="e.g. Building materials supplier"></div>
+<section id="footballClubFields" class="subsection hidden" aria-labelledby="clubDetailsTitle">
+<h3 id="clubDetailsTitle" data-t="clubDetailsTitle">Football club details</h3>
+<p class="muted" data-t="clubDetailsIntro">These details are reviewed with your business application. The same account will own the approved club workspace.</p>
+<div class="grid">
+<div class="field"><label for="official_club_name" data-t="officialClubName">Official club name *</label><input id="official_club_name" name="official_club_name" maxlength="140" data-club-required></div>
+<div class="field"><label for="short_name" data-t="shortName">Short name</label><input id="short_name" name="short_name" maxlength="60"></div>
+<div class="field"><label for="club_type" data-t="clubType">Club category *</label><select id="club_type" name="club_type" data-club-required><option value="Men's" data-t="mens">Men's team</option><option value="Women's" data-t="womens">Women's team</option><option value="Academy" data-t="academy">Academy</option><option value="Other" data-t="other">Other</option></select></div>
+<div class="field"><label for="district" data-t="district">District / region</label><input id="district" name="district" maxlength="100"></div>
+<div class="field"><label for="city" data-t="city">City / town</label><input id="city" name="city" maxlength="100"></div>
+<div class="field"><label for="competition_name" data-t="competition">League / competition</label><input id="competition_name" name="competition_name" maxlength="160"></div>
+<div class="field"><label for="home_ground" data-t="homeGround">Home ground</label><input id="home_ground" name="home_ground" maxlength="160"></div>
+<div class="field"><label for="club_registration_body" data-t="registrationBody">Registration body</label><input id="club_registration_body" name="club_registration_body" maxlength="160"></div>
+<div class="field"><label for="club_registration_number" data-t="registrationNumber">Club registration number</label><input id="club_registration_number" name="club_registration_number" maxlength="100"></div>
+<div class="field"><label for="manager_full_name" data-t="managerName">Manager / authorised representative *</label><input id="manager_full_name" name="manager_full_name" maxlength="120" data-club-required></div>
+<div class="field"><label for="manager_role" data-t="managerRole">Position at the club *</label><input id="manager_role" name="manager_role" maxlength="100" data-club-required></div>
+<div class="field"><label for="proposed_website_slug" data-t="websiteSlug">Preferred public website address *</label><input id="proposed_website_slug" name="proposed_website_slug" maxlength="90" pattern="[a-z0-9]+(-[a-z0-9]+)*" data-club-required placeholder="example-united-fc"></div>
+<div class="field full"><label for="authority_statement" data-t="authority">Explain your authority to represent this club *</label><textarea id="authority_statement" name="authority_statement" minlength="30" maxlength="1500" data-club-required></textarea></div>
+<div class="field"><label for="evidence_file" data-t="evidence">Supporting evidence (PDF or image, maximum 10 MB)</label><input id="evidence_file" name="evidence_file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"></div>
+<div class="field"><label for="evidence_reference" data-t="evidenceRef">Evidence reference or document title</label><input id="evidence_reference" name="evidence_reference" maxlength="300"></div>
+<div class="field full"><label><input id="club_declaration" name="club_declaration" type="checkbox" style="width:auto" data-club-required> <span data-t="declaration">I confirm that the information is accurate and that I am authorised to apply on behalf of this club.</span></label></div>
+</div>
+</section>
 <div class="field"><label for="currency_code" data-t="currency">Default currency *</label><select id="currency_code" name="currency_code"><option value="SLE">SLE — Sierra Leonean Leone</option><option value="USD">USD — US Dollar</option><option value="EUR">EUR — Euro</option><option value="GBP">GBP — Pound Sterling</option><option value="GHS">GHS — Ghanaian Cedi</option><option value="NGN">NGN — Nigerian Naira</option><option value="XOF">XOF — West African CFA Franc</option><option value="XAF">XAF — Central African CFA Franc</option><option value="KES">KES — Kenyan Shilling</option><option value="ZAR">ZAR — South African Rand</option></select></div>
 <div class="field"><label for="contact_email" data-t="businessEmail">Business contact email</label><input id="contact_email" name="contact_email" type="email" maxlength="180"></div>
 <div class="field"><label for="contact_phone" data-t="businessPhone">Business contact phone</label><input id="contact_phone" name="contact_phone" maxlength="40"></div>
