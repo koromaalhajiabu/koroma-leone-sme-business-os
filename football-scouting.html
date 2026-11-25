@@ -54,6 +54,11 @@
     <div id="players" class="grid" style="margin-top:14px"><div class="empty">Connecting to the player directory…</div></div>
   </section>
 
+  <section class="section" id="verified-scout-directory">
+    <div class="section-head"><div><h2>Verified scout directory</h2><div class="sub">Professional profiles shown only after platform review and explicit public-contact consent.</div></div></div>
+    <div id="verified-scouts" class="panel"><div class="empty">Loading verified scouts…</div></div>
+  </section>
+
   <section class="section" id="scout-account">
     <div class="section-head"><div><h2>Scout and agency access</h2><div class="sub">Directory browsing is public. Sending a formal enquiry requires a verified scout account.</div></div></div>
     <div class="account-grid">
@@ -297,7 +302,15 @@ function renderScoutAccountSetup(){
  };
  el('scout-signout').onclick=async()=>{await db.auth.signOut();await refreshSession();status('Signed out.');};
 }
-async function loadMyEnquiries(){
+
+async function loadVerifiedScoutDirectory(){
+ const node=el('verified-scouts');if(!node)return;
+ const r=await db.from('football_verified_scout_directory').select('*').order('country').order('organisation').limit(250);
+ if(r.error){node.innerHTML='<div class="empty">Verified scout directory is temporarily unavailable.</div>';return;}
+ const rows=r.data||[];
+ node.innerHTML=rows.length?rows.map(x=>'<div class="scout-row"><div><strong>'+esc(x.full_name)+' · '+esc(x.organisation)+'</strong><span class="meta">'+esc(x.job_title||'Professional scout')+' · '+esc(x.country)+(x.years_experience!==null?' · '+x.years_experience+' years experience':'')+'</span>'+(x.scouting_specialties?.length?'<p class="hint">Specialities: '+esc(x.scouting_specialties.join(', '))+'</p>':'')+(x.professional_profile_url?'<a href="'+esc(safeUrl(x.professional_profile_url))+'" target="_blank" rel="noopener">Professional profile ↗</a> ':'')+(x.website_url?'<a href="'+esc(safeUrl(x.website_url))+'" target="_blank" rel="noopener">Organisation ↗</a>':'')+'</div>'+(x.public_contact_email?'<a class="soft" href="mailto:'+esc(x.public_contact_email)+'">Contact</a>':'')+'</div>').join(''):'<div class="empty">No scouts have opted into the public directory yet. Verified status does not automatically publish contact details.</div>';
+}
+\nasync function loadMyEnquiries(){
  if(!session)return;
  const r=await db.from('football_scout_enquiries').select('id,scout_user_id,enquiry_type,message,status,club_response,created_at,profile:football_player_discovery_profiles(public_name,public_slug),club:football_club_websites(club_name,slug)').eq('scout_user_id',session.user.id).order('created_at',{ascending:false}).limit(100);
  if(r.error){el('scout-session').insertAdjacentHTML('beforeend','<p class="hint">'+esc(r.error.message)+'</p>');return;}
@@ -353,14 +366,14 @@ async function refreshSession(){
   }
   const accountStatus=esc(scoutAccount.verification_status);
   el('scout-session').innerHTML='<div class="player-top"><strong>'+esc(scoutAccount.full_name)+'</strong><span class="verify">'+(scoutAccount.verification_status==='verified'?'VERIFIED':'ACCOUNT '+accountStatus.toUpperCase())+'</span></div><p class="meta">'+esc(scoutAccount.organisation)+' · '+esc(scoutAccount.country)+'</p><p class="hint">Signed in as '+esc(session.user.email)+'. '+(scoutAccount.verification_status==='verified'?'You can send enquiries to clubs.':'Your account is awaiting platform review or needs attention.')+'</p><details style="margin:12px 0"><summary style="cursor:pointer;font-size:11px;font-weight:850;color:#075b35">Edit professional scout profile</summary><form id="scout-profile-edit" class="form-grid" style="margin-top:12px"><div class="field"><label>Full name</label><input name="full_name" required value="'+esc(scoutAccount.full_name)+'"></div><div class="field"><label>Organisation</label><input name="organisation" required value="'+esc(scoutAccount.organisation)+'"></div><div class="field"><label>Professional role</label><input name="job_title" value="'+esc(scoutAccount.job_title||'')+'"></div><div class="field"><label>Country</label><input name="country" required value="'+esc(scoutAccount.country)+'"></div><div class="field"><label>Contact email</label><input name="contact_email" type="email" required value="'+esc(scoutAccount.contact_email)+'"></div><div class="field"><label>Organisation website</label><input name="website_url" type="url" value="'+esc(scoutAccount.website_url||'')+'"></div>
-            <div class="field"><label>Years of scouting experience</label><input name="years_experience" type="number" min="0" max="60" value="0"></div>
-            <div class="field"><label>Scouting specialities (comma-separated)</label><input name="scouting_specialties" maxlength="300" placeholder="Youth development, West Africa, forwards"></div>
-            <div class="field"><label>Professional profile URL</label><input name="professional_profile_url" type="url" placeholder="LinkedIn or club profile URL"></div>
-            <div class="field"><label>Credential / public reference URL</label><input name="verification_evidence_url" type="url" placeholder="Public professional credential or organisation page"></div>
-            <div class="field"><label>Professional reference name</label><input name="reference_contact_name" maxlength="120"></div>
-            <div class="field"><label>Professional reference email</label><input name="reference_contact_email" type="email" maxlength="180"></div>
-            <div class="field"><label>Public directory contact email</label><input name="public_contact_email" type="email" maxlength="180"></div>
-            <div class="field"><label><input name="public_contact_opt_in" type="checkbox" style="width:auto"> Show my contact email in the verified scout directory</label></div><div class="field wide"><button class="soft">Save professional profile</button><small class="hint">Changing verified identity or organisation details sends the account back for re-verification.</small></div></form></details><div class="field"><label>My scouting enquiries</label><div id="my-enquiries"><div class="empty">Loading enquiries…</div></div></div><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
+            <div class="field"><label>Years of scouting experience</label><input name="years_experience" type="number" min="0" max="60" value="0" value="'+esc(scoutAccount.years_experience??0)+'"></div>
+            <div class="field"><label>Scouting specialities (comma-separated)</label><input name="scouting_specialties" maxlength="300" placeholder="Youth development, West Africa, forwards" value="'+esc((scoutAccount.scouting_specialties||[]).join(', '))+'"></div>
+            <div class="field"><label>Professional profile URL</label><input name="professional_profile_url" type="url" placeholder="LinkedIn or club profile URL" value="'+esc(scoutAccount.professional_profile_url||'')+'"></div>
+            <div class="field"><label>Credential / public reference URL</label><input name="verification_evidence_url" type="url" placeholder="Public professional credential or organisation page" value="'+esc(scoutAccount.verification_evidence_url||'')+'"></div>
+            <div class="field"><label>Professional reference name</label><input name="reference_contact_name" maxlength="120" value="'+esc(scoutAccount.reference_contact_name||'')+'"></div>
+            <div class="field"><label>Professional reference email</label><input name="reference_contact_email" type="email" maxlength="180" value="'+esc(scoutAccount.reference_contact_email||'')+'"></div>
+            <div class="field"><label>Public directory contact email</label><input name="public_contact_email" type="email" maxlength="180" value="'+esc(scoutAccount.public_contact_email||'')+'"></div>
+            <div class="field"><label><input name="public_contact_opt_in" type="checkbox" style="width:auto" '+(scoutAccount.public_contact_opt_in?'checked':'')+'> Show my contact email in the verified scout directory</label></div><div class="field wide"><button class="soft">Save professional profile</button><small class="hint">Changing verified identity or organisation details sends the account back for re-verification.</small></div></form></details><div class="field"><label>My scouting enquiries</label><div id="my-enquiries"><div class="empty">Loading enquiries…</div></div></div><div style="margin-top:12px"><button class="soft" id="scout-signout">Sign out</button></div>';
   el('scout-signout').onclick=async()=>{await db.auth.signOut();await refreshSession();status('Signed out.');};
   el('scout-profile-edit').onsubmit=async e=>{
    e.preventDefault();const f=new FormData(e.target);
