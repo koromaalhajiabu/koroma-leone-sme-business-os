@@ -100,6 +100,7 @@
     .wl-auth-shell #wlCloudWork .branch-create-grid{display:grid;grid-template-columns:1fr 1.4fr auto;gap:7px;align-items:center;margin:10px 0}
     @media(max-width:620px){.wl-auth-shell #wlCloudWork .branch-create-grid{grid-template-columns:1fr}.wl-auth-shell #wlCloudWork .branch-create-grid button{width:100%;min-height:42px}}
 
+    .app:not(.wl-authenticated) #wlWorkspaceToolsToggle{display:none!important}
     .app.wl-authenticated #wlCloudBox:not(.wl-tools-open){display:none!important}
     .app.wl-authenticated #wlCloudBox.wl-tools-open{display:block!important;position:fixed!important;z-index:1000!important;inset:78px 16px 16px auto!important;width:min(560px,calc(100vw - 32px))!important;max-width:none!important;margin:0!important;overflow:auto!important;border:1px solid #cfe2d5!important;border-radius:18px!important;box-shadow:0 24px 80px rgba(7,35,22,.28)!important;background:#fff!important;padding:18px!important}
     .app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-brand,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-story,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-bottom,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-heading,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-card-top,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-card-foot{display:none!important}
