@@ -114,6 +114,21 @@ async function runViewport(name, viewport) {
       await new Promise(resolve => setTimeout(resolve, 80));
       french.dynamicText = probe.textContent.trim();
       probe.remove();
+      const salesProbe = document.createElement('span');
+      salesProbe.textContent = 'Sales counter';
+      document.body.appendChild(salesProbe);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      french.salesHeading = salesProbe.textContent.trim();
+      salesProbe.textContent = 'Scan or select a product to begin.';
+      await new Promise(resolve => setTimeout(resolve, 80));
+      french.salesEmptyState = salesProbe.textContent.trim();
+      salesProbe.remove();
+      const mixedProbe = document.createElement('span');
+      mixedProbe.textContent = 'Current theme: Light mode';
+      document.body.appendChild(mixedProbe);
+      await new Promise(resolve => setTimeout(resolve, 80));
+      french.mixedCopy = mixedProbe.textContent.trim();
+      mixedProbe.remove();
 
       await choose(side, 'ar');
       const arabic = {
@@ -167,6 +182,10 @@ async function runViewport(name, viewport) {
       languageCheck.french.top === 'fr' && languageCheck.french.side === 'fr' &&
       languageCheck.french.overview.includes('Vue d’ensemble') &&
       languageCheck.french.dynamicText === 'Nom de l’entreprise' &&
+      languageCheck.french.salesHeading === 'Caisse de vente' &&
+      languageCheck.french.salesEmptyState === 'Scannez ou sélectionnez un produit pour commencer.' &&
+      languageCheck.french.mixedCopy.includes('Thème actuel') &&
+      languageCheck.french.mixedCopy.includes('Mode clair') &&
       languageCheck.french.scriptTextUnchanged && frenchCopyPassed;
     const arabicPassed = languageCheck.arabic?.code === 'ar' &&
       languageCheck.arabic.direction === 'rtl' &&
