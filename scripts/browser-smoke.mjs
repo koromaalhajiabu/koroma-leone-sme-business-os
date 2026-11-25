@@ -136,6 +136,10 @@ async function runViewport(name, viewport) {
       french.syncDescription = window.wlTranslateText?.("Track this workspace's device queue, cloud receipts, conflicts and retry activity.") || '';
       french.syncAutoDescription = window.wlTranslateText?.("Automatic sync runs only while the app is open, signed in and connected. It uploads records already assigned to this business. Unassigned records are excluded. Purchase, expense and refund approvals remain in force.") || '';
       french.notificationTip = window.wlTranslateText?.("Choose which categories appear in your Alerts centre.") || '';
+      french.clubStepOne = window.wlTranslateText?.("1 · Activate the club manager Require email confirmation, review the club authority evidence, then approve the application. Approval provisions the club workspace, owner membership, primary branch and unpublished website draft.") || '';
+      french.categoryRetail = window.wlTranslateText?.('Retail') || '';
+      french.categoryDelivery = window.wlTranslateText?.('Delivery') || '';
+      french.starterBuild = window.wlTranslateText?.('Starter build') || '';
       french.receiptTitle = window.wlTranslateText?.('SALES RECEIPT') || '';
       french.dialogText = window.wlTranslateText?.('Delete this record?') || '';
       mixedProbe.remove();
@@ -204,6 +208,10 @@ async function runViewport(name, viewport) {
       languageCheck.french.syncDescription.startsWith('Suivez la file d’attente') &&
       languageCheck.french.syncAutoDescription.startsWith('La synchronisation automatique') &&
       languageCheck.french.notificationTip === 'Choisissez les catégories qui apparaissent dans votre centre d’alertes.' &&
+      languageCheck.french.clubStepOne.startsWith('1 · Activer le responsable du club') &&
+      languageCheck.french.categoryRetail === 'Commerce de détail' &&
+      languageCheck.french.categoryDelivery === 'Livraison' &&
+      languageCheck.french.starterBuild === 'Version de démarrage' &&
       languageCheck.french.receiptTitle === 'REÇU DE VENTE' &&
       languageCheck.french.dialogText === 'Supprimer cet enregistrement ?' &&
       languageCheck.french.scriptTextUnchanged && frenchCopyPassed;
