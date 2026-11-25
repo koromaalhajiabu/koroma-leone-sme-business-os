@@ -64,9 +64,19 @@ async function createInviteLink(id){
  const subject='Your invitation to register with the Koroma Leone Tech scouting network';
  const body='Dear '+(r.contact_name||'Professional Scout')+',\\n\\nKoroma Leone Tech invites you to apply for a professional scout account on our football club and player discovery portal.\\n\\nUse your invited email address to register: '+email.trim()+'\\nRegistration link (expires in 21 days and is for your email only):\\n'+link+'\\n\\nYour account remains pending until our platform team reviews your professional profile. Platform verification is internal and is not FIFA or national-association accreditation.\\n\\nRegards,\\nKoroma Leone Tech';
  location.href='mailto:'+encodeURIComponent(email.trim())+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
- await sb.from('football_scout_recruitment_activities').insert({lead_id:id,activity_type:'invitation_sent',outcome:'Unique registration invitation created',details:'A unique email-bound registration invitation was generated for '+email.trim()+'. The invitation email must be sent manually.',created_by:sessionData.session.user.id});
- say('Unique invitation link created. Send the email draft manually; the invitation will only be claimed by a scout signing up with the invited email.');
+ await sb.from('football_scout_recruitment_activities').insert({lead_id:id,activity_type:'note',outcome:'Unique registration invitation drafted',details:'A unique email-bound registration invitation was generated for '+email.trim()+'. It is not marked sent until manually dispatched and confirmed.',created_by:sessionData.session.user.id});
+ say('Unique invitation draft created. Send the email manually, then mark it sent in the invitation list. It can only be claimed by a scout using the invited email.');
  await loadNetwork();
+}
+async function markUniqueInvitationSent(invitationId,leadId){
+ if(!confirm('Have you actually sent this invitation email? Only confirm after sending it from your email app.'))return;
+ const {data}=await sb.auth.getSession();const now=new Date().toISOString();const follow=new Date(Date.now()+7*86400000).toISOString();
+ const {error}=await sb.from('football_scout_invitations').update({status:'sent',updated_at:now}).eq('id',invitationId).eq('status','drafted');
+ if(error){say('Could not mark invitation as sent: '+error.message,true);return;}
+ const lead=await sb.from('football_scout_recruitment_leads').update({status:'invited',last_contacted_at:now,next_follow_up_at:follow,updated_at:now,updated_by:data.session.user.id}).eq('id',leadId);
+ if(lead.error){say('Invitation marked sent, but follow-up scheduling failed: '+lead.error.message,true);return;}
+ await sb.from('football_scout_recruitment_activities').insert({lead_id:leadId,activity_type:'invitation_sent',outcome:'Unique scout registration invitation sent manually',details:'Invitation dispatched to '+(rows.find(x=>x.id===leadId)?.contact_email||'the invited professional email')+'. Follow-up scheduled for seven days after sending.',created_by:data.session.user.id});
+ say('Invitation recorded as sent. A follow-up is scheduled in seven days.');await load();await loadNetwork();
 }
 async function loadNetwork(){
  const [inv,part]=await Promise.all([
@@ -76,9 +86,10 @@ async function loadNetwork(){
  if(inv.error||part.error){$('network-summary').textContent='Network records unavailable: '+(inv.error||part.error).message;return;}
  const leadById=Object.fromEntries(rows.map(x=>[x.id,x.organisation_name]));
  $('network-summary').textContent=(inv.data||[]).length+' invitations · '+(inv.data||[]).filter(x=>x.status==='claimed').length+' claimed · '+(part.data||[]).length+' organisation relationships';
- $('invitation-list').innerHTML=(inv.data||[]).length?'<h3 style="margin-top:14px">Registration invitations</h3>'+(inv.data||[]).map(x=>'<div class="lead"><div class="leadtop"><b>'+esc(leadById[x.lead_id]||'Recruitment record')+'</b><span class="pill">'+esc(x.status.toUpperCase())+'</span></div><div class="muted">'+esc(x.invited_email)+' · Expires '+esc(dateVal(x.expires_at))+(x.claimed_at?' · Claimed '+esc(dateVal(x.claimed_at)):'')+'</div></div>').join(''):'<div class="empty">No invitation links created yet.</div>';
+ $('invitation-list').innerHTML=(inv.data||[]).length?'<h3 style="margin-top:14px">Registration invitations</h3>'+(inv.data||[]).map(x=>'<div class="lead"><div class="leadtop"><b>'+esc(leadById[x.lead_id]||'Recruitment record')+'</b><span class="pill">'+esc(x.status.toUpperCase())+'</span></div><div class="muted">'+esc(x.invited_email)+' · Expires '+esc(dateVal(x.expires_at))+(x.claimed_at?' · Claimed '+esc(dateVal(x.claimed_at)):'')+'</div>'+(x.status==='drafted'?'<div class="actions"><button data-invite-sent="'+x.id+'" data-lead="'+x.lead_id+'">Confirm email sent & schedule follow-up</button></div>':'')+'</div>').join(''):'<div class="empty">No invitation links created yet.</div>';
  $('partnership-list').innerHTML=(part.data||[]).length?(part.data||[]).map(x=>'<div class="lead"><div class="leadtop"><b>'+esc(x.organisation_name)+'</b><span class="pill">'+esc(x.status.replaceAll('_',' ').toUpperCase())+'</span></div><div class="muted">'+esc([x.country,x.partnership_type.replaceAll('_',' '),x.contact_name,x.contact_email].filter(Boolean).join(' · '))+(x.agreement_reference?' · Agreement: '+esc(x.agreement_reference):'')+'</div><div class="actions"><button class="secondary" data-partner-edit="'+x.id+'">Update relationship</button></div></div>').join(''):'<div class="empty">No organisation relationships recorded. Prospects are not partners until a relationship is confirmed.</div>';
  $('partnership-list').querySelectorAll('[data-partner-edit]').forEach(b=>b.onclick=()=>editPartnership(b.dataset.partnerEdit,part.data));
+ $('invitation-list').querySelectorAll('[data-invite-sent]').forEach(b=>b.onclick=()=>markUniqueInvitationSent(b.dataset.inviteSent,b.dataset.lead));
 }
 async function addPartnership(existing){
  const org=prompt('Organisation name:',existing?.organisation_name||'');if(!org?.trim())return;
