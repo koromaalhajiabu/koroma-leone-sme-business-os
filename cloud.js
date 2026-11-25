@@ -14,6 +14,7 @@
     authenticate(button.id === 'wlSignUp');
   }, true);
   let client = null, session = null, activeBusiness = null, selectedBranch = null;
+  let autoSyncEnabled = false, syncInProgress = false, autoRetryTimer = null, autoRetryAttempt = 0;
   let approvalSettings = { require_purchase_approvals:false, require_expense_approvals:false, require_refund_approvals:false, require_stock_adjustment_approvals:false };
   async function refreshApprovalSettings() {
     if (!client || !activeBusiness) return approvalSettings;
@@ -98,6 +99,31 @@
     .wl-auth-shell #wlCloudWork .muted{color:#718096;font-size:10px;line-height:1.55}
     .wl-auth-shell #wlCloudWork .branch-create-grid{display:grid;grid-template-columns:1fr 1.4fr auto;gap:7px;align-items:center;margin:10px 0}
     @media(max-width:620px){.wl-auth-shell #wlCloudWork .branch-create-grid{grid-template-columns:1fr}.wl-auth-shell #wlCloudWork .branch-create-grid button{width:100%;min-height:42px}}
+
+    #wlSyncCentre{margin:12px 0 4px;padding:14px;border:1px solid #d8e9de;border-radius:14px;background:linear-gradient(145deg,#fbfefc,#f0f7f2);color:#203b2b}
+    #wlSyncCentre .wl-sync-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    #wlSyncCentre .wl-sync-kicker{font-size:9px;font-weight:900;letter-spacing:1.4px;color:#087a43}
+    #wlSyncCentre h3{margin:4px 0 3px;font-size:16px;color:#173d29}
+    #wlSyncCentre .wl-sync-copy{margin:0;max-width:560px;color:#6b7c71;font-size:10px;line-height:1.6}
+    #wlSyncCentre .wl-sync-connection{display:inline-flex;align-items:center;gap:6px;border:1px solid #d5e5da;border-radius:999px;background:#fff;padding:6px 9px;color:#486253;font-size:10px;font-weight:800}
+    #wlSyncCentre .wl-sync-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:13px 0}
+    #wlSyncCentre .wl-sync-metric{min-width:0;border:1px solid #e0ece4;border-radius:10px;background:#fff;padding:9px}
+    #wlSyncCentre .wl-sync-metric span{display:block;color:#718078;font-size:9px;font-weight:750}
+    #wlSyncCentre .wl-sync-metric b{display:block;margin-top:3px;color:#173d29;font-size:19px;line-height:1.2}
+    #wlSyncCentre .wl-sync-toggle{display:flex;align-items:center;gap:8px;margin:8px 0 4px;color:#244b40;font-size:11px;font-weight:800}
+    #wlSyncCentre .wl-sync-toggle input{width:17px;height:17px;margin:0;accent-color:#087a43}
+    #wlSyncCentre .wl-sync-note{margin:0 0 8px;color:#718078;font-size:9px;line-height:1.6}
+    #wlSyncCentre .wl-sync-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:8px 0}
+    #wlSyncCentre .wl-sync-actions button{margin:0;padding:7px 10px;font-size:10px}
+    #wlSyncCentre .wl-sync-details{margin-top:9px;border-top:1px solid #dce9e0;padding-top:8px}
+    #wlSyncCentre .wl-sync-details summary{cursor:pointer;color:#244b40;font-size:10px;font-weight:850}
+    #wlSyncCentre .wl-sync-history{display:grid;gap:6px;margin:8px 0 0;padding:0;list-style:none}
+    #wlSyncCentre .wl-sync-history li,#wlSyncCentre .wl-sync-conflict{padding:8px;border:1px solid #e3ece6;border-radius:9px;background:#fff;font-size:9px;color:#53675b;line-height:1.5}
+    #wlSyncCentre .wl-sync-history strong,#wlSyncCentre .wl-sync-conflict strong{color:#244b40}
+    #wlSyncCentre .wl-sync-conflict{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;margin-top:7px}
+    #wlSyncCentre .wl-sync-conflict button{flex:0 0 auto;margin:0;padding:6px 8px;font-size:9px}
+    #wlSyncCentre .wl-sync-empty{margin:8px 0 0;color:#718078;font-size:9px;line-height:1.6}
+    @media(max-width:520px){#wlSyncCentre{padding:11px}#wlSyncCentre .wl-sync-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#wlSyncCentre .wl-sync-conflict{display:block}#wlSyncCentre .wl-sync-conflict button{margin-top:7px}}
   `;
   document.head.appendChild(style);
 
@@ -118,7 +144,24 @@
       // Keep the premium login markup from index.html; only hydrate the authenticated workspace.
       $('wlCloudWork').innerHTML = `
         <select id="wlBusinessSelect" aria-label="Choose business"></select>
-        <div class="cloud-actions"><button id="wlCreateBusiness">＋ New business</button><button id="wlSyncNow">Upload local records</button><button id="wlDiagnoseData" type="button">Check local/cloud data</button><div id="wlDataDiagnostic" class="cloud-status" role="status" aria-live="polite">Diagnostic has not been run. This check will not upload, delete or modify records.</div><button id="wlDownloadNow">Download cloud records</button><button id="wlSignOut">Sign out</button></div><div id="wlSyncStatus" class="cloud-status">Local records are not yet synced.</div>
+        <div class="cloud-actions"><button id="wlCreateBusiness">＋ New business</button><button id="wlSyncNow">Sync now</button><button id="wlDiagnoseData" type="button">Check local/cloud data</button><div id="wlDataDiagnostic" class="cloud-status" role="status" aria-live="polite">Diagnostic has not been run. This check will not upload, delete or modify records.</div><button id="wlDownloadNow">Download cloud records</button><button id="wlSignOut">Sign out</button></div><section id="wlSyncCentre" aria-label="Offline and cloud sync control centre">
+          <div class="wl-sync-top">
+            <div><div class="wl-sync-kicker">SYNC CONTROL CENTRE</div><h3>Offline &amp; cloud sync</h3><p class="wl-sync-copy">Track this workspace's device queue, cloud receipts, conflicts and retry activity.</p></div>
+            <span id="wlSyncConnection" class="wl-sync-connection">Checking connection…</span>
+          </div>
+          <div class="wl-sync-metrics" aria-live="polite">
+            <div class="wl-sync-metric"><span>Pending for this business</span><b id="wlSyncPendingCount">—</b></div>
+            <div class="wl-sync-metric"><span>Synced to this business</span><b id="wlSyncDoneCount">—</b></div>
+            <div class="wl-sync-metric"><span>Unassigned local records</span><b id="wlSyncUnassignedCount">—</b></div>
+            <div class="wl-sync-metric"><span>Conflicts to review</span><b id="wlSyncConflictCount">—</b></div>
+          </div>
+          <label class="wl-sync-toggle"><input id="wlAutoSyncToggle" type="checkbox"> Automatically sync eligible records when online</label>
+          <p class="wl-sync-note">Automatic sync runs only while the app is open, signed in and connected. It uploads records already assigned to this business. Unassigned records are excluded. Purchase, expense and refund approvals remain in force.</p>
+          <div id="wlSyncStatus" class="cloud-status" role="status" aria-live="polite">Local records are not yet synced.</div>
+          <div class="wl-sync-actions"><button id="wlSyncQueueRefresh" type="button">Refresh sync status</button></div>
+          <details id="wlSyncHistoryDetails" class="wl-sync-details"><summary>Sync history</summary><ol id="wlSyncHistory" class="wl-sync-history"><li class="wl-sync-empty">No sync activity recorded on this device yet.</li></ol></details>
+          <details id="wlSyncConflictDetails" class="wl-sync-details"><summary>Remote changes and conflicts</summary><div id="wlSyncConflicts"><p class="wl-sync-empty">No conflicts loaded. Use Download cloud records to check for remote changes.</p></div></details>
+        </section>
         <details id="wlBranchManager" open><summary>Branch management</summary>
           <div class="muted" style="margin:7px 0">Manage outlets, choose the active working location, assign staff and review stock by branch.</div>
           <label class="muted" for="wlBranchSelect">Active working branch</label>
@@ -168,7 +211,24 @@
       <div id="wlCloudStatus" class="cloud-status" role="status" aria-live="polite">Connecting securely…</div>
       <div id="wlCloudWork" hidden>
         <select id="wlBusinessSelect" aria-label="Choose business"></select>
-        <div class="cloud-actions"><button id="wlCreateBusiness">＋ New business</button><button id="wlSyncNow">Upload local records</button><button id="wlDiagnoseData" type="button">Check local/cloud data</button><div id="wlDataDiagnostic" class="cloud-status" role="status" aria-live="polite">Diagnostic has not been run. This check will not upload, delete or modify records.</div><button id="wlDownloadNow">Download cloud records</button><button id="wlSignOut">Sign out</button></div><div id="wlSyncStatus" class="cloud-status">Local records are not yet synced.</div>
+        <div class="cloud-actions"><button id="wlCreateBusiness">＋ New business</button><button id="wlSyncNow">Sync now</button><button id="wlDiagnoseData" type="button">Check local/cloud data</button><div id="wlDataDiagnostic" class="cloud-status" role="status" aria-live="polite">Diagnostic has not been run. This check will not upload, delete or modify records.</div><button id="wlDownloadNow">Download cloud records</button><button id="wlSignOut">Sign out</button></div><section id="wlSyncCentre" aria-label="Offline and cloud sync control centre">
+          <div class="wl-sync-top">
+            <div><div class="wl-sync-kicker">SYNC CONTROL CENTRE</div><h3>Offline &amp; cloud sync</h3><p class="wl-sync-copy">Track this workspace's device queue, cloud receipts, conflicts and retry activity.</p></div>
+            <span id="wlSyncConnection" class="wl-sync-connection">Checking connection…</span>
+          </div>
+          <div class="wl-sync-metrics" aria-live="polite">
+            <div class="wl-sync-metric"><span>Pending for this business</span><b id="wlSyncPendingCount">—</b></div>
+            <div class="wl-sync-metric"><span>Synced to this business</span><b id="wlSyncDoneCount">—</b></div>
+            <div class="wl-sync-metric"><span>Unassigned local records</span><b id="wlSyncUnassignedCount">—</b></div>
+            <div class="wl-sync-metric"><span>Conflicts to review</span><b id="wlSyncConflictCount">—</b></div>
+          </div>
+          <label class="wl-sync-toggle"><input id="wlAutoSyncToggle" type="checkbox"> Automatically sync eligible records when online</label>
+          <p class="wl-sync-note">Automatic sync runs only while the app is open, signed in and connected. It uploads records already assigned to this business. Unassigned records are excluded. Purchase, expense and refund approvals remain in force.</p>
+          <div id="wlSyncStatus" class="cloud-status" role="status" aria-live="polite">Local records are not yet synced.</div>
+          <div class="wl-sync-actions"><button id="wlSyncQueueRefresh" type="button">Refresh sync status</button></div>
+          <details id="wlSyncHistoryDetails" class="wl-sync-details"><summary>Sync history</summary><ol id="wlSyncHistory" class="wl-sync-history"><li class="wl-sync-empty">No sync activity recorded on this device yet.</li></ol></details>
+          <details id="wlSyncConflictDetails" class="wl-sync-details"><summary>Remote changes and conflicts</summary><div id="wlSyncConflicts"><p class="wl-sync-empty">No conflicts loaded. Use Download cloud records to check for remote changes.</p></div></details>
+        </section>
         <details id="wlBranchManager" open><summary>Branch management</summary>
           <div class="muted" style="margin:7px 0">Manage outlets, choose the active working location, assign staff and review stock by branch.</div>
           <label class="muted" for="wlBranchSelect">Active working branch</label>
@@ -298,7 +358,17 @@
     $('wlDevAuditSearch').oninput = renderDeveloperActivity;
     $('wlSignOut').onclick = async () => { await client.auth.signOut(); session = null; activeBusiness = null; $('wlDeveloperBox').hidden = true; showSignedOut(); };
     $('wlCreateBusiness').onclick = createBusiness;
-    $('wlSyncNow').onclick = syncLocalRecords;
+    $('wlSyncNow').onclick = () => syncLocalRecords({automatic:false});
+    $('wlAutoSyncToggle').onchange = async (event) => {
+      autoSyncEnabled = !!event.target.checked;
+      try { await setting('wl_auto_sync:' + activeBusiness.id, autoSyncEnabled); }
+      catch (error) { autoSyncEnabled = false; event.target.checked = false; syncStatus('Could not save the automatic sync preference on this device: ' + error.message); return; }
+      autoRetryAttempt = 0;
+      if (autoSyncEnabled) { syncStatus('Automatic sync enabled for this workspace. Only records assigned to this business are eligible.'); scheduleAutomaticSync('automatic-sync-enabled', 1200); }
+      else { clearTimeout(autoRetryTimer); autoRetryTimer = null; syncStatus('Automatic sync disabled. Manual sync remains available.'); }
+      await updateSyncStatus();
+    };
+    $('wlSyncQueueRefresh').onclick = updateSyncStatus;
     $('wlDiagnoseData').onclick = diagnoseData;
     $('wlDownloadNow').onclick = downloadCloudRecords;
     $('wlCreateBranch').onclick = createBranch;
@@ -502,6 +572,9 @@
     updateSyncStatus();
     window.dispatchEvent(new CustomEvent('whiteLionWorkspaceChanged', { detail: { business, modules: modules || [] } }));
     await loadBranches();
+    await loadSyncPreferences();
+    await updateSyncStatus();
+    scheduleAutomaticSync('workspace-selected', 1400);
   }
   async function updateBusinessProfile(profile) {
     if (!client || !session || !activeBusiness) throw new Error('Sign in and select a business workspace first.');
@@ -1350,19 +1423,184 @@
     }
   }
 
+  function syncOwner(row) {
+    return row?.localBusinessId || row?.businessId || row?.business_id || row?.cloudSyncedFor || null;
+  }
+  function syncSafe(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  }
+  function syncHistoryKey() {
+    return activeBusiness?.id ? 'wl_sync_history:' + activeBusiness.id : null;
+  }
+  async function loadSyncPreferences() {
+    if (!activeBusiness) return;
+    try { autoSyncEnabled = (await setting('wl_auto_sync:' + activeBusiness.id)) === true; }
+    catch (_) { autoSyncEnabled = false; }
+    const toggle = $('wlAutoSyncToggle');
+    if (toggle) toggle.checked = autoSyncEnabled;
+    const connection = $('wlSyncConnection');
+    if (connection) connection.textContent = navigator.onLine === false ? 'Offline' : 'Online';
+  }
+  async function readSyncHistory() {
+    const key = syncHistoryKey();
+    if (!key) return [];
+    try {
+      const rows = await setting(key);
+      return Array.isArray(rows) ? rows : [];
+    } catch (_) { return []; }
+  }
+  async function recordSyncHistory(entry) {
+    const key = syncHistoryKey();
+    if (!key) return;
+    try {
+      const rows = await readSyncHistory();
+      rows.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        at: new Date().toISOString(),
+        mode: entry.mode || 'system',
+        status: entry.status || 'info',
+        message: String(entry.message || '').slice(0, 260),
+        counts: entry.counts || null
+      });
+      await setting(key, rows.slice(0, 40));
+      await renderSyncHistory();
+    } catch (_) {}
+  }
+  async function renderSyncHistory() {
+    const host = $('wlSyncHistory');
+    if (!host) return;
+    const rows = await readSyncHistory();
+    host.innerHTML = rows.length ? rows.slice(0, 12).map(row => {
+      const when = row.at ? new Date(row.at).toLocaleString() : 'Time unavailable';
+      const counts = row.counts ? ' · ' + Object.entries(row.counts).map(([name,value]) => name + ': ' + value).join(', ') : '';
+      return '<li><strong>' + syncSafe(String(row.status || 'event').toUpperCase()) + '</strong> · ' +
+        syncSafe(row.mode || 'system') + ' · ' + syncSafe(when) + '<br>' +
+        syncSafe(row.message || 'Sync event') + syncSafe(counts) + '</li>';
+    }).join('') : '<li class="wl-sync-empty">No sync activity recorded on this device yet.</li>';
+  }
+  async function renderSyncConflicts() {
+    const host = $('wlSyncConflicts');
+    if (!host || !activeBusiness) return 0;
+    const types = ['products','customers','suppliers','expenses'];
+    const found = [];
+    for (const type of types) {
+      const rows = await all(type);
+      for (const row of rows) {
+        if (row.cloudConflictSnapshot && (row.localBusinessId === activeBusiness.id || row.cloudSyncedFor === activeBusiness.id)) {
+          found.push({type,row});
+        }
+      }
+    }
+    host.innerHTML = found.length ? found.map(item => {
+      const fields = item.row.cloudConflictSnapshot.fields || {};
+      const preview = Object.entries(fields).slice(0, 4).map(([key,value]) => key + ': ' + String(value ?? '')).join(' · ');
+      const label = item.row.name || item.row.description || item.row.category || item.row.id;
+      return '<div class="wl-sync-conflict"><div><strong>' + syncSafe(item.type.slice(0,-1)) + ': ' + syncSafe(label) + '</strong><br>' +
+        '<span>Cloud update ' + syncSafe(item.row.cloudConflictSnapshot.updatedAt || 'time unavailable') + '</span><br>' +
+        '<span>' + syncSafe(preview || 'A newer cloud copy is available.') + '</span></div>' +
+        '<button type="button" data-wl-conflict-apply="true" data-wl-conflict-store="' + syncSafe(item.type) +
+        '" data-wl-conflict-id="' + syncSafe(item.row.id) + '">Apply cloud version</button></div>';
+    }).join('') : '<p class="wl-sync-empty">No unresolved remote changes for this workspace. Download cloud records to check again.</p>';
+    host.querySelectorAll('[data-wl-conflict-apply]').forEach(button => {
+      button.onclick = async () => {
+        button.disabled = true;
+        try { await resolveCloudConflict(button.dataset.wlConflictStore, button.dataset.wlConflictId); }
+        catch (error) { syncStatus('Could not apply cloud version: ' + error.message); button.disabled = false; }
+      };
+    });
+    return found.length;
+  }
+  async function resolveCloudConflict(type, id) {
+    const allowed = {
+      products:['name','sku','category','unit','cost','price','reorder','barcode','stock'],
+      customers:['name','phone','email','address','notes'],
+      suppliers:['name','phone','email','address','notes'],
+      expenses:['category','description','amount','payment','date']
+    };
+    if (!Object.prototype.hasOwnProperty.call(allowed,type)) throw new Error('Unsupported conflict type.');
+    const rows = await all(type);
+    const row = rows.find(item => String(item.id) === String(id));
+    if (!row || !row.cloudConflictSnapshot) throw new Error('This conflict is no longer available. Refresh the list.');
+    if (row.localBusinessId && row.localBusinessId !== activeBusiness.id) throw new Error('This record belongs to another business workspace.');
+    const snapshot = row.cloudConflictSnapshot;
+    const fields = snapshot.fields || {};
+    for (const key of allowed[type]) {
+      if (Object.prototype.hasOwnProperty.call(fields,key)) row[key] = fields[key];
+    }
+    if (type === 'products' && Object.prototype.hasOwnProperty.call(fields,'stock') && snapshot.branchId) {
+      await put('branchInventory',{
+        id:String(snapshot.branchId) + '|' + String(row.id),
+        businessId:activeBusiness.id,
+        branchId:snapshot.branchId,
+        productId:row.id,
+        quantity:Number(fields.stock || 0)
+      });
+    }
+    row.cloudSyncedAt = snapshot.updatedAt || new Date().toISOString();
+    row.cloudConflictSnapshot = null;
+    row.cloudConflictAt = null;
+    await put(type,row);
+    await recordSyncHistory({mode:'conflict review',status:'resolved',message:'Applied the cloud version to the local ' + type.slice(0,-1) + ' record ' + String(id) + '. Cloud data was not changed.'});
+    await updateSyncStatus();
+    syncStatus('Cloud version applied to this device. No new transaction was posted.');
+  }
   async function updateSyncStatus() {
     if (!activeBusiness) return;
-    const names = ['products','customers','suppliers','expenses'];
-    let pending = 0;
-    for (const name of names) {
-      const rows = await all(name);
-      pending += rows.filter(row => !row.cloudSyncedFor || row.cloudSyncedFor !== activeBusiness.id).length;
+    const businessId = activeBusiness.id;
+    const types = ['products','customers','suppliers','expenses','sales','purchases','returns'];
+    let pending = 0, synced = 0, unassigned = 0, awaitingApproval = 0, conflicts = 0, failed = 0;
+    for (const type of types) {
+      const rows = await all(type);
+      for (const row of rows) {
+        const owner = syncOwner(row);
+        if (row.cloudConflictSnapshot && (owner === businessId || row.cloudSyncedFor === businessId)) conflicts++;
+        if (row.approvalStatus && row.approvalStatus !== 'completed' && row.localBusinessId === businessId) awaitingApproval++;
+        if (row.cloudSyncError && owner === businessId) failed++;
+        if (row.cloudSyncedFor === businessId) { synced++; continue; }
+        if (owner === businessId) pending++;
+        else if (!owner) unassigned++;
+      }
     }
-    const txRows = [...await all('sales'), ...await all('purchases')];
-    const txPending = txRows.filter(row => row.cloudSyncedFor !== activeBusiness.id).length;
-    const returnPending = (await all('returns')).filter(row => row.cloudSyncedFor !== activeBusiness.id).length;
-    const awaitingApproval = [...await all('expenses'),...await all('purchases'),...await all('returns')].filter(row => row.localBusinessId === activeBusiness.id && row.approvalStatus && row.approvalStatus !== 'completed').length;
-    syncStatus(pending + ' master/expense records, ' + txPending + ' sales/purchases and ' + returnPending + ' returns pending for this workspace · ' + awaitingApproval + ' awaiting approval.');
+    const pendingEl = $('wlSyncPendingCount');
+    const doneEl = $('wlSyncDoneCount');
+    const unassignedEl = $('wlSyncUnassignedCount');
+    const conflictEl = $('wlSyncConflictCount');
+    if (pendingEl) pendingEl.textContent = String(pending);
+    if (doneEl) doneEl.textContent = String(synced);
+    if (unassignedEl) unassignedEl.textContent = String(unassigned);
+    if (conflictEl) conflictEl.textContent = String(conflicts);
+    const connection = $('wlSyncConnection');
+    if (connection) connection.textContent = navigator.onLine === false ? 'Offline · queued on device' : 'Online';
+    const note = pending + ' records pending for this workspace · ' + synced + ' synced · ' +
+      unassigned + ' unassigned records held back · ' + awaitingApproval + ' awaiting approval' +
+      (conflicts ? ' · ' + conflicts + ' remote conflict(s)' : '') + (failed ? ' · ' + failed + ' marked failed' : '') + '.';
+    syncStatus(note);
+    await renderSyncHistory();
+    await renderSyncConflicts();
+  }
+  function scheduleAutomaticSync(reason, delay) {
+    if (!autoSyncEnabled || !activeBusiness || !session || navigator.onLine === false || syncInProgress) return;
+    clearTimeout(autoRetryTimer);
+    const businessId = activeBusiness.id;
+    autoRetryTimer = setTimeout(() => {
+      if (!autoSyncEnabled || !session || !activeBusiness || activeBusiness.id !== businessId || navigator.onLine === false) return;
+      syncLocalRecords({automatic:true,trigger:reason || 'scheduled'});
+    }, Math.max(300, Number(delay || 900)));
+  }
+  function scheduleAutomaticRetry(businessId) {
+    if (!autoSyncEnabled || !activeBusiness || activeBusiness.id !== businessId || navigator.onLine === false) return;
+    if (autoRetryAttempt >= 5) {
+      syncStatus('Automatic retry paused after five failed attempts. Check the connection, then use Sync now or reconnect.');
+      return;
+    }
+    const delay = Math.min(60000, 5000 * Math.pow(2, autoRetryAttempt));
+    autoRetryAttempt++;
+    clearTimeout(autoRetryTimer);
+    autoRetryTimer = setTimeout(() => {
+      if (autoSyncEnabled && session && activeBusiness?.id === businessId && navigator.onLine !== false) {
+        syncLocalRecords({automatic:true,trigger:'retry'});
+      }
+    }, delay);
   }
 
   async function downloadCloudRecords() {
@@ -1483,22 +1721,32 @@
     } catch(error) {
       syncStatus('Download paused: '+error.message+'. Existing local records were preserved where possible.');
       say('Cloud download error: '+error.message);
-    } finally {if(button)button.disabled=false;}
+    } finally {if(button)button.disabled=false;await updateSyncStatus();}
   }
 
-  async function syncLocalRecords() {
+  async function syncLocalRecords(options = {}) {
+    const automatic = options.automatic === true;
+    if (automatic && !autoSyncEnabled) return;
+    if (automatic && navigator.onLine === false) return syncStatus('Offline. Eligible records remain saved on this device.');
+    if (syncInProgress) return syncStatus('A sync is already running for this workspace.');
     if (!client || !session || !activeBusiness) return say('Sign in and select a business workspace first.');
     if (!navigator.onLine) { syncStatus('Offline. Records remain safely on this device; reconnect to sync.'); return; }
-    if (!confirm('Upload this device’s local products, customers, suppliers, expenses, sales, purchases and returns into “' + activeBusiness.name + '”? Continue only if ALL these local records belong in this workspace.')) return;
+    if (!automatic && !confirm('Upload this device’s local products, customers, suppliers, expenses, sales, purchases and returns into “' + activeBusiness.name + '”? Continue only if ALL these local records belong in this workspace.')) return;
     const button = $('wlSyncNow');
-    if (button) { button.disabled = true; button.textContent = 'Syncing…'; }
+    const businessSelect = $('wlBusinessSelect'), branchSelect = $('wlBranchSelect');
+    syncInProgress = true;
+    if (button) { button.disabled = true; button.textContent = automatic ? 'Auto syncing…' : 'Syncing…'; }
+    if (businessSelect) businessSelect.disabled = true;
+    if (branchSelect) branchSelect.disabled = true;
+    const syncBusinessId = activeBusiness.id;
     const types = ['products','customers','suppliers','expenses'];
     let total = 0, transactionTotal = 0, approvalPending = 0;
     try {
+      await recordSyncHistory({mode:automatic ? 'automatic' : 'manual',status:'started',message:'Sync started for ' + activeBusiness.name + (options.trigger ? ' (' + options.trigger + ')' : '') + '.'});
       const liveApprovalSettings = await refreshApprovalSettings();
       const localBranchStocks = await all('branchInventory');
       for (const type of types) {
-        const rows = await all(type);
+        const rows = (await all(type)).filter(row => !automatic || row.localBusinessId === activeBusiness.id || row.cloudSyncedFor === activeBusiness.id);
         for (const row of rows) {
           const localId = String(row.id);
           if ((row.localBusinessId && row.localBusinessId !== activeBusiness.id) || (row.cloudSyncedFor && row.cloudSyncedFor !== activeBusiness.id)) {
@@ -1589,7 +1837,7 @@
       const productRows = await all('products');
       const productByLocalId = new Map(productRows.map(p => [String(p.id), p]));
       for (const type of ['sales','purchases']) {
-        const rows = await all(type);
+        const rows = (await all(type)).filter(row => !automatic || row.localBusinessId === activeBusiness.id || row.cloudSyncedFor === activeBusiness.id);
         for (const row of rows) {
           if ((row.localBusinessId && row.localBusinessId !== activeBusiness.id) || (row.cloudSyncedFor && row.cloudSyncedFor !== activeBusiness.id)) {
             throw new Error(type + ' transaction ' + (row.receipt || row.id) + ' belongs to a different business workspace.');
@@ -1717,7 +1965,7 @@
       }
       // Upload returns only after the original sale and its products are in the cloud.
       const localSalesForReturns=await all('sales');
-      const returnsToSync=await all('returns');
+      const returnsToSync=(await all('returns')).filter(row => !automatic || row.localBusinessId === activeBusiness.id || row.cloudSyncedFor === activeBusiness.id);
       let returnTotal=0;
       for(const row of returnsToSync){
         if(row.cloudSyncedFor===activeBusiness.id)continue;
@@ -1791,18 +2039,38 @@
         row.cloudReturnId=data?.return_id||row.cloudReturnId;row.cloudSyncedAt=new Date().toISOString();
         await put('returns',row);returnTotal++;
       }
-      syncStatus('Sync complete: ' + total + ' master/expense records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns uploaded or confirmed; ' + approvalPending + ' operation(s) submitted for approval.');
-
+      const completionMessage = 'Sync complete: ' + total + ' master/expense records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns uploaded or confirmed; ' + approvalPending + ' operation(s) submitted for approval.';
+      await recordSyncHistory({mode:automatic ? 'automatic' : 'manual',status:'success',message:completionMessage,counts:{master:total,transactions:transactionTotal,returns:returnTotal,approvals:approvalPending}});
+      autoRetryAttempt = 0;
+      syncStatus(completionMessage);
       say('Cloud sync completed: ' + total + ' records, ' + transactionTotal + ' sales/purchases and ' + returnTotal + ' returns; ' + approvalPending + ' approval request(s) submitted.');
     } catch (error) {
-      syncStatus('Sync paused: ' + error.message + '. Local records are preserved; retry when ready.');
+      const failureMessage = 'Sync paused: ' + (error?.message || String(error)) + '. Local records are preserved; retry when ready.';
+      syncStatus(failureMessage);
+      await recordSyncHistory({mode:automatic ? 'automatic' : 'manual',status:'failed',message:failureMessage});
+      if (automatic) scheduleAutomaticRetry(syncBusinessId);
     } finally {
-      if (button) { button.disabled = false; button.textContent = 'Sync local records'; }
+      syncInProgress = false;
+      if (button) { button.disabled = false; button.textContent = 'Sync now'; }
+      if (businessSelect) businessSelect.disabled = false;
+      if (branchSelect) branchSelect.disabled = false;
       await updateSyncStatus();
     }
   }
   window.addEventListener('online', () => {
-    if (activeBusiness) syncStatus('Internet restored. Tap Sync local records to upload pending records and transactions.');
+    autoRetryAttempt = 0;
+    if (activeBusiness && autoSyncEnabled) {
+      syncStatus('Internet restored. Checking eligible records for this workspace…');
+      scheduleAutomaticSync('connection-restored', 1200);
+    } else if (activeBusiness) syncStatus('Internet restored. Automatic sync is off; use Sync now when ready.');
+  });
+  window.addEventListener('offline', () => {
+    if (activeBusiness) syncStatus('Offline. Records stay on this device; automatic sync will retry when the connection returns.');
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && activeBusiness && autoSyncEnabled && navigator.onLine !== false) {
+      scheduleAutomaticSync('app-returned-to-foreground', 900);
+    }
   });
 
   function loadSdk() {
