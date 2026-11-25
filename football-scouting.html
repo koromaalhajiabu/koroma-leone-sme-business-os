@@ -342,6 +342,11 @@ async function loadDeveloperReview(){
   if(result.error){status(result.error.message,true);return;}
   await loadDeveloperReview();
  });
+ const audit=await db.from('football_scout_account_review_events').select('decision,review_note,reviewed_at,scout_account_id').order('reviewed_at',{ascending:false}).limit(100);
+ if(!audit.error){
+  const events=audit.data||[];
+  el('pending-scouts').insertAdjacentHTML('beforeend','<h4 style="margin:18px 0 8px">Verification review history</h4>'+(events.length?events.map(e=>'<div class="scout-row"><div><strong>'+esc(e.decision.toUpperCase())+'</strong><span class="meta"> · '+esc(new Date(e.reviewed_at).toLocaleString())+'</span>'+(e.review_note?'<p class="hint">'+esc(e.review_note)+'</p>':'')+'</div></div>').join(''):'<div class="empty">No verification decisions have been recorded yet.</div>'));
+ }
 }
 async function refreshSession(){
  const result=await db.auth.getSession();
