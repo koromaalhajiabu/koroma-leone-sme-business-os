@@ -4,67 +4,161 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#087a43">
+<meta name="description" content="Install Koroma Leone Tech on your device for app-style access to the business operating system.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Koroma Leone Tech">
-<meta name="apple-touch-icon" href="./icons/white-lion-180.png">
+<meta name="apple-touch-icon" sizes="180x180" href="./icons/white-lion-180.png">
 <title>Install Koroma Leone Tech</title>
-<link rel="manifest" href="./manifest.webmanifest?v=49">
-<link rel="icon" href="./icons/white-lion-icon.svg">
+<link rel="manifest" href="./manifest.webmanifest?v=50">
+<link rel="icon" type="image/svg+xml" href="./icons/koroma-leone-tech-crest.svg?v=3">
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:22px;background:linear-gradient(145deg,#075b35,#0c8f52);font:16px/1.5 system-ui,Arial;color:#203b2b}.card{width:min(440px,100%);background:#fff;border-radius:22px;padding:28px;box-shadow:0 24px 70px #0005;text-align:center}.logo{width:82px;height:82px;object-fit:contain;border-radius:20px;margin:0 auto 14px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:2px;color:#075b35}.card h1{font-size:25px;margin:7px 0}.card p{color:#718078;font-size:14px}.install{display:block;width:100%;padding:15px;border:0;border-radius:12px;background:linear-gradient(135deg,#087a43,#075b35);color:#fff;font-size:16px;font-weight:800;margin:22px 0 12px}.open{display:block;padding:12px;color:#075b35;font-weight:700;text-decoration:none}.steps{margin-top:18px;padding:14px;background:#f5faf6;border-radius:12px;text-align:left;font-size:13px;color:#718078}.steps b{color:#203b2b}.foot{font-size:11px;color:#718078;margin-top:20px}
+:root{color-scheme:light;--forest:#082e21;--green:#0d6844;--green2:#128053;--gold:#c8a766;--ink:#192820;--muted:#708078;--line:#e1eae3;--paper:#f3f7f3}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:24px 15px;background:radial-gradient(circle at 12% 8%,#dfeee3,transparent 34%),radial-gradient(circle at 90% 92%,#e4eee6,transparent 30%),var(--paper);font:14px/1.65 Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);display:grid;place-items:center}
+.card{width:min(620px,100%);background:#fff;border:1px solid var(--line);border-radius:25px;padding:clamp(22px,5vw,38px);box-shadow:0 24px 70px rgba(9,54,34,.11)}
+.brand{display:flex;justify-content:center;align-items:center;gap:11px;margin-bottom:22px}
+.logo{width:55px;height:55px;object-fit:contain;border-radius:14px;background:#f3f7f3;padding:5px}
+.brand-copy{text-align:left}
+.brand-copy b{display:block;color:var(--forest);font-size:12px;letter-spacing:1.3px}
+.brand-copy small{display:block;color:#87938b;font-size:9px;letter-spacing:1.5px}
+.eyebrow{text-align:center;color:#97763c;font-size:9px;font-weight:900;letter-spacing:2.3px}
+h1{text-align:center;color:var(--forest);font-size:clamp(27px,5vw,34px);letter-spacing:-.9px;line-height:1.12;margin:9px 0 12px}
+.lead{text-align:center;max-width:500px;margin:0 auto;color:var(--muted);font-size:13px}
+.button{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;margin:22px 0 8px;padding:13px 17px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--green2),var(--forest));color:#fff;font:inherit;font-size:13px;font-weight:900;letter-spacing:.15px;cursor:pointer;box-shadow:0 8px 20px rgba(10,91,57,.17);transition:transform .18s,box-shadow .18s}
+.button:hover{transform:translateY(-1px);box-shadow:0 12px 25px rgba(10,91,57,.2)}
+.button:focus-visible,.open:focus-visible{outline:3px solid #d8bd7b;outline-offset:3px}
+.button:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none}
+.status{min-height:20px;text-align:center;color:var(--muted);font-size:11px;margin:8px 0 12px}
+.open{display:block;text-align:center;padding:10px;color:var(--green);text-decoration:none;font-weight:850;font-size:12px}
+.section{border-top:1px solid var(--line);padding-top:19px;margin-top:18px}
+.section h2{font-size:14px;color:var(--forest);margin:0 0 12px}
+.steps{display:grid;gap:12px}
+.step{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start}
+.num{width:28px;height:28px;display:grid;place-items:center;border:1px solid #dfeae1;border-radius:9px;background:#edf5ef;color:var(--green);font-size:10px;font-weight:950}
+.step b{display:block;font-size:11px;color:#2d4637;margin:1px 0 2px}
+.step p{margin:0;color:var(--muted);font-size:10px;line-height:1.6}
+.note{margin-top:15px;padding:13px 14px;border:1px solid #eadfca;border-radius:12px;background:#fcf8ef;color:#725d34;font-size:10px;line-height:1.7}
+.note b{color:#604a22}
+.foot{text-align:center;margin-top:22px;color:#98a39b;font-size:9px;letter-spacing:1px;font-weight:750}
+@media(max-width:420px){body{padding:12px}.card{padding:22px 17px;border-radius:19px}.brand{margin-bottom:18px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
 </style>
-  <link rel="stylesheet" href="./motion-2026.css?v=2">
 </head>
 <body>
 <main class="card">
-<img class="logo" src="./icons/koroma-leone-tech-crest.svg?v=2" alt="Koroma Leone Tech logo">
-<div class="eyebrow">Koroma Leone Tech</div>
-<h1>Install Koroma Leone Tech</h1>
-<p>Add Koroma Leone Tech to your phone's home screen. It opens in its own app window. Your business records remain in the app's local storage and sync when connected.</p>
-<button class="install" id="installBtn" type="button">Preparing installation…</button>
-<a class="open" href="./?app=koroma-leone-tech-v5">Open the business system</a>
-<div class="steps" id="help"><b>Android (Chrome):</b><br>1. Tap <b>Install Koroma Leone Tech</b> if the button is available.<br>2. If not, open Chrome menu ⋮ and choose <b>Install app</b> or <b>Add to Home screen</b>.<br>3. Confirm, then open Koroma Leone Tech from your home screen or app list.<br><br><b>iPhone (Safari):</b><br>1. Open this page in Safari.<br>2. Tap the <b>Share</b> icon.<br>3. Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.<br><br><b>If it says already installed:</b> open the existing Koroma Leone Tech icon. Do not create another shortcut.</div>
-<div class="foot">Designed by Alhaji Abu Koroma</div>
+ <div class="brand">
+  <img class="logo" src="./icons/koroma-leone-tech-crest.svg?v=3" alt="Koroma Leone Tech crest">
+  <div class="brand-copy"><b>KOROMA LEONE TECH</b><small>BUSINESS OPERATING SYSTEM</small></div>
+ </div>
+ <div class="eyebrow">DEVICE INSTALLATION</div>
+ <h1>Take Koroma Leone Tech with you.</h1>
+ <p class="lead">Add the business system to your home screen for quick, app-style access. Installation options depend on the browser and device you use.</p>
+ <button class="button" id="installBtn" type="button">Check installation options</button>
+ <p class="status" id="installStatus" role="status" aria-live="polite">Checking browser installation support…</p>
+ <a class="open" href="./?app=koroma-leone-tech-v5">Open the business system ↗</a>
+
+ <section class="section" aria-labelledby="android-title">
+  <h2 id="android-title">Android · Chrome</h2>
+  <div class="steps">
+   <div class="step"><span class="num">1</span><div><b>Open this page in Chrome</b><p>Use Chrome directly, not an in-app browser opened inside another application.</p></div></div>
+   <div class="step"><span class="num">2</span><div><b>Install the app</b><p>Tap the installation button when it becomes available, then confirm the browser prompt.</p></div></div>
+   <div class="step"><span class="num">3</span><div><b>Use the browser menu if needed</b><p>Open Chrome menu ⋮ and look for Install app or Add to Home screen. The option appears only when Chrome allows installation.</p></div></div>
+  </div>
+ </section>
+
+ <section class="section" aria-labelledby="apple-title">
+  <h2 id="apple-title">iPhone · Safari</h2>
+  <div class="steps">
+   <div class="step"><span class="num">1</span><div><b>Open this page in Safari</b><p>Use Safari, then tap the Share button.</p></div></div>
+   <div class="step"><span class="num">2</span><div><b>Add to Home Screen</b><p>Choose Add to Home Screen. Turn on Open as Web App, then tap Add.</p></div></div>
+  </div>
+ </section>
+
+ <section class="section" aria-labelledby="desktop-title">
+  <h2 id="desktop-title">Computer · Supported browsers</h2>
+  <p class="lead" style="text-align:left">Look for the install icon in the browser address bar or open the browser menu and choose Install app, when offered.</p>
+ </section>
+
+ <div class="note">
+  <b>Offline use and cloud sync:</b> Some supported records can be saved on this device when offline, but not every screen or feature works without internet. Cloud synchronisation is not automatic. When connected, sign in, select the correct business workspace and use <b>Sync local records</b>. Check the sync status before relying on those records on another device. Clearing browser or app data can remove records that have not synced.
+ </div>
+ <div class="foot">KOROMA LEONE TECH · DESIGNED BY ALHAJI ABU KOROMA</div>
 </main>
 <script>
+'use strict';
 let deferredPrompt=null;
 const btn=document.getElementById('installBtn');
-const help=document.getElementById('help');
-function showManual(message){
+const status=document.getElementById('installStatus');
+const helpText='Use your browser menu and choose Install app or Add to Home screen, if that option is available.';
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+
+function showInstructions(message){
  btn.disabled=false;
- btn.textContent='Installation instructions';
- help.scrollIntoView({behavior:'smooth',block:'nearest'});
- if(message) help.insertAdjacentHTML('afterbegin','<p><b>'+message+'</b></p>');
+ btn.textContent='Show installation instructions';
+ status.textContent=message|| (isIOS
+  ?'On iPhone: open this page in Safari, tap Share, choose Add to Home Screen, turn on Open as Web App, then tap Add.'
+  :helpText);
+ document.querySelector('.section')?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-window.addEventListener('beforeinstallprompt',event=>{
- event.preventDefault();
- deferredPrompt=event;
- btn.disabled=false;
- btn.textContent='Install Koroma Leone Tech';
-});
-window.addEventListener('appinstalled',()=>{
- deferredPrompt=null;
+if(isStandalone){
  btn.disabled=true;
- btn.textContent='Koroma Leone Tech installed';
-});
-btn.addEventListener('click',async()=>{
- if(!deferredPrompt){showManual(/iPad|iPhone|iPod/.test(navigator.userAgent)?'On iPhone or iPad, use Safari Share → Add to Home Screen.':'Use the browser menu and choose Install app or Add to Home screen.');return;}
- btn.disabled=true;
- try{
-  await deferredPrompt.prompt();
-  const choice=await deferredPrompt.userChoice;
-  if(choice?.outcome==='accepted'){btn.textContent='Installation accepted';}
-  else{btn.disabled=false;btn.textContent='Install Koroma Leone Tech';}
- }catch(e){showManual('Automatic installation is unavailable. Use the Chrome menu steps below.');}
- deferredPrompt=null;
-});
-if('serviceWorker' in navigator && location.protocol!=='file:'){
- window.addEventListener('load',async()=>{
-  try{await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});}catch(e){}
-  if(!deferredPrompt){btn.disabled=false;btn.textContent='Show installation instructions';}
+ btn.textContent='Koroma Leone Tech is installed';
+ status.textContent='This page is already running in its installed app window.';
+}else{
+ window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();
+  deferredPrompt=event;
+  btn.disabled=false;
+  btn.textContent='Install Koroma Leone Tech';
+  status.textContent='Your browser has made the one-tap installation option available.';
  });
-}else{btn.disabled=false;btn.textContent='Show installation instructions';}
+ window.addEventListener('appinstalled',()=>{
+  deferredPrompt=null;
+  btn.disabled=true;
+  btn.textContent='Koroma Leone Tech is installed';
+  status.textContent='Installation was completed by the browser.';
+ });
+ btn.addEventListener('click',async()=>{
+  if(!deferredPrompt){showInstructions();return;}
+  btn.disabled=true;
+  try{
+   const promptEvent=deferredPrompt;
+   deferredPrompt=null;
+   await promptEvent.prompt();
+   const choice=await promptEvent.userChoice;
+   if(choice?.outcome==='accepted'){
+    btn.textContent='Installation requested';
+    status.textContent='The browser accepted the installation request. Follow any remaining prompt on your device.';
+   }else{
+    btn.disabled=false;
+    btn.textContent='Install Koroma Leone Tech';
+    status.textContent='Installation was not completed. You can try again or use the browser menu.';
+   }
+  }catch(error){
+   btn.disabled=false;
+   btn.textContent='Show installation instructions';
+   status.textContent='The browser could not open the installation prompt. Use the device instructions below.';
+  }
+ });
+}
+if('serviceWorker' in navigator&&window.isSecureContext){
+ window.addEventListener('load',async()=>{
+  try{
+   await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
+   await navigator.serviceWorker.ready;
+   if(!isStandalone&&!deferredPrompt)status.textContent='App support is ready. When your browser permits installation, use the button above or the browser menu.';
+  }catch(error){
+   if(!isStandalone&&!deferredPrompt)status.textContent='Installation may still be available, but offline page caching could not be registered in this browser.';
+  }
+ });
+}else if(!isStandalone){
+ status.textContent='This page needs a secure HTTPS connection for the supported app installation and offline features.';
+}
+if(!isStandalone&&!deferredPrompt){
+ btn.disabled=false;
+ btn.textContent='Show installation instructions';
+}
 </script>
-  <script src="./motion-2026.js?v=2" defer></script>
 </body>
 </html>
