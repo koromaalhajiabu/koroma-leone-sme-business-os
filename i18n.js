@@ -1115,6 +1115,14 @@ for (const row of WL_FOOTBALL_LAUNCH_TRANSLATIONS_V1) {
   LANGS.fr.t[key] = fr; LANGS.es.t[key] = es; LANGS.ar.t[key] = ar; LANGS.hi.t[key] = hi; LANGS.zh.t[key] = zh;
 }
 
+
+const WL_FOOTBALL_BRAND_TRANSLATIONS_V1 = [["FOOTBALL CLUB & PLAYER NETWORK","RÉSEAU DES CLUBS ET JOUEURS DE FOOTBALL","RED DE CLUBES Y JUGADORES DE FÚTBOL","شبكة أندية ولاعبي كرة القدم","फुटबॉल क्लब और खिलाड़ी नेटवर्क","足球俱乐部与球员网络"],["Football Club & Player Opportunity Platform","Plateforme d’opportunités pour les clubs et joueurs de football","Plataforma de oportunidades para clubes y jugadores de fútbol","منصة فرص أندية ولاعبي كرة القدم","फुटबॉल क्लब और खिलाड़ी अवसर प्लेटफ़ॉर्म","足球俱乐部与球员机会平台"]];
+for (const row of WL_FOOTBALL_BRAND_TRANSLATIONS_V1) {
+  if (!Array.isArray(row) || row.length !== 6 || typeof row[0] !== 'string') continue;
+  const [key, fr, es, ar, hi, zh] = row;
+  LANGS.fr.t[key] = fr; LANGS.es.t[key] = es; LANGS.ar.t[key] = ar; LANGS.hi.t[key] = hi; LANGS.zh.t[key] = zh;
+}
+
 let current='en';
 const WL_LOCALE_BY_LANGUAGE={en:'en-US',fr:'fr-FR',es:'es-ES',ar:'ar',hi:'hi-IN',zh:'zh-CN'};
 if(!window.__wlLocaleFormattingWrapped){
