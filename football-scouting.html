@@ -141,6 +141,8 @@ const supabaseReady=window.supabase&&window.supabase.createClient;
 if(!supabaseReady){el('players').innerHTML='<div class="empty">The portal could not load its connection library. Refresh while connected.</div>';return;}
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let playerRows=[],session=null,scoutAccount=null,isDeveloper=false,selectedPlayer=null;
+const invitationToken=new URLSearchParams(location.search).get('invite');
+let invitationClaimAttempted=false;
 const playerParam=new URLSearchParams(location.search).get('player');
 const clubParam=new URLSearchParams(location.search).get('club');
 
@@ -359,6 +361,12 @@ async function refreshSession(){
  switchForms();
  try{
   scoutAccount=await ensureScoutAccount();
+  if(scoutAccount&&invitationToken&&!invitationClaimAttempted){
+   invitationClaimAttempted=true;
+   const claimed=await db.rpc('claim_football_scout_invitation',{p_token:invitationToken});
+   if(claimed.error){status('Your scout profile is saved, but this invitation could not be matched: '+claimed.error.message,true);}
+   else{status('Invitation successfully matched to your scout account and recruitment record. Your account still requires platform verification.');history.replaceState({},'',location.pathname+'#scout-account');}
+  }
   const dev=await db.rpc('football_scout_portal_is_developer');
   isDeveloper=!dev.error&&dev.data===true;
   if(!scoutAccount){
@@ -441,6 +449,11 @@ db.auth.onAuthStateChange((_event,newSession)=>{
  session=newSession;
  setTimeout(()=>refreshSession().catch(e=>status(e.message,true)),0);
 });
+if(invitationToken){
+ const inviteEmail=new URLSearchParams(location.search).get('email')||'';
+ const reg=el('register-form');
+ if(reg){if(inviteEmail){reg.elements.auth_email.value=inviteEmail;reg.elements.contact_email.value=inviteEmail;}}
+}
 (async function init(){
  try{
   if(clubParam){el('search').placeholder='Showing published profiles for this club';}
