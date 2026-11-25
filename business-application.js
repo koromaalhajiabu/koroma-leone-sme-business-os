@@ -24,7 +24,7 @@ zh:{applicationType:'您要注册哪种工作区？*',businessWorkspace:'企业�
 };
 Object.keys(extraWords).forEach(lang=>Object.assign(words[lang],extraWords[lang]));
 
-function setLanguage(lang){const dict=words[lang]||words.en;document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{const k=el.dataset.t;if(dict[k])el.textContent=dict[k]});$('language').value=lang;try{localStorage.setItem('klt-business-application-language',lang)}catch(_){}}
+function setLanguage(lang){const dict=words[lang]||words.en;document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{const k=el.dataset.t;if(dict[k])el.textContent=dict[k]});$('language').value=lang;try{localStorage.setItem('klt-business-application-language',lang)}catch(_){}if(typeof syncApplicationKind==='function')syncApplicationKind()}
 $('language').addEventListener('change',e=>setLanguage(e.target.value));
 function message(el,text,error=false){el.textContent=text;el.classList.toggle('error',error);el.classList.remove('hidden')}
 function fill(app){
