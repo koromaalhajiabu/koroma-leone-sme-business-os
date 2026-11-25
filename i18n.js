@@ -298,12 +298,6 @@ function translateString(value){
  }
  return result;
 }
-function translateTextNode(node){');
-  const pattern=new RegExp('(^|[^A-Za-z0-9])('+escaped+')(?=$|[^A-Za-z0-9])','gi');
-  result=result.replace(pattern,(match,prefix)=>prefix+translated);
- }
- return result;
-}
 function translateTextNode(node){
  if(!node||node.nodeType!==3)return;
  const raw=node.nodeValue;
