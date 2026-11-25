@@ -133,6 +133,9 @@ async function runViewport(name, viewport) {
       french.passwordLabel = window.wlTranslateText?.('Password') || '';
       french.showLabel = window.wlTranslateText?.('Show') || '';
       french.englishOption = window.wlTranslateText?.('English') || '';
+      french.syncDescription = window.wlTranslateText?.("Track this workspace's device queue, cloud receipts, conflicts and retry activity.") || '';
+      french.syncAutoDescription = window.wlTranslateText?.("Automatic sync runs only while the app is open, signed in and connected. It uploads records already assigned to this business. Unassigned records are excluded. Purchase, expense and refund approvals remain in force.") || '';
+      french.notificationTip = window.wlTranslateText?.("Choose which categories appear in your Alerts centre.") || '';
       french.receiptTitle = window.wlTranslateText?.('SALES RECEIPT') || '';
       french.dialogText = window.wlTranslateText?.('Delete this record?') || '';
       mixedProbe.remove();
@@ -198,6 +201,9 @@ async function runViewport(name, viewport) {
       languageCheck.french.passwordLabel === 'Mot de passe' &&
       languageCheck.french.showLabel === 'Afficher' &&
       languageCheck.french.englishOption === 'Anglais' &&
+      languageCheck.french.syncDescription.startsWith('Suivez la file d’attente') &&
+      languageCheck.french.syncAutoDescription.startsWith('La synchronisation automatique') &&
+      languageCheck.french.notificationTip === 'Choisissez les catégories qui apparaissent dans votre centre d’alertes.' &&
       languageCheck.french.receiptTitle === 'REÇU DE VENTE' &&
       languageCheck.french.dialogText === 'Supprimer cet enregistrement ?' &&
       languageCheck.french.scriptTextUnchanged && frenchCopyPassed;
