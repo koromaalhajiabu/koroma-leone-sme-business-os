@@ -11,8 +11,10 @@
     try{
       var c=context();
       if(!c.client||!c.session||!c.session.user){platformAccess=false;return false;}
-      var result=await c.client.rpc('get_platform_audit_log',{p_limit:1});
-      platformAccess=!result.error&&Array.isArray(result.data);
+      /* Match the developer identity check already used by cloud.js. Audit-log
+         availability must not decide whether the developer menu is visible. */
+      var email=String(c.session.user.email||'').trim().toLowerCase();
+      platformAccess=email==='koromaalhajiabu0@gmail.com';
       return platformAccess;
     }catch(e){platformAccess=false;return false;}
     finally{checking=false;var nav=$('platformControlCentreNav');if(nav)nav.hidden=!platformAccess;}
