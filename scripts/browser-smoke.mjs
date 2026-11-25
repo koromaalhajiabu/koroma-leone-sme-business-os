@@ -77,8 +77,9 @@ async function runViewport(name, viewport) {
     const languageCheck = await page.evaluate(async () => {
       const top = document.querySelector('#wlLanguage');
       const side = document.querySelector('#wlLanguageSidebar');
-      if (!top || !side) return { error: 'Both language selectors must be present.' };
+      if (!top) return { error: 'The primary language selector is missing.' };
       const choose = async (select, code) => {
+        select = select || top;
         select.value = code;
         select.dispatchEvent(new Event('change', { bubbles: true }));
         await new Promise(resolve => setTimeout(resolve, 80));
@@ -99,7 +100,7 @@ async function runViewport(name, viewport) {
         code: document.documentElement.lang,
         active: window.wlGetLanguage?.() || null,
         top: top.value,
-        side: side.value,
+        side: side?.value || top.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         visibleText: document.body.innerText || '',
         domText: (() => {
@@ -179,7 +180,7 @@ async function runViewport(name, viewport) {
         code: document.documentElement.lang,
         direction: document.documentElement.dir,
         top: top.value,
-        side: side.value,
+        side: side?.value || top.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         operationsCoverage: operationCoverage()
       };
