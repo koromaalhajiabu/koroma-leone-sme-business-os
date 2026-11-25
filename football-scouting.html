@@ -305,7 +305,7 @@ function renderScoutAccountSetup(){
 
 async function loadVerifiedScoutDirectory(){
  const node=el('verified-scouts');if(!node)return;
- const r=await db.from('football_verified_scout_directory').select('*').order('country').order('organisation').limit(250);
+ const r=await db.from('football_verified_scout_profiles').select('id,full_name,organisation,job_title,country,website_url,professional_profile_url,scouting_specialties,years_experience,public_contact_email,published_at,updated_at').order('country').order('organisation').limit(250);
  if(r.error){node.innerHTML='<div class="empty">Verified scout directory is temporarily unavailable.</div>';return;}
  const rows=r.data||[];
  node.innerHTML=rows.length?rows.map(x=>'<div class="scout-row"><div><strong>'+esc(x.full_name)+' · '+esc(x.organisation)+'</strong><span class="meta">'+esc(x.job_title||'Professional scout')+' · '+esc(x.country)+(x.years_experience!==null?' · '+x.years_experience+' years experience':'')+'</span>'+(x.scouting_specialties?.length?'<p class="hint">Specialities: '+esc(x.scouting_specialties.join(', '))+'</p>':'')+(x.professional_profile_url?'<a href="'+esc(safeUrl(x.professional_profile_url))+'" target="_blank" rel="noopener">Professional profile ↗</a> ':'')+(x.website_url?'<a href="'+esc(safeUrl(x.website_url))+'" target="_blank" rel="noopener">Organisation ↗</a>':'')+'</div>'+(x.public_contact_email?'<a class="soft" href="mailto:'+esc(x.public_contact_email)+'">Contact</a>':'')+'</div>').join(''):'<div class="empty">No scouts have opted into the public directory yet. Verified status does not automatically publish contact details.</div>';
