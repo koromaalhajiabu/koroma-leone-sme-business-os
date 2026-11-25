@@ -83,6 +83,8 @@ async function runViewport(name, viewport) {
         select.dispatchEvent(new Event('change', { bubbles: true }));
         await new Promise(resolve => setTimeout(resolve, 80));
       };
+      const guardedScript = document.querySelector('#wl-appearance-controller');
+      window.__wlAppearanceScriptBefore = guardedScript?.textContent || '';
       await choose(top, 'fr');
       const french = {
         ready: !!window.__wlI18nReady,
@@ -92,7 +94,19 @@ async function runViewport(name, viewport) {
         side: side.value,
         overview: document.querySelector('#nav [data-page="dashboard"]')?.textContent || '',
         visibleText: document.body.innerText || '',
-        sidebarText: document.querySelector('#sidebar')?.textContent || ''
+        domText: (() => {
+          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          const parts = []; let node;
+          while ((node = walker.nextNode())) {
+            if (!node.parentElement?.closest('script,style,noscript,template,code,pre,textarea,[data-wl-no-translate]')) parts.push(node.nodeValue);
+          }
+          return parts.join(' ');
+        })(),
+        sidebarText: document.querySelector('#sidebar')?.textContent || '',
+        scriptTextUnchanged: (() => {
+          const script = document.querySelector('#wl-appearance-controller');
+          return !!script && script.textContent === window.__wlAppearanceScriptBefore;
+        })()
       };
       const probe = document.createElement('span');
       probe.textContent = 'Business name';
@@ -123,7 +137,7 @@ async function runViewport(name, viewport) {
       'Gérez votre entreprise',
       'Un espace de travail connecté pour les ventes',
       'Travaillez de partout'
-    ].every(value => languageCheck.french?.visibleText?.includes(value)) &&
+    ].every(value => languageCheck.french?.domText?.includes(value)) &&
       languageCheck.french?.sidebarText?.includes('Aide et assistance') &&
       !['Welcome back','Run your business','One connected workspace for sales','Work from anywhere'].some(value => languageCheck.french?.visibleText?.includes(value)) &&
       !languageCheck.french?.sidebarText?.includes('Help & Support');
@@ -131,7 +145,8 @@ async function runViewport(name, viewport) {
       languageCheck.french.code === 'fr' && languageCheck.french.active === 'fr' &&
       languageCheck.french.top === 'fr' && languageCheck.french.side === 'fr' &&
       languageCheck.french.overview.includes('Vue d’ensemble') &&
-      languageCheck.french.dynamicText === 'Nom de l’entreprise' && frenchCopyPassed;
+      languageCheck.french.dynamicText === 'Nom de l’entreprise' &&
+      languageCheck.french.scriptTextUnchanged && frenchCopyPassed;
     const arabicPassed = languageCheck.arabic?.code === 'ar' &&
       languageCheck.arabic.direction === 'rtl' &&
       languageCheck.arabic.top === 'ar' && languageCheck.arabic.side === 'ar' &&

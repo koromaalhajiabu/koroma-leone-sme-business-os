@@ -266,6 +266,7 @@ for(const row of WL_UI_COVERAGE_ROWS){
 
 let current='en';
 let initialized=false;
+const originalDocumentTitle=document.title;
 const originals=new WeakMap(),lastRendered=new WeakMap();
 const translationMaps={};
 const translationKeys={};
@@ -300,6 +301,8 @@ function translateString(value){
 }
 function translateTextNode(node){
  if(!node||node.nodeType!==3)return;
+ const parent=node.parentElement;
+ if(parent?.closest('script,style,noscript,template,code,pre,textarea,[data-wl-no-translate]'))return;
  const raw=node.nodeValue;
  if(!raw||!raw.trim())return;
  let original=originals.get(node);
@@ -352,7 +355,7 @@ function setLanguage(code){
   if(select.value!==current)select.value=current;
  });
  scan(document.body||document.documentElement);
- const title=document.querySelector('title');if(title)title.textContent=translateString(title.textContent);
+ const title=document.querySelector('title');if(title)title.textContent=translateString(originalDocumentTitle);
  window.dispatchEvent(new CustomEvent('whiteLionLanguageChanged',{detail:{language:current,direction:lang.dir}}));
  return current;
 }
