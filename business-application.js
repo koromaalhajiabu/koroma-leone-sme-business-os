@@ -27,7 +27,38 @@ Object.keys(extraWords).forEach(lang=>Object.assign(words[lang],extraWords[lang]
 function setLanguage(lang){const dict=words[lang]||words.en;document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';document.querySelectorAll('[data-t]').forEach(el=>{const k=el.dataset.t;if(dict[k])el.textContent=dict[k]});$('language').value=lang;try{localStorage.setItem('klt-business-application-language',lang)}catch(_){}}
 $('language').addEventListener('change',e=>setLanguage(e.target.value));
 function message(el,text,error=false){el.textContent=text;el.classList.toggle('error',error);el.classList.remove('hidden')}
-function fill(app){if(!app||!Object.keys(app).length)return;for(const key of ['full_name','phone','business_name','industry_group','business_type','currency_code','contact_email','contact_phone','country','address','website','tax_registration_number','notes'])if($(key)&&app[key]!=null)$(key).value=app[key]}
+function fill(app){
+ if(!app||!Object.keys(app).length)return;
+ for(const key of ['full_name','phone','business_name','industry_group','business_type','currency_code','contact_email','contact_phone','country','address','website','tax_registration_number','notes'])if($(key)&&app[key]!=null)$(key).value=app[key];
+ if($('application_kind'))$('application_kind').value=app.application_kind||'business';
+ const club=app.club_details||{};
+ for(const key of ['official_club_name','short_name','club_type','district','city','competition_name','home_ground','club_registration_body','club_registration_number','manager_full_name','manager_role','proposed_website_slug','authority_statement','evidence_reference'])if($(key)&&club[key]!=null)$(key).value=club[key];
+ syncApplicationKind();
+}
+function syncApplicationKind(){
+ const isClub=$('application_kind')?.value==='football_club';
+ $('footballClubFields')?.classList.toggle('hidden',!isClub);
+ document.querySelectorAll('[data-club-required]').forEach(el=>{el.disabled=!isClub;el.required=isClub});
+ if(isClub){
+  $('industry_group').value='Sports and local league management';
+  $('business_type').value='Football club';
+  $('business_type').readOnly=true;
+  if(!$('official_club_name').value)$('official_club_name').value=$('business_name').value;
+  if(!$('business_name').value)$('business_name').value=$('official_club_name').value;
+  if(!$('manager_full_name').value)$('manager_full_name').value=$('full_name').value;
+  if(!$('contact_email').value)$('contact_email').value=session?.user?.email||'';
+  if(!$('contact_phone').value)$('contact_phone').value=$('phone').value;
+ }else{
+  $('business_type').readOnly=false;
+  $('business_type').placeholder='e.g. Building materials supplier';
+ }
+ const submit=$('submitApplication');
+ if(submit)submit.textContent=(words[$('language').value]||words.en)[isClub?'submitClub':'submit'];
+}
+$('application_kind').addEventListener('change',syncApplicationKind);
+$('official_club_name').addEventListener('input',()=>{if($('application_kind').value==='football_club')$('business_name').value=$('official_club_name').value});
+$('full_name').addEventListener('input',()=>{if($('application_kind').value==='football_club'&&!$('manager_full_name').value)$('manager_full_name').value=$('full_name').value});
+$('phone').addEventListener('input',()=>{if($('application_kind').value==='football_club')$('contact_phone').value=$('phone').value});
 async function refresh(){
  const {data,error}=await client.rpc('get_my_platform_business_application');
  if(error)throw error;
@@ -35,6 +66,7 @@ async function refresh(){
  if(application.application_id||application.id){
   fill(application);
   const status=application.status||'pending';
+  syncApplicationKind();
   $('applicationStatus').hidden=false;
   const dict=words[$('language').value]||words.en;
   message($('applicationStatus'),dict[status]||status);
