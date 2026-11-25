@@ -88,7 +88,8 @@ async function runViewport(name, viewport) {
         inventory: window.wlTranslateText?.('Barcode lookup & scanning') || '',
         accounting: window.wlTranslateText?.('Cloud accounting snapshot') || '',
         attendance: window.wlTranslateText?.('Staff attendance register') || '',
-        dynamicCounts: window.wlTranslateText?.('0 sales, 0 purchases and 0 expense records.') || ''
+        dynamicCounts: window.wlTranslateText?.('0 sales, 0 purchases and 0 expense records.') || '',
+        localizedDate: new Date(2026, 10, 25).toLocaleDateString()
       });
       const guardedScript = document.querySelector('#wl-appearance-controller');
       window.__wlAppearanceScriptBefore = guardedScript?.textContent || '';
@@ -299,6 +300,18 @@ async function runViewport(name, viewport) {
     const operationsLanguagePassed = Object.entries(expectedOperations).every(([code, expected]) =>
       Object.entries(expected).every(([key, value]) => languageCheck[({fr:'french',es:'spanish',ar:'arabic',hi:'hindi',zh:'chinese'})[code]]?.operationsCoverage?.[key] === value)
     );
+    const datePatterns = {
+      fr: /25[\/]11[\/]2026/, es: /25[\/]11[\/]2026/, ar: /25.*11.*2026/,
+      hi: /25[\/]11[\/]2026/, zh: /2026[\/]11[\/]25/
+    };
+    const languageNames = {fr:'french',es:'spanish',ar:'arabic',hi:'hindi',zh:'chinese'};
+    const localizedDatesPassed = Object.entries(datePatterns).every(([code, pattern]) =>
+      pattern.test(languageCheck[languageNames[code]]?.operationsCoverage?.localizedDate || '')
+    );
+    record(result, 'default date formatting follows the selected language', localizedDatesPassed, {
+      actual: Object.fromEntries(Object.entries(languageNames).map(([code,name]) =>
+        [code, languageCheck[name]?.operationsCoverage?.localizedDate || null]))
+    });
     record(result, 'inventory, accounting, payroll and dynamic transaction messages translate in all five languages',
       operationsLanguagePassed, {
         expected: expectedOperations,
