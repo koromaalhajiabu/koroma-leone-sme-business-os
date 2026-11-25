@@ -330,10 +330,6 @@
       <div class="dev-meta" style="margin-top:10px">Deletion requests suspend access immediately. Accounts remain recoverable for 30 days. Business owners and developer accounts are protected. Permanent deletion is only available after the recovery period through the secure server-side function.</div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:16px"><h3 style="margin:0">30-day deletion &amp; recovery</h3><button id="wlDevDeletionRefresh">Refresh requests</button></div>
       <div id="wlDevDeletions" class="dev-meta">Deletion requests load after developer verification.</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:18px"><h3 style="margin:0">Platform activity &amp; audit log</h3><button id="wlDevAuditRefresh">Refresh activity</button></div>
-      <input id="wlDevAuditSearch" type="search" placeholder="Search actions, accounts, workspaces…" aria-label="Search platform audit log" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #52627b;border-radius:8px;background:#101b31;color:#fff;margin:8px 0">
-      <div id="wlDevAudit" class="dev-meta">Recent platform activity will appear here.</div>
-      <div class="dev-meta" style="margin-top:10px">The audit log records actions made after this feature is installed. Existing historical audit entries are not backfilled.</div>
       <div class="dev-meta" style="margin-top:10px">Developer access is verified by Supabase database permissions. This console does not expose passwords or secret API keys.</div>`;
     box.insertAdjacentElement('afterend', dev);
     // Notify modules whose mount slots are created dynamically with the developer panel.
@@ -356,8 +352,6 @@
     $('wlDevAlertSave').onclick = saveDeveloperAlertSettings;
     $('wlDevAlertRefresh').onclick = loadDeveloperAlertSettings;
     $('wlDevDeletionRefresh').onclick = loadDeveloperDeletionRequests;
-    $('wlDevAuditRefresh').onclick = loadDeveloperActivity;
-    $('wlDevAuditSearch').oninput = renderDeveloperActivity;
     $('wlSignOut').onclick = async () => { await client.auth.signOut(); session = null; activeBusiness = null; $('wlDeveloperBox').hidden = true; showSignedOut(); };
     $('wlCreateBusiness').onclick = createBusiness;
     $('wlSyncNow').onclick = () => syncLocalRecords({automatic:false});
@@ -726,8 +720,7 @@
           p_note:note
         });
         if (result.error) { status.textContent = result.error.message; button.disabled = false; return; }
-        await loadDeveloperDashboard();
-        await loadDeveloperActivity();
+        await loadDeveloperDashboard()
       };
     });
     status.textContent = 'Developer authorization verified by Supabase. Platform controls are available.';
@@ -737,36 +730,9 @@
     await loadDeveloperBusinessRegistrations();
     await loadDeveloperAccounts();
     await loadDeveloperRegistrationLimits();
-    await loadDeveloperDeletionRequests();
-    await loadDeveloperActivity();
+    await loadDeveloperDeletionRequests()
     await loadDeveloperLeagues();
     await loadDeveloperLeagueAdmins();
-  }
-  async function loadDeveloperActivity() {
-    const host = $('wlDevAudit');
-    if (!host || !session || session.user.email?.toLowerCase() !== 'koromaalhajiabu0@gmail.com') return;
-    host.textContent = 'Loading platform activity…';
-    const {data,error} = await client.rpc('get_platform_audit_log', {p_limit:150});
-    if (error) {
-      host.textContent = 'Audit log unavailable: ' + error.message + '. Run migration 007 first.';
-      return;
-    }
-    window.__wlPlatformAudit = Array.isArray(data) ? data : [];
-    renderDeveloperActivity();
-  }
-  function renderDeveloperActivity() {
-    const host = $('wlDevAudit');
-    if (!host) return;
-    const query = ($('wlDevAuditSearch')?.value || '').trim().toLowerCase();
-    const events = (window.__wlPlatformAudit || []).filter(event => {
-      const text = [event.action,event.actor_email,event.business_name,event.entity_table,event.entity_id,JSON.stringify(event.details || {})].join(' ').toLowerCase();
-      return !query || text.includes(query);
-    });
-    host.innerHTML = events.map(event => {
-      const when = event.occurred_at ? new Date(event.occurred_at).toLocaleString() : 'Time unavailable';
-      const details = event.details && Object.keys(event.details).length ? JSON.stringify(event.details) : '';
-      return '<div class="dev-row"><div style="min-width:0"><strong>' + esc(String(event.action || 'Platform event').replaceAll('_',' ')) + '</strong><div class="dev-meta">' + esc(event.actor_email || 'System / unknown actor') + ' · ' + esc(when) + '</div><div class="dev-meta">' + esc(event.business_name || 'Platform-wide') + (event.entity_table ? ' · ' + esc(event.entity_table) : '') + (event.entity_id ? ' · ' + esc(event.entity_id) : '') + '</div>' + (details ? '<div class="dev-meta">' + esc(details) + '</div>' : '') + '</div></div>';
-    }).join('') || '<div class="dev-meta">No matching audit events found in the latest 150 records.</div>';
   }
   async function loadDeveloperLeagues() {
     const host = $('wlDevLeagues');
@@ -1078,7 +1044,7 @@
       if (error) throw error; if (!data?.ok) throw new Error(data?.error || 'Invitation was not completed.');
       if (status) status.textContent = data.message || 'Invitation sent. Ask the administrator to check their email.';
       $('wlDevInviteName').value = ''; $('wlDevInviteEmail').value = '';
-      await loadDeveloperAccounts(); await loadDeveloperActivity();
+      await loadDeveloperAccounts()
     } catch (error) { if (status) status.textContent = 'Invitation failed: ' + (error.message || 'Unknown error') + '. Confirm the manage-platform-accounts Edge Function is deployed.'; }
     finally { button.disabled = false; }
   }
@@ -1112,7 +1078,7 @@
         button.disabled = true;
         const {data,error} = await client.functions.invoke('manage-platform-accounts',{body:{action:'update_profile',user_id:userId,full_name:fullName.trim(),email:email.trim().toLowerCase()}});
         if (error || !data?.ok) { say('Profile update failed: ' + (error?.message || data?.error || 'Unknown error')); button.disabled = false; return; }
-        say(data.message || 'Account profile updated.'); await loadDeveloperAccounts(); await loadDeveloperActivity();
+        say(data.message || 'Account profile updated.'); await loadDeveloperAccounts()
       };
     });
     host.querySelectorAll('[data-account-delete]').forEach(button => {
@@ -1188,7 +1154,7 @@
         const {data,error} = await client.functions.invoke('process-account-deletions',{body:{request_id:requestId}});
         if (error) { say('Secure deletion function error: ' + error.message + '. Confirm the Edge Function is deployed.'); button.disabled = false; button.textContent = 'Permanently delete'; return; }
         say(data?.message || 'Deletion function completed.');
-        await loadDeveloperAccounts(); await loadDeveloperDeletionRequests(); await loadDeveloperActivity();
+        await loadDeveloperAccounts(); await loadDeveloperDeletionRequests()
       };
     });
   }
