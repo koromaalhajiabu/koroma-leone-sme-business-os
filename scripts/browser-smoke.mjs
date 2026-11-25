@@ -128,6 +128,11 @@ async function runViewport(name, viewport) {
       document.body.appendChild(mixedProbe);
       await new Promise(resolve => setTimeout(resolve, 80));
       french.mixedCopy = mixedProbe.textContent.trim();
+      french.partialCopy = window.wlTranslateText?.('Run your business with clarity.') || '';
+      french.signedOutNotice = window.wlTranslateText?.('Not signed in. Create an account or sign in to continue.') || '';
+      french.passwordLabel = window.wlTranslateText?.('Password') || '';
+      french.showLabel = window.wlTranslateText?.('Show') || '';
+      french.englishOption = window.wlTranslateText?.('English') || '';
       french.receiptTitle = window.wlTranslateText?.('SALES RECEIPT') || '';
       french.dialogText = window.wlTranslateText?.('Delete this record?') || '';
       mixedProbe.remove();
@@ -187,7 +192,12 @@ async function runViewport(name, viewport) {
       languageCheck.french.salesHeading === 'Caisse de vente' &&
       languageCheck.french.salesEmptyState === 'Scannez ou sélectionnez un produit pour commencer.' &&
       languageCheck.french.mixedCopy.includes('Thème actuel') &&
-      languageCheck.french.mixedCopy.includes('Mode clair') &&
+      languageCheck.french.mixedCopy.toLowerCase().includes('mode clair') &&
+      languageCheck.french.partialCopy === 'Gérez votre entreprise en toute clarté.' &&
+      languageCheck.french.signedOutNotice === 'Vous n’êtes pas connecté. Créez un compte ou connectez-vous pour continuer.' &&
+      languageCheck.french.passwordLabel === 'Mot de passe' &&
+      languageCheck.french.showLabel === 'Afficher' &&
+      languageCheck.french.englishOption === 'Anglais' &&
       languageCheck.french.receiptTitle === 'REÇU DE VENTE' &&
       languageCheck.french.dialogText === 'Supprimer cet enregistrement ?' &&
       languageCheck.french.scriptTextUnchanged && frenchCopyPassed;

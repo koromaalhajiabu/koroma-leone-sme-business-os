@@ -350,7 +350,52 @@ const WL_UI_COVERAGE_ROWS=[
 ["Loading club player management…","Chargement de la gestion des joueurs du club…","Cargando la gestión de jugadores del club…","جارٍ تحميل إدارة لاعبي النادي…","क्लब खिलाड़ी प्रबंधन लोड हो रहा है…","正在加载俱乐部球员管理…"],
 ["Loading club website management…","Chargement de la gestion du site web du club…","Cargando la gestión del sitio web del club…","جارٍ تحميل إدارة موقع النادي…","क्लब वेबसाइट प्रबंधन लोड हो रहा है…","正在加载俱乐部网站管理…"],
 ["Loading phone unlocking service…","Chargement du service de déverrouillage de téléphones…","Cargando el servicio de desbloqueo de teléfonos…","جارٍ تحميل خدمة فتح قفل الهواتف…","फ़ोन अनलॉकिंग सेवा लोड हो रही है…","正在加载手机解锁服务…"],
-["Loading campus management…","Chargement de la gestion du campus…","Cargando la gestión del campus…","جارٍ تحميل إدارة الحرم الجامعي…","कैंपस प्रबंधन लोड हो रहा है…","正在加载校园管理…"]
+["Loading campus management…","Chargement de la gestion du campus…","Cargando la gestión del campus…","جارٍ تحميل إدارة الحرم الجامعي…","कैंपस प्रबंधन लोड हो रहा है…","正在加载校园管理…"],
+["with clarity.","en toute clarté.","con claridad.","بوضوح.","स्पष्टता के साथ।","清晰地。"],
+["Not signed in. Create an account or sign in to continue.","Vous n’êtes pas connecté. Créez un compte ou connectez-vous pour continuer.","No has iniciado sesión. Crea una cuenta o inicia sesión para continuar.","لم تسجل الدخول. أنشئ حساباً أو سجّل الدخول للمتابعة.","आपने साइन इन नहीं किया है। जारी रखने के लिए खाता बनाएँ या साइन इन करें।","尚未登录。请创建账户或登录以继续。"],
+["Password","Mot de passe","Contraseña","كلمة المرور","पासवर्ड","密码"],
+["Show","Afficher","Mostrar","إظهار","दिखाएँ","显示"],
+["Hide","Masquer","Ocultar","إخفاء","छिपाएँ","隐藏"],
+["English","Anglais","Inglés","الإنجليزية","अंग्रेज़ी","英语"],
+["Français","Français","Francés","الفرنسية","फ़्रेंच","法语"],
+["العربية","Arabe","Árabe","العربية","अरबी","阿拉伯语"],
+["Español","Espagnol","Español","الإسبانية","स्पेनिश","西班牙语"],
+["हिन्दी","Hindi","Hindi","الهندية","हिन्दी","印地语"],
+["中文（简体）","Chinois simplifié","Chino simplificado","الصينية المبسطة","सरलीकृत चीनी","简体中文"],
+["Delivery & Logistics","Livraison et logistique","Entrega y logística","التوصيل والخدمات اللوجستية","डिलीवरी और लॉजिस्टिक्स","配送与物流"],
+["HR & Payroll","Ressources humaines et paie","Recursos humanos y nóminas","الموارد البشرية والرواتب","मानव संसाधन और वेतन","人力资源与薪资"],
+["Customer Loyalty","Fidélisation client","Fidelización de clientes","ولاء العملاء","ग्राहक निष्ठा","客户忠诚度"],
+["My Business Settings","Paramètres de mon entreprise","Configuración de mi negocio","إعدادات أعمالي","मेरी व्यवसाय सेटिंग्स","我的业务设置"],
+["Alerts","Alertes","Alertas","التنبيهات","अलर्ट","提醒"],
+["Business notifications","Notifications de l’entreprise","Notificaciones del negocio","إشعارات الأعمال","व्यवसाय सूचनाएँ","业务通知"],
+["Cloud sync needs attention","La synchronisation cloud nécessite votre attention","La sincronización en la nube requiere atención","تحتاج مزامنة السحابة إلى الانتباه","क्लाउड सिंक पर ध्यान देने की आवश्यकता है","云同步需要处理"],
+["Activity snapshot","Aperçu de l’activité","Resumen de actividad","لمحة عن النشاط","गतिविधि का सारांश","活动概览"],
+["Enable browser alerts","Activer les alertes du navigateur","Activar alertas del navegador","تفعيل تنبيهات المتصفح","ब्राउज़र अलर्ट सक्षम करें","启用浏览器提醒"],
+["Based on records available on this device.","Basé sur les enregistrements disponibles sur cet appareil.","Basado en los registros disponibles en este dispositivo.","استناداً إلى السجلات المتاحة على هذا الجهاز.","इस डिवाइस पर उपलब्ध रिकॉर्ड के आधार पर।","根据此设备上的可用记录。"],
+["Sync now","Synchroniser maintenant","Sincronizar ahora","زامن الآن","अभी सिंक करें","立即同步"],
+["Check local/cloud data","Vérifier les données locales et cloud","Comprobar los datos locales y de la nube","التحقق من البيانات المحلية والسحابية","स्थानीय/क्लाउड डेटा जाँचें","检查本地/云端数据"],
+["Diagnostic has not been run.","Le diagnostic n’a pas été exécuté.","El diagnóstico no se ha ejecutado.","لم يتم تشغيل التشخيص.","निदान नहीं चलाया गया है।","尚未运行诊断。"],
+["Download cloud records","Télécharger les données cloud","Descargar los registros de la nube","تنزيل سجلات السحابة","क्लाउड रिकॉर्ड डाउनलोड करें","下载云端记录"],
+["Sign out","Se déconnecter","Cerrar sesión","تسجيل الخروج","साइन आउट करें","退出登录"],
+["SYNC CONTROL CENTRE","CENTRE DE CONTRÔLE DE SYNCHRONISATION","CENTRO DE CONTROL DE SINCRONIZACIÓN","مركز التحكم في المزامنة","सिंक नियंत्रण केंद्र","同步控制中心"],
+["Offline & cloud sync","Synchronisation hors ligne et cloud","Sincronización sin conexión y en la nube","المزامنة دون اتصال والمزامنة السحابية","ऑफ़लाइन और क्लाउड सिंक","离线与云同步"],
+["Checking connection…","Vérification de la connexion…","Comprobando la conexión…","جارٍ التحقق من الاتصال…","कनेक्शन जाँचा जा रहा है…","正在检查连接…"],
+["Pending for this business","En attente pour cette entreprise","Pendiente para este negocio","معلّق لهذا النشاط التجاري","इस व्यवसाय के लिए लंबित","此业务待处理"],
+["Synced to this business","Synchronisé avec cette entreprise","Sincronizado con este negocio","تمت مزامنته مع هذا النشاط التجاري","इस व्यवसाय से सिंक किया गया","已同步到此业务"],
+["Unassigned local records","Enregistrements locaux non attribués","Registros locales sin asignar","سجلات محلية غير مخصصة","बिना असाइन किए स्थानीय रिकॉर्ड","未分配的本地记录"],
+["Conflicts to review","Conflits à examiner","Conflictos por revisar","تعارضات للمراجعة","समीक्षा के लिए विवाद","待检查冲突"],
+["Automatically sync eligible records when online","Synchroniser automatiquement les enregistrements admissibles lorsque vous êtes en ligne","Sincronizar automáticamente los registros aptos cuando haya conexión","مزامنة السجلات المؤهلة تلقائياً عند الاتصال بالإنترنت","ऑनलाइन होने पर योग्य रिकॉर्ड अपने-आप सिंक करें","联网时自动同步符合条件的记录"],
+["Refresh sync status","Actualiser l’état de synchronisation","Actualizar estado de sincronización","تحديث حالة المزامنة","सिंक स्थिति रीफ़्रेश करें","刷新同步状态"],
+["Sync history","Historique de synchronisation","Historial de sincronización","سجل المزامنة","सिंक इतिहास","同步历史"],
+["No sync activity recorded on this device yet.","Aucune activité de synchronisation n’a encore été enregistrée sur cet appareil.","Todavía no hay actividad de sincronización registrada en este dispositivo.","لم يتم تسجيل أي نشاط مزامنة على هذا الجهاز بعد.","इस डिवाइस पर अभी तक कोई सिंक गतिविधि दर्ज नहीं है।","此设备尚无同步活动记录。"],
+["Remote changes and conflicts","Modifications distantes et conflits","Cambios remotos y conflictos","التغييرات البعيدة والتعارضات","दूरस्थ बदलाव और विवाद","远程更改与冲突"],
+["No conflicts loaded.","Aucun conflit chargé.","No se han cargado conflictos.","لم يتم تحميل أي تعارضات.","कोई विवाद लोड नहीं हुआ।","未加载冲突。"],
+["Use Download cloud records to check for remote changes.","Utilisez « Télécharger les données cloud » pour rechercher les modifications distantes.","Usa «Descargar los registros de la nube» para buscar cambios remotos.","استخدم «تنزيل سجلات السحابة» للتحقق من التغييرات البعيدة.","दूरस्थ बदलाव देखने के लिए «क्लाउड रिकॉर्ड डाउनलोड करें» चुनें।","使用“下载云端记录”检查远程更改。"],
+["Refresh","Actualiser","Actualizar","تحديث","रीफ़्रेश करें","刷新"],
+["Download","Télécharger","Descargar","تنزيل","डाउनलोड करें","下载"],
+["Active","Actif","Activo","نشط","सक्रिय","活动"],
+["Paused","En pause","En pausa","متوقف مؤقتاً","रुका हुआ","已暂停"],
+["Loading alert settings…","Chargement des paramètres d’alerte…","Cargando la configuración de alertas…","جارٍ تحميل إعدادات التنبيه…","अलर्ट सेटिंग्स लोड हो रही हैं…","正在加载提醒设置…"]
 ];
 for(const row of WL_UI_COVERAGE_ROWS){
  if(!Array.isArray(row)||row.length!==6||typeof row[0]!=='string'){
@@ -376,7 +421,7 @@ function buildTranslationMaps(){
    if(normalized&&typeof value==='string')map.set(normalized,value);
   });
   translationMaps[code]=map;
-  translationKeys[code]=[...map.keys()].filter(key=>key.length>=4).sort((a,b)=>b.length-a.length);
+  translationKeys[code]=[...map.keys()].filter(key=>key.length>=9).sort((a,b)=>b.length-a.length);
  });
 }
 buildTranslationMaps();
