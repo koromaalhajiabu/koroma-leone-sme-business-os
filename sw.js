@@ -60,6 +60,7 @@ const APP_SHELL=[
   './football-club-apply.html',
   './club-website.html',
   './football-scouting.html',
+  './football-scout-recruitment.html',
   './football-clubs.html',
   './football-player-marketplace.html',
   './football-player-network.js?v=1',
