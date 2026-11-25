@@ -54,10 +54,252 @@ const WL_AUDIT_UI_TRANSLATIONS={
  zh:{'Audit Trail':'审计记录','Language settings':'语言设置','Choose display language':'选择显示语言','Business activity':'业务活动','Platform activity':'平台活动','Search actions, records or users':'搜索操作、记录或用户','Last 7 days':'最近 7 天','Last 30 days':'最近 30 天','Last 90 days':'最近 90 天','All available history':'所有可用历史记录','Refresh audit trail':'刷新审计记录','Export visible events (CSV)':'导出可见事件（CSV）','Read-only audit history':'只读审计历史','No audit events match this filter.':'没有符合此筛选条件的审计事件。','Select a business workspace to view its audit trail.':'选择业务工作区以查看审计记录。','Audit history is read-only.':'审计历史为只读。'}
 };
 Object.keys(WL_AUDIT_UI_TRANSLATIONS).forEach(code=>Object.assign(LANGS[code].t,WL_AUDIT_UI_TRANSLATIONS[code]));
+
+const WL_UI_COVERAGE_ROWS=[
+["My Business","Mon entreprise","Mi negocio","عملي","मेरा व्यवसाय","我的业务"],
+["Multi-industry","Multi-activités","Multisectorial","متعدد القطاعات","बहु-उद्योग","多行业"],
+["PLATFORM OWNER · LIFETIME EXEMPT","PROPRIÉTAIRE DE LA PLATEFORME · EXEMPTION À VIE","PROPIETARIO DE LA PLATAFORMA · EXENTO DE POR VIDA","مالك المنصة · إعفاء مدى الحياة","प्लेटफ़ॉर्म स्वामी · आजीवन छूट","平台所有者 · 终身豁免"],
+["Language","Langue","Idioma","اللغة","भाषा","语言"],
+["Smart Reorder Planner","Planificateur intelligent de réapprovisionnement","Planificador inteligente de reposición","مخطط إعادة الطلب الذكي","स्मार्ट पुनःआदेश योजनाकार","智能补货计划器"],
+["Supplier Intelligence","Analyse des fournisseurs","Análisis de proveedores","تحليلات الموردين","आपूर्तिकर्ता विश्लेषण","供应商分析"],
+["Executive Intelligence","Analyse de direction","Análisis ejecutivo","التحليلات التنفيذية","कार्यकारी विश्लेषण","管理层分析"],
+["Executive Action Centre","Centre d’action de direction","Centro de acciones ejecutivas","مركز الإجراءات التنفيذية","कार्यकारी कार्रवाई केंद्र","管理行动中心"],
+["Automation & Assistant","Automatisation et assistant","Automatización y asistente","الأتمتة والمساعد","स्वचालन और सहायक","自动化与助手"],
+["Affiliate Marketing","Marketing d’affiliation","Marketing de afiliación","التسويق بالعمولة","सहबद्ध विपणन","联盟营销"],
+["External Affiliate Networks","Réseaux d’affiliation externes","Redes de afiliados externas","شبكات التسويق بالعمولة الخارجية","बाहरी संबद्ध नेटवर्क","外部联盟网络"],
+["Refer & Earn","Parrainer et gagner","Recomienda y gana","أحِل واكسب","रेफ़र करें और कमाएँ","推荐并赚取奖励"],
+["Business Tools","Outils professionnels","Herramientas empresariales","أدوات الأعمال","व्यावसायिक उपकरण","业务工具"],
+["Football Club Website Studio","Studio de site web de club de football","Estudio web para clubes de fútbol","استوديو مواقع أندية كرة القدم","फुटबॉल क्लब वेबसाइट स्टूडियो","足球俱乐部网站工作室"],
+["Football Player Network","Réseau de joueurs de football","Red de futbolistas","شبكة لاعبي كرة القدم","फुटबॉल खिलाड़ी नेटवर्क","足球运动员网络"],
+["International Scouting Portal","Portail international de recrutement","Portal internacional de captación","بوابة الاستكشاف الدولي","अंतरराष्ट्रीय स्काउटिंग पोर्टल","国际球探门户"],
+["School Management","Gestion scolaire","Gestión escolar","إدارة المدارس","स्कूल प्रबंधन","学校管理"],
+["Campus Management","Gestion du campus","Gestión del campus","إدارة الحرم الجامعي","कैंपस प्रबंधन","校园管理"],
+["Hospital Management","Gestion hospitalière","Gestión hospitalaria","إدارة المستشفى","अस्पताल प्रबंधन","医院管理"],
+["Online Store","Boutique en ligne","Tienda en línea","المتجر الإلكتروني","ऑनलाइन स्टोर","网上商店"],
+["Operations Control Centre","Centre de contrôle des opérations","Centro de control de operaciones","مركز مراقبة العمليات","संचालन नियंत्रण केंद्र","运营控制中心"],
+["Plans & Billing","Forfaits et facturation","Planes y facturación","الباقات والفوترة","योजनाएँ और बिलिंग","套餐与账单"],
+["Phone Unlocking Service","Service de déverrouillage de téléphones","Servicio de desbloqueo de teléfonos","خدمة فتح قفل الهواتف","फ़ोन अनलॉकिंग सेवा","手机解锁服务"],
+["Help & Support ↗","Aide et assistance ↗","Ayuda y soporte ↗","المساعدة والدعم ↗","सहायता और समर्थन ↗","帮助与支持 ↗"],
+["BUSINESS OPERATING SYSTEM","SYSTÈME DE GESTION D’ENTREPRISE","SISTEMA DE GESTIÓN EMPRESARIAL","نظام تشغيل الأعمال","व्यवसाय संचालन प्रणाली","企业运营系统"],
+["✦ SECURE WORKSPACE","✦ ESPACE DE TRAVAIL SÉCURISÉ","✦ ESPACIO DE TRABAJO SEGURO","✦ مساحة عمل آمنة","✦ सुरक्षित कार्यक्षेत्र","✦ 安全工作空间"],
+["YOUR BUSINESS. IN ONE PLACE.","VOTRE ENTREPRISE. AU MÊME ENDROIT.","TU NEGOCIO. EN UN SOLO LUGAR.","عملك. في مكان واحد.","आपका व्यवसाय। एक ही जगह।","您的业务，尽在一处。"],
+["Run your business","Gérez votre entreprise","Gestiona tu negocio","أدر أعمالك","अपना व्यवसाय चलाएँ","经营您的业务"],
+["with confidence.","en toute confiance.","con confianza.","بثقة.","आत्मविश्वास के साथ।","充满信心。"],
+["One connected workspace for sales, inventory, purchasing, finance and your team.","Un espace de travail connecté pour les ventes, les stocks, les achats, les finances et votre équipe.","Un espacio de trabajo conectado para ventas, inventario, compras, finanzas y tu equipo.","مساحة عمل واحدة مترابطة للمبيعات والمخزون والمشتريات والتمويل وفريقك.","बिक्री, इन्वेंट्री, खरीद, वित्त और आपकी टीम के लिए एक जुड़ा हुआ कार्यक्षेत्र।","一个整合销售、库存、采购、财务和团队的工作空间。"],
+["Connected operations","Opérations connectées","Operaciones conectadas","عمليات مترابطة","जुड़े हुए संचालन","互联运营"],
+["Keep your everyday business work organised.","Organisez les activités quotidiennes de votre entreprise.","Mantén organizadas las tareas diarias de tu negocio.","حافظ على تنظيم أعمالك اليومية.","अपने रोज़मर्रा के व्यावसायिक कार्य व्यवस्थित रखें।","让日常业务井然有序。"],
+["Insight that moves you forward","Des analyses pour progresser","Información para avanzar","رؤى تدفعك إلى الأمام","आगे बढ़ने के लिए अंतर्दृष्टि","助您前进的洞察"],
+["Understand performance and make informed decisions.","Comprenez vos performances et prenez des décisions éclairées.","Comprende el rendimiento y toma decisiones fundamentadas.","افهم الأداء واتخذ قرارات مستنيرة.","प्रदर्शन को समझें और सोच-समझकर निर्णय लें।","了解业务表现并做出明智决策。"],
+["Work from anywhere","Travaillez de partout","Trabaja desde cualquier lugar","اعمل من أي مكان","कहीं से भी काम करें","随时随地办公"],
+["Access your workspace on mobile or desktop.","Accédez à votre espace de travail sur mobile ou ordinateur.","Accede a tu espacio de trabajo desde el móvil o el ordenador.","يمكنك الوصول إلى مساحة عملك عبر الهاتف أو الكمبيوتر.","मोबाइल या डेस्कटॉप पर अपने कार्यक्षेत्र तक पहुँचें।","通过手机或电脑访问您的工作空间。"],
+["Built for ambitious businesses across industries","Conçu pour les entreprises ambitieuses de tous secteurs","Diseñado para empresas ambiciosas de todos los sectores","مصمم للأعمال الطموحة في مختلف القطاعات","विभिन्न क्षेत्रों के महत्वाकांक्षी व्यवसायों के लिए बनाया गया","为各行业有抱负的企业而打造"],
+["ACCOUNT ACCESS","ACCÈS AU COMPTE","ACCESO A LA CUENTA","الوصول إلى الحساب","खाता पहुँच","账户访问"],
+["Welcome back","Bon retour","Te damos la bienvenida","مرحباً بعودتك","वापसी पर स्वागत है","欢迎回来"],
+["Sign in to continue to your business workspace.","Connectez-vous pour accéder à l’espace de travail de votre entreprise.","Inicia sesión para acceder al espacio de trabajo de tu negocio.","سجّل الدخول للمتابعة إلى مساحة عملك التجارية.","अपने व्यावसायिक कार्यक्षेत्र में जाने के लिए साइन इन करें।","登录以继续进入您的业务工作空间。"],
+["Connecting securely…","Connexion sécurisée…","Conectando de forma segura…","جارٍ الاتصال بأمان…","सुरक्षित रूप से कनेक्ट हो रहा है…","正在安全连接…"],
+["Use the password associated with your Koroma Leone Tech account.","Utilisez le mot de passe associé à votre compte Koroma Leone Tech.","Usa la contraseña asociada a tu cuenta de Koroma Leone Tech.","استخدم كلمة المرور المرتبطة بحساب Koroma Leone Tech الخاص بك.","अपने Koroma Leone Tech खाते से जुड़ा पासवर्ड इस्तेमाल करें।","使用与您的 Koroma Leone Tech 账户关联的密码。"],
+["Sign in to workspace","Se connecter à l’espace de travail","Iniciar sesión en el espacio de trabajo","تسجيل الدخول إلى مساحة العمل","कार्यक्षेत्र में साइन इन करें","登录工作空间"],
+["Create an account","Créer un compte","Crear una cuenta","إنشاء حساب","खाता बनाएँ","创建账户"],
+["Managing a football club?","Vous gérez un club de football ?","¿Gestionas un club de fútbol?","هل تدير نادياً لكرة القدم؟","क्या आप फुटबॉल क्लब का प्रबंधन करते हैं?","您在管理足球俱乐部吗？"],
+["Register your club here ↗","Inscrivez votre club ici ↗","Registra tu club aquí ↗","سجّل ناديك هنا ↗","अपने क्लब का पंजीकरण यहाँ करें ↗","在此注册您的俱乐部 ↗"],
+["◈ Your workspace is protected by secure account authentication.","◈ Votre espace de travail est protégé par une authentification sécurisée.","◈ Tu espacio de trabajo está protegido mediante una autenticación segura.","◈ مساحة عملك محمية بمصادقة آمنة للحساب.","◈ आपका कार्यक्षेत्र सुरक्षित खाता प्रमाणीकरण से सुरक्षित है।","◈ 您的工作空间受到安全账户验证保护。"],
+["Designed for better business management","Conçu pour une meilleure gestion d’entreprise","Diseñado para una mejor gestión empresarial","مصمم لتحسين إدارة الأعمال","बेहतर व्यावसायिक प्रबंधन के लिए डिज़ाइन किया गया","为更高效的业务管理而设计"],
+["Install Koroma Leone Tech","Installer Koroma Leone Tech","Instalar Koroma Leone Tech","تثبيت Koroma Leone Tech","Koroma Leone Tech इंस्टॉल करें","安装 Koroma Leone Tech"],
+["Add the business system to your home screen for quick access.","Ajoutez le système de gestion à votre écran d’accueil pour y accéder rapidement.","Añade el sistema empresarial a tu pantalla de inicio para acceder rápidamente.","أضف نظام الأعمال إلى الشاشة الرئيسية للوصول السريع.","त्वरित पहुँच के लिए व्यवसाय प्रणाली को अपनी होम स्क्रीन पर जोड़ें।","将业务系统添加到主屏幕，以便快速访问。"],
+["Current palette:","Palette actuelle :","Paleta actual:","لوحة الألوان الحالية:","वर्तमान रंग-पैलेट:","当前配色："],
+["Loading…","Chargement…","Cargando…","جارٍ التحميل…","लोड हो रहा है…","正在加载…"],
+["Colour theme","Thème de couleur","Tema de color","سمة الألوان","रंग थीम","颜色主题"],
+["Random on launch","Aléatoire au démarrage","Aleatorio al iniciar","عشوائي عند التشغيل","शुरू होते समय यादृच्छिक","启动时随机"],
+["Emerald","Émeraude","Esmeralda","زمردي","पन्ना","祖母绿"],
+["Ocean blue","Bleu océan","Azul océano","أزرق المحيط","समुद्री नीला","海洋蓝"],
+["Royal violet","Violet royal","Violeta real","بنفسجي ملكي","शाही बैंगनी","皇家紫"],
+["Sunset coral","Corail coucher de soleil","Coral atardecer","مرجاني الغروب","सूर्यास्त कोरल","日落珊瑚色"],
+["Teal","Sarcelle","Verde azulado","أزرق مخضر","हरित-नीला","蓝绿色"],
+["Sapphire","Saphir","Zafiro","ياقوت أزرق","नीलम","蓝宝石色"],
+["Current theme:","Thème actuel :","Tema actual:","السمة الحالية:","वर्तमान थीम:","当前主题："],
+["All available records","Tous les enregistrements disponibles","Todos los registros disponibles","كل السجلات المتاحة","सभी उपलब्ध रिकॉर्ड","所有可用记录"],
+["Free trial ends","Fin de l’essai gratuit","Fin de la prueba gratuita","تنتهي الفترة التجريبية المجانية","निःशुल्क परीक्षण समाप्त होता है","免费试用结束"],
+["Grace period ends","Fin de la période de grâce","Fin del período de gracia","تنتهي فترة السماح","अनुग्रह अवधि समाप्त होती है","宽限期结束"],
+["Review rising operating costs","Examiner la hausse des coûts d’exploitation","Revisar el aumento de los costes operativos","مراجعة ارتفاع تكاليف التشغيل","बढ़ती परिचालन लागत की समीक्षा करें","检查不断上升的运营成本"],
+["Under 18","Moins de 18 ans","Menor de 18 años","أقل من 18 عاماً","18 वर्ष से कम","未满18岁"],
+["Dashboard could not be refreshed.","Le tableau de bord n’a pas pu être actualisé.","No se pudo actualizar el panel.","تعذّر تحديث لوحة المعلومات.","डैशबोर्ड रीफ़्रेश नहीं हो सका।","无法刷新仪表板。"],
+["Could not load consolidated branch data:","Impossible de charger les données consolidées des succursales :","No se pudieron cargar los datos consolidados de las sucursales:","تعذّر تحميل بيانات الفروع الموحّدة:","समेकित शाखा डेटा लोड नहीं किया जा सका:","无法加载汇总的分店数据："],
+["Comparisons and trends are unavailable until source records load.","Les comparaisons et les tendances ne sont pas disponibles tant que les données sources ne sont pas chargées.","Las comparaciones y tendencias no estarán disponibles hasta que se carguen los registros de origen.","لا تتوفر المقارنات والاتجاهات حتى يتم تحميل السجلات المصدرية.","स्रोत रिकॉर्ड लोड होने तक तुलना और रुझान उपलब्ध नहीं हैं।","源记录加载前，比较和趋势不可用。"],
+["No sales were found in the selected period.","Aucune vente n’a été trouvée pour la période sélectionnée.","No se encontraron ventas en el período seleccionado.","لم يتم العثور على مبيعات في الفترة المحددة.","चयनित अवधि में कोई बिक्री नहीं मिली।","所选期间未找到销售记录。"],
+["Investigate the sales decline","Examiner la baisse des ventes","Investigar la caída de las ventas","التحقيق في انخفاض المبيعات","बिक्री में गिरावट की जाँच करें","调查销售额下降的原因"],
+["Recorded net sales","Ventes nettes enregistrées","Ventas netas registradas","صافي المبيعات المسجل","दर्ज शुद्ध बिक्री","已记录净销售额"],
+["No category breakdown available","Aucune ventilation par catégorie disponible","No hay desglose por categoría disponible","لا يتوفر تقسيم حسب الفئة","श्रेणी के अनुसार विवरण उपलब्ध नहीं है","没有可用的类别明细"],
+["Review refunds and returns","Examiner les remboursements et les retours","Revisar reembolsos y devoluciones","مراجعة المبالغ المستردة والمرتجعات","रिफंड और रिटर्न की समीक्षा करें","检查退款和退货"],
+["Check the main expense drivers","Vérifier les principaux facteurs de dépenses","Comprobar los principales factores de gasto","تحقق من العوامل الرئيسية للإنفاق","खर्च के मुख्य कारणों की जाँच करें","检查主要支出因素"],
+["Top recorded categories:","Principales catégories enregistrées :","Principales categorías registradas:","أعلى الفئات المسجلة:","शीर्ष दर्ज श्रेणियाँ:","主要记录类别："],
+["Set a regular comparison period","Définir une période de comparaison régulière","Establecer un período de comparación periódico","تحديد فترة مقارنة منتظمة","नियमित तुलना अवधि निर्धारित करें","设置定期比较周期"],
+["Check sales data coverage","Vérifier l’exhaustivité des données de vente","Comprobar la cobertura de los datos de ventas","تحقق من اكتمال بيانات المبيعات","बिक्री डेटा की पूर्णता जाँचें","检查销售数据覆盖情况"],
+["No unresolved cloud conflicts.","Aucun conflit cloud non résolu.","No hay conflictos de nube sin resolver.","لا توجد تعارضات سحابية لم تتم تسويتها.","कोई अनसुलझा क्लाउड विवाद नहीं है।","没有未解决的云端冲突。"],
+["Cloud copy accepted.","Copie cloud acceptée.","Se aceptó la copia en la nube.","تم قبول النسخة السحابية.","क्लाउड कॉपी स्वीकार की गई।","已接受云端副本。"],
+["Local copy selected; upload it to replace the cloud version.","Copie locale sélectionnée ; téléversez-la pour remplacer la version cloud.","Se seleccionó la copia local; súbela para reemplazar la versión en la nube.","تم تحديد النسخة المحلية؛ ارفعها لاستبدال النسخة السحابية.","स्थानीय कॉपी चुनी गई; क्लाउड संस्करण बदलने के लिए इसे अपलोड करें।","已选择本地副本；上传它以替换云端版本。"],
+["Choose the destination branch first.","Choisissez d’abord la succursale de destination.","Primero selecciona la sucursal de destino.","اختر الفرع المستهدف أولاً.","पहले गंतव्य शाखा चुनें।","请先选择目标分店。"],
+["Sign in and select the correct business workspace first.","Connectez-vous et sélectionnez d’abord le bon espace de travail.","Primero inicia sesión y selecciona el espacio de trabajo correcto.","سجّل الدخول واختر مساحة العمل التجارية الصحيحة أولاً.","पहले साइन इन करें और सही व्यावसायिक कार्यक्षेत्र चुनें।","请先登录并选择正确的业务工作空间。"],
+["Unsupported conflict type.","Type de conflit non pris en charge.","Tipo de conflicto no compatible.","نوع التعارض غير مدعوم.","असमर्थित विवाद प्रकार।","不支持的冲突类型。"],
+["Offline · queued on device","Hors ligne · en attente sur l’appareil","Sin conexión · en cola en el dispositivo","غير متصل · في قائمة الانتظار على الجهاز","ऑफ़लाइन · डिवाइस पर कतार में","离线 · 已在设备上排队"],
+["Unassigned / business-wide","Non attribué / pour toute l’entreprise","Sin asignar / para toda la empresa","غير مخصص / على مستوى الشركة","असाइन नहीं किया गया / पूरे व्यवसाय के लिए","未分配 / 全业务范围"],
+["records pending for this workspace","enregistrements en attente pour cet espace de travail","registros pendientes para este espacio de trabajo","سجلات معلّقة لمساحة العمل هذه","इस कार्यक्षेत्र के लिए लंबित रिकॉर्ड","此工作空间的待处理记录"],
+["awaiting approval","en attente d’approbation","pendiente de aprobación","بانتظار الموافقة","अनुमोदन की प्रतीक्षा में","等待批准"],
+["remote conflict(s)","conflit(s) distant(s)","conflicto(s) remoto(s)","تعارضات بعيدة","दूरस्थ विवाद","远程冲突"],
+["Unnamed product","Produit sans nom","Producto sin nombre","منتج بلا اسم","बिना नाम का उत्पाद","未命名产品"],
+["Unnamed customer","Client sans nom","Cliente sin nombre","عميل بلا اسم","बिना नाम का ग्राहक","未命名客户"],
+["Unnamed supplier","Fournisseur sans nom","Proveedor sin nombre","مورد بلا اسم","बिना नाम का आपूर्तिकर्ता","未命名供应商"],
+["Stock purchase awaiting approval before receipt.","Achat de stock en attente d’approbation avant réception.","La compra de existencias espera aprobación antes de la recepción.","شراء المخزون بانتظار الموافقة قبل الاستلام.","स्टॉक खरीद प्राप्ति से पहले अनुमोदन की प्रतीक्षा में है।","库存采购在收货前等待批准。"],
+["No career entries yet.","Aucune expérience professionnelle pour le moment.","Aún no hay entradas de trayectoria profesional.","لا توجد سجلات مهنية حتى الآن.","अभी तक कोई करियर प्रविष्टि नहीं है।","暂无职业经历记录。"],
+["Add career history","Ajouter un parcours professionnel","Añadir trayectoria profesional","إضافة السجل المهني","करियर इतिहास जोड़ें","添加职业经历"],
+["No performance records yet.","Aucun résultat de performance pour le moment.","Aún no hay registros de rendimiento.","لا توجد سجلات أداء حتى الآن.","अभी तक कोई प्रदर्शन रिकॉर्ड नहीं है।","暂无表现记录。"],
+["Add player match performance","Ajouter une performance du joueur en match","Añadir rendimiento del jugador en un partido","إضافة أداء اللاعب في مباراة","खिलाड़ी का मैच प्रदर्शन जोड़ें","添加球员比赛表现"],
+["Trial opportunity","Opportunité d’essai","Oportunidad de prueba","فرصة تجربة","ट्रायल का अवसर","试训机会"],
+["Free agent","Joueur libre","Agente libre","لاعب حر","फ्री एजेंट","自由球员"],
+["Club match","Match du club","Partido del club","مباراة النادي","क्लब मैच","俱乐部比赛"],
+["Permanent transfer","Transfert définitif","Traspaso permanente","انتقال دائم","स्थायी स्थानांतरण","永久转会"],
+["Parent/Guardian Portal","Portail des parents/tuteurs","Portal de padres/tutores","بوابة ولي الأمر","अभिभावक पोर्टल","家长/监护人门户"],
+["Student Portal","Portail étudiant","Portal del estudiante","بوابة الطالب","छात्र पोर्टल","学生门户"],
+["Lecturer portal","Portail enseignant","Portal del docente","بوابة المحاضر","व्याख्याता पोर्टल","讲师门户"],
+["Services & pricing","Services et tarifs","Servicios y precios","الخدمات والأسعار","सेवाएँ और मूल्य","服务与价格"],
+["Provider connection","Connexion au fournisseur","Conexión del proveedor","اتصال مزود الخدمة","प्रदाता कनेक्शन","服务提供商连接"],
+["Public order page","Page de commande publique","Página de pedidos pública","صفحة الطلبات العامة","सार्वजनिक ऑर्डर पेज","公共订单页面"],
+["Browser alerts enabled on this device.","Les alertes du navigateur sont activées sur cet appareil.","Las alertas del navegador están activadas en este dispositivo.","تم تفعيل تنبيهات المتصفح على هذا الجهاز.","इस डिवाइस पर ब्राउज़र अलर्ट सक्षम हैं।","此设备已启用浏览器提醒。"],
+["Permission was not granted. In-app alerts remain available.","L’autorisation n’a pas été accordée. Les alertes dans l’application restent disponibles.","No se concedió el permiso. Las alertas dentro de la aplicación siguen disponibles.","لم يتم منح الإذن. تظل التنبيهات داخل التطبيق متاحة.","अनुमति नहीं दी गई। ऐप के अंदर अलर्ट उपलब्ध रहेंगे।","未授予权限。应用内提醒仍可使用。"],
+["Could not enable browser alerts.","Impossible d’activer les alertes du navigateur.","No se pudieron activar las alertas del navegador.","تعذّر تفعيل تنبيهات المتصفح.","ब्राउज़र अलर्ट सक्षम नहीं किए जा सके।","无法启用浏览器提醒。"],
+["Not signed in","Non connecté","No has iniciado sesión","لم يتم تسجيل الدخول","साइन इन नहीं है","未登录"],
+["Email confirmation pending","Confirmation de l’adresse e-mail en attente","Confirmación del correo electrónico pendiente","تأكيد البريد الإلكتروني قيد الانتظار","ईमेल पुष्टि लंबित है","等待确认电子邮件"],
+["No workspace selected","Aucun espace de travail sélectionné","No hay ningún espacio de trabajo seleccionado","لم يتم تحديد مساحة عمل","कोई कार्यक्षेत्र चयनित नहीं है","未选择工作空间"],
+["Offline · local-first mode","Hors ligne · mode local prioritaire","Sin conexión · modo local prioritario","غير متصل · الوضع المحلي أولاً","ऑफ़लाइन · स्थानीय-प्रथम मोड","离线 · 本地优先模式"],
+["Internet connection available","Connexion Internet disponible","Conexión a Internet disponible","اتصال الإنترنت متاح","इंटरनेट कनेक्शन उपलब्ध है","互联网连接可用"],
+["Sign in before editing your profile.","Connectez-vous avant de modifier votre profil.","Inicia sesión antes de editar tu perfil.","سجّل الدخول قبل تعديل ملفك الشخصي.","अपनी प्रोफ़ाइल संपादित करने से पहले साइन इन करें।","编辑个人资料前请先登录。"],
+["Profile details saved to your authenticated account.","Les informations du profil ont été enregistrées sur votre compte authentifié.","Los datos del perfil se guardaron en tu cuenta autenticada.","تم حفظ تفاصيل الملف الشخصي في حسابك الموثّق.","प्रोफ़ाइल विवरण आपके प्रमाणित खाते में सहेजे गए।","个人资料已保存到您的已验证账户。"],
+["Your essential setup checklist is complete.","Votre liste de configuration essentielle est terminée.","Tu lista de configuración esencial está completa.","اكتملت قائمة الإعداد الأساسية.","आपकी आवश्यक सेटअप सूची पूरी हो गई है।","基本设置清单已完成。"],
+["You can return to this checklist later.","Vous pourrez revenir à cette liste plus tard.","Puedes volver a esta lista más tarde.","يمكنك العودة إلى هذه القائمة لاحقاً.","आप बाद में इस सूची पर वापस आ सकते हैं।","您可以稍后返回此清单。"],
+["Quick navigation","Navigation rapide","Navegación rápida","تنقل سريع","त्वरित नेविगेशन","快速导航"],
+["Hospital overview","Vue d’ensemble de l’hôpital","Resumen del hospital","نظرة عامة على المستشفى","अस्पताल का अवलोकन","医院概览"],
+["Daily hospital activity and key summaries","Activité quotidienne de l’hôpital et principaux résumés","Actividad diaria del hospital y resúmenes principales","النشاط اليومي للمستشفى والملخصات الرئيسية","अस्पताल की दैनिक गतिविधि और मुख्य सारांश","医院日常活动和关键摘要"],
+["Patient records","Dossiers des patients","Registros de pacientes","سجلات المرضى","मरीज़ रिकॉर्ड","患者记录"],
+["Find and register authorised patient records","Rechercher et enregistrer les dossiers de patients autorisés","Buscar y registrar expedientes de pacientes autorizados","البحث عن سجلات المرضى المصرح بها وتسجيلها","अधिकृत रोगी रिकॉर्ड खोजें और दर्ज करें","查找并登记获授权的患者记录"],
+["Manage bookings and check-ins","Gérer les rendez-vous et les admissions","Gestionar citas y registros de llegada","إدارة الحجوزات وتسجيل الوصول","बुकिंग और चेक-इन प्रबंधित करें","管理预约和登记"],
+["Clinical records","Dossiers cliniques","Registros clínicos","السجلات السريرية","नैदानिक रिकॉर्ड","临床记录"],
+["Record consultations, observations and care plans","Enregistrer les consultations, observations et plans de soins","Registrar consultas, observaciones y planes de atención","تسجيل الاستشارات والملاحظات وخطط الرعاية","परामर्श, अवलोकन और देखभाल योजनाएँ दर्ज करें","记录诊疗、观察和护理计划"],
+["Manage inpatient admissions and discharge","Gérer les admissions et les sorties des patients","Gestionar ingresos y altas de pacientes","إدارة دخول المرضى وخروجهم","मरीज़ों के भर्ती और छुट्टी प्रबंधित करें","管理住院和出院"],
+["Wards and beds","Services et lits","Salas y camas","الأقسام والأسرة","वार्ड और बिस्तर","病房和床位"],
+["View ward capacity and bed availability","Consulter la capacité des services et la disponibilité des lits","Consultar la capacidad de las salas y la disponibilidad de camas","عرض سعة الأقسام وتوفر الأسرة","वार्ड क्षमता और बिस्तर उपलब्धता देखें","查看病房容量和床位情况"],
+["Manage medicine inventory and prescriptions","Gérer le stock de médicaments et les prescriptions","Gestionar el inventario de medicamentos y las recetas","إدارة مخزون الأدوية والوصفات الطبية","दवाओं की इन्वेंट्री और पर्चे प्रबंधित करें","管理药品库存和处方"],
+["Review test requests and record results","Examiner les demandes d’analyses et enregistrer les résultats","Revisar solicitudes de pruebas y registrar resultados","مراجعة طلبات الفحوصات وتسجيل النتائج","जाँच अनुरोधों की समीक्षा करें और परिणाम दर्ज करें","审核检查申请并记录结果"],
+["Staff and departments","Personnel et services","Personal y departamentos","الموظفون والأقسام","कर्मचारी और विभाग","员工和科室"],
+["Manage hospital staff roles and departments","Gérer les rôles du personnel et les services de l’hôpital","Gestionar los roles del personal y los departamentos del hospital","إدارة أدوار موظفي المستشفى والأقسام","अस्पताल के कर्मचारियों की भूमिकाएँ और विभाग प्रबंधित करें","管理医院员工角色和科室"],
+["Your approved access","Vos accès autorisés","Tus accesos autorizados","صلاحيات الوصول المعتمدة","आपकी स्वीकृत पहुँच","您获准的访问权限"],
+["Portal security","Sécurité du portail","Seguridad del portal","أمان البوابة","पोर्टल सुरक्षा","门户安全"],
+["Your personalised entry point to the hospital services approved for your account.","Votre point d’accès personnalisé aux services hospitaliers autorisés pour votre compte.","Tu punto de acceso personalizado a los servicios hospitalarios autorizados para tu cuenta.","نقطة الدخول المخصصة لك إلى خدمات المستشفى المعتمدة لحسابك.","आपके खाते के लिए स्वीकृत अस्पताल सेवाओं तक आपका व्यक्तिगत प्रवेश बिंदु।","您访问账户获准医院服务的个性化入口。"],
+["Hospital workspace","Espace de travail de l’hôpital","Espacio de trabajo del hospital","مساحة عمل المستشفى","अस्पताल कार्यक्षेत्र","医院工作空间"],
+["Your authorised hospital workspace.","Votre espace de travail hospitalier autorisé.","Tu espacio de trabajo hospitalario autorizado.","مساحة عمل المستشفى المصرح بها لك.","आपका अधिकृत अस्पताल कार्यक्षेत्र।","您获授权的医院工作空间。"],
+["Active patients","Patients actifs","Pacientes activos","المرضى النشطون","सक्रिय मरीज़","在院患者"],
+["Registered patient records","Dossiers de patients enregistrés","Registros de pacientes registrados","سجلات المرضى المسجلة","पंजीकृत मरीज़ रिकॉर्ड","已登记患者记录"],
+["Appointments today","Rendez-vous aujourd’hui","Citas de hoy","مواعيد اليوم","आज की नियुक्तियाँ","今日预约"],
+["Today’s scheduled activity","Activité prévue aujourd’hui","Actividad programada para hoy","النشاط المجدول اليوم","आज की निर्धारित गतिविधि","今日安排的活动"],
+["Current admissions","Admissions en cours","Ingresos actuales","حالات الدخول الحالية","वर्तमान भर्ती","当前住院人数"],
+["Patients currently admitted","Patients actuellement hospitalisés","Pacientes actualmente hospitalizados","المرضى الموجودون حالياً في المستشفى","वर्तमान में भर्ती मरीज़","当前住院患者"],
+["Pending laboratory","Analyses en attente","Laboratorio pendiente","فحوصات المختبر المعلقة","लंबित प्रयोगशाला जाँच","待处理检验"],
+["Tests awaiting completion","Examens en attente de réalisation","Pruebas pendientes de completar","فحوصات بانتظار الإنجاز","पूरी होने की प्रतीक्षा में जाँच","等待完成的检查"],
+["Upcoming / recent appointments","Rendez-vous à venir / récents","Citas próximas / recientes","المواعيد القادمة / الأخيرة","आगामी / हाल की नियुक्तियाँ","即将到来 / 最近的预约"],
+["Latest appointment records","Derniers dossiers de rendez-vous","Últimos registros de citas","أحدث سجلات المواعيد","नवीनतम नियुक्ति रिकॉर्ड","最新预约记录"],
+["No appointment records yet.","Aucun rendez-vous enregistré pour le moment.","Aún no hay registros de citas.","لا توجد سجلات مواعيد حتى الآن.","अभी तक कोई नियुक्ति रिकॉर्ड नहीं है।","暂无预约记录。"],
+["Hospital operations","Opérations hospitalières","Operaciones del hospital","عمليات المستشفى","अस्पताल संचालन","医院运营"],
+["Open a module to continue","Ouvrez un module pour continuer","Abre un módulo para continuar","افتح وحدة للمتابعة","जारी रखने के लिए एक मॉड्यूल खोलें","打开模块以继续"],
+["Register patient","Enregistrer un patient","Registrar paciente","تسجيل مريض","मरीज़ पंजीकृत करें","登记患者"],
+["Book appointment","Prendre un rendez-vous","Reservar cita","حجز موعد","अपॉइंटमेंट बुक करें","预约"],
+["New clinical record","Nouveau dossier clinique","Nuevo registro clínico","سجل سريري جديد","नया नैदानिक रिकॉर्ड","新建临床记录"],
+["Admit patient","Admettre un patient","Ingresar paciente","إدخال مريض","मरीज़ भर्ती करें","办理患者入院"],
+["Order laboratory test","Demander une analyse de laboratoire","Solicitar prueba de laboratorio","طلب فحص مخبري","प्रयोगशाला जाँच का आदेश दें","申请实验室检查"],
+["Ordering doctor","Médecin prescripteur","Médico solicitante","الطبيب الطالب","जाँच का आदेश देने वाले डॉक्टर","开单医生"],
+["Test name","Nom de l’examen","Nombre de la prueba","اسم الفحص","जाँच का नाम","检查名称"],
+["Manage diagnostic requests and result status.","Gérer les demandes de diagnostic et l’état des résultats.","Gestionar solicitudes de diagnóstico y el estado de los resultados.","إدارة طلبات التشخيص وحالة النتائج.","नैदानिक अनुरोध और परिणाम की स्थिति प्रबंधित करें।","管理诊断申请和结果状态。"],
+["Latest 200 laboratory requests","200 dernières demandes de laboratoire","Últimas 200 solicitudes de laboratorio","أحدث 200 طلبات مختبرية","नवीनतम 200 प्रयोगशाला अनुरोध","最近200条检验申请"],
+["No laboratory requests.","Aucune demande de laboratoire.","No hay solicitudes de laboratorio.","لا توجد طلبات مختبرية.","कोई प्रयोगशाला अनुरोध नहीं है।","没有检验申请。"],
+["Invoice number","Numéro de facture","Número de factura","رقم الفاتورة","चालान संख्या","发票号码"],
+["Invoice register","Registre des factures","Registro de facturas","سجل الفواتير","चालान रजिस्टर","发票登记簿"],
+["Invoice total","Total de la facture","Total de la factura","إجمالي الفاتورة","चालान कुल","发票总额"],
+["No invoices have been created.","Aucune facture n’a été créée.","No se han creado facturas.","لم يتم إنشاء أي فواتير.","कोई चालान नहीं बनाया गया है।","尚未创建发票。"],
+["Payment history","Historique des paiements","Historial de pagos","سجل المدفوعات","भुगतान इतिहास","付款记录"],
+["Latest recorded receipts","Derniers reçus enregistrés","Últimos recibos registrados","أحدث الإيصالات المسجلة","नवीनतम दर्ज रसीदें","最新收据记录"],
+["No payments recorded.","Aucun paiement enregistré.","No se han registrado pagos.","لم يتم تسجيل أي مدفوعات.","कोई भुगतान दर्ज नहीं है।","没有付款记录。"],
+["Registered account email","Adresse e-mail du compte enregistré","Correo electrónico de la cuenta registrada","البريد الإلكتروني للحساب المسجل","पंजीकृत खाते का ईमेल","已登记账户邮箱"],
+["First name","Prénom","Nombre","الاسم الأول","पहला नाम","名字"],
+["Last name","Nom de famille","Apellido","اسم العائلة","उपनाम","姓氏"],
+["Staff profile photograph","Photo de profil du personnel","Fotografía del perfil del personal","صورة الملف الشخصي للموظف","कर्मचारी प्रोफ़ाइल फ़ोटो","员工资料照片"],
+["Department name","Nom du service","Nombre del departamento","اسم القسم","विभाग का नाम","科室名称"],
+["Workspace accounts","Comptes de l’espace de travail","Cuentas del espacio de trabajo","حسابات مساحة العمل","कार्यस्थल खाते","工作空间账户"],
+["Workspace role","Rôle dans l’espace de travail","Rol del espacio de trabajo","دور مساحة العمل","कार्यस्थल भूमिका","工作空间角色"],
+["Staff status","Statut du personnel","Estado del personal","حالة الموظف","कर्मचारी स्थिति","员工状态"],
+["No active workspace accounts found.","Aucun compte actif dans l’espace de travail.","No se encontraron cuentas activas del espacio de trabajo.","لم يتم العثور على حسابات نشطة في مساحة العمل.","कोई सक्रिय कार्यक्षेत्र खाता नहीं मिला।","未找到活动的工作空间账户。"],
+["Department register","Registre des services","Registro de departamentos","سجل الأقسام","विभाग रजिस्टर","科室登记簿"],
+["Configured departments","Services configurés","Departamentos configurados","الأقسام التي تم إعدادها","कॉन्फ़िगर किए गए विभाग","已配置科室"],
+["No departments created.","Aucun service n’a été créé.","No se han creado departamentos.","لم يتم إنشاء أي أقسام.","कोई विभाग नहीं बनाया गया है।","尚未创建科室。"],
+["Hospital staff directory","Annuaire du personnel hospitalier","Directorio del personal del hospital","دليل موظفي المستشفى","अस्पताल कर्मचारी निर्देशिका","医院员工名录"],
+["Staff profile and role register","Registre des profils et rôles du personnel","Registro de perfiles y roles del personal","سجل ملفات الموظفين وأدوارهم","कर्मचारी प्रोफ़ाइल और भूमिका रजिस्टर","员工资料和角色登记簿"],
+["No hospital staff profiles.","Aucun profil de personnel hospitalier.","No hay perfiles del personal del hospital.","لا توجد ملفات تعريف لموظفي المستشفى.","अस्पताल के कर्मचारियों की कोई प्रोफ़ाइल नहीं है।","没有医院员工资料。"],
+["Patient number","Numéro du patient","Número de paciente","رقم المريض","मरीज़ संख्या","患者编号"],
+["Full name","Nom complet","Nombre completo","الاسم الكامل","पूरा नाम","姓名"],
+["Date of birth","Date de naissance","Fecha de nacimiento","تاريخ الميلاد","जन्म तिथि","出生日期"],
+["No matching patients.","Aucun patient correspondant.","No hay pacientes coincidentes.","لا يوجد مرضى مطابقون.","कोई मेल खाता मरीज़ नहीं मिला।","没有匹配的患者。"],
+["Payment recorded. Invoice balance updated.","Paiement enregistré. Solde de la facture mis à jour.","Pago registrado. Saldo de la factura actualizado.","تم تسجيل الدفع. تم تحديث رصيد الفاتورة.","भुगतान दर्ज हुआ। चालान शेष अपडेट किया गया।","付款已记录。发票余额已更新。"],
+["Due date","Date d’échéance","Fecha de vencimiento","تاريخ الاستحقاق","नियत तिथि","到期日期"],
+["Not applicable","Sans objet","No aplicable","لا ينطبق","लागू नहीं","不适用"],
+["Academic terms","Périodes universitaires","Períodos académicos","الفصول الدراسية","शैक्षणिक सत्र","学期"],
+["Course catalogue","Catalogue des cours","Catálogo de cursos","دليل المقررات","पाठ्यक्रम सूची","课程目录"],
+["Fee structures","Barèmes des frais","Estructuras de tarifas","هياكل الرسوم","शुल्क संरचनाएँ","费用结构"],
+["Student no.","N° d’étudiant","N.º de estudiante","رقم الطالب","छात्र संख्या","学生编号"],
+["Staff number","Numéro du personnel","Número de empleado","رقم الموظف","कर्मचारी संख्या","员工编号"],
+["Intended term","Période prévue","Período previsto","الفصل الدراسي المقصود","निर्धारित सत्र","拟入学学期"],
+["Score %","Note en %","Puntuación %","النتيجة ٪","अंक %","成绩 %"],
+["GPA points","Points de moyenne (GPA)","Puntos de GPA","نقاط المعدل التراكمي","GPA अंक","GPA学分点"],
+["Cumulative GPA","Moyenne cumulative (GPA)","GPA acumulado","المعدل التراكمي","संचयी GPA","累计 GPA"],
+["Courses completed","Cours terminés","Cursos completados","المقررات المكتملة","पूरे किए गए पाठ्यक्रम","已完成课程"],
+["Student portal failed to load.","Le portail étudiant n’a pas pu se charger.","No se pudo cargar el portal del estudiante.","تعذّر تحميل بوابة الطالب.","छात्र पोर्टल लोड नहीं हो सका।","学生门户加载失败。"]
+];
+for(const row of WL_UI_COVERAGE_ROWS){
+ const [key,fr,es,ar,hi,zh]=row;
+ LANGS.fr.t[key]=fr;LANGS.es.t[key]=es;LANGS.ar.t[key]=ar;LANGS.hi.t[key]=hi;LANGS.zh.t[key]=zh;
+}
+
 let current='en';
 let initialized=false;
 const originals=new WeakMap(),lastRendered=new WeakMap();
+const translationMaps={};
+const translationKeys={};
 function normalizeKey(value){return String(value??'').replace(/\s+/g,' ').trim();}
+function buildTranslationMaps(){
+ Object.keys(LANGS).forEach(code=>{
+  const map=new Map();
+  Object.entries(LANGS[code].t).forEach(([key,value])=>{
+   const normalized=normalizeKey(key);
+   if(normalized&&typeof value==='string')map.set(normalized,value);
+  });
+  translationMaps[code]=map;
+  translationKeys[code]=[...map.keys()].filter(key=>key.length>=4).sort((a,b)=>b.length-a.length);
+ });
+}
+buildTranslationMaps();
+function translateString(value){
+ const source=String(value??'');
+ const normalized=normalizeKey(source);
+ const direct=translationMaps[current]?.get(normalized);
+ if(typeof direct==='string')return direct;
+ let result=source;
+ const keys=translationKeys[current]||[];
+ for(const key of keys){
+  const translated=translationMaps[current].get(key);
+  if(typeof translated!=='string'||!translated)continue;
+  const escaped=key.replace(/[.*+?^${}()|[\]\\]/g,'\\const originals=new WeakMap(),lastRendered=new WeakMap();
+function normalizeKey(value){return String(value??'').replace(/\s+/g,' ').trim();}
+function translateTextNode(node){');
+  const pattern=new RegExp('(^|[^A-Za-z0-9])('+escaped+')(?=$|[^A-Za-z0-9])','gi');
+  result=result.replace(pattern,(match,prefix)=>prefix+translated);
+ }
+ return result;
+}
 function translateTextNode(node){
  if(!node||node.nodeType!==3)return;
  const raw=node.nodeValue;
@@ -69,9 +311,7 @@ function translateTextNode(node){
  if(original===undefined||(rendered!==undefined&&raw!==rendered)||(rendered===undefined&&raw!==original)){
   original=raw;originals.set(node,original);
  }
- const key=normalizeKey(original);
- const translated=LANGS[current].t[key];
- const value=typeof translated==='string'?translated:original;
+ const value=translateString(original);
  const leading=original.match(/^\s*/)?.[0]||'';
  const trailing=original.match(/\s*$/)?.[0]||'';
  const next=leading+value+trailing;
@@ -88,7 +328,7 @@ function scan(root){
  root.querySelectorAll?.('*').forEach(translateAttributes);
 }
 function translateAttributes(el){
- ['placeholder','title','aria-label'].forEach(attr=>{
+ ['placeholder','title','aria-label','alt','aria-description'].forEach(attr=>{
   if(!el.hasAttribute(attr))return;
   const originalAttr='data-wl-original-'+attr;
   const renderedAttr='data-wl-last-'+attr;
@@ -98,8 +338,7 @@ function translateAttributes(el){
   if(original===null||(rendered!==null&&live!==rendered)||(rendered===null&&live!==original)){
    original=live;el.setAttribute(originalAttr,original);
   }
-  const translated=LANGS[current].t[normalizeKey(original)];
-  const next=typeof translated==='string'?translated:original;
+  const next=translateString(original);
   if(live!==next)el.setAttribute(attr,next);
   if(rendered!==next)el.setAttribute(renderedAttr,next);
  });
@@ -115,6 +354,7 @@ function setLanguage(code){
   if(select.value!==current)select.value=current;
  });
  scan(document.body||document.documentElement);
+ const title=document.querySelector('title');if(title)title.textContent=translateString(title.textContent);
  window.dispatchEvent(new CustomEvent('whiteLionLanguageChanged',{detail:{language:current,direction:lang.dir}}));
  return current;
 }
@@ -130,7 +370,7 @@ function init(){
    if(record.type==='childList')record.addedNodes.forEach(node=>scan(node));
   });
  });
- observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']});
+ observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label','alt','aria-description']});
  window.__wlI18nReady=true;
 }
 function handleLanguageControl(event){

@@ -116,11 +116,19 @@ async function runViewport(name, viewport) {
       };
       return { french, arabic, english };
     });
+    const frenchCopyPassed = [
+      'Bon retour',
+      'Gérez votre entreprise',
+      'Un espace de travail connecté pour les ventes',
+      'Travaillez de partout',
+      'Aide et assistance'
+    ].every(value => languageCheck.french?.visibleText?.includes(value)) &&
+      !['Welcome back','Run your business','One connected workspace for sales','Work from anywhere','Help & Support'].some(value => languageCheck.french?.visibleText?.includes(value));
     const frenchPassed = languageCheck.french?.ready &&
       languageCheck.french.code === 'fr' && languageCheck.french.active === 'fr' &&
       languageCheck.french.top === 'fr' && languageCheck.french.side === 'fr' &&
       languageCheck.french.overview.includes('Vue d’ensemble') &&
-      languageCheck.french.dynamicText === 'Nom de l’entreprise';
+      languageCheck.french.dynamicText === 'Nom de l’entreprise' && frenchCopyPassed;
     const arabicPassed = languageCheck.arabic?.code === 'ar' &&
       languageCheck.arabic.direction === 'rtl' &&
       languageCheck.arabic.top === 'ar' && languageCheck.arabic.side === 'ar' &&
@@ -128,6 +136,10 @@ async function runViewport(name, viewport) {
     const englishPassed = languageCheck.english?.code === 'en' &&
       languageCheck.english.top === 'en' && languageCheck.english.side === 'en' &&
       languageCheck.english.overview.includes('Overview');
+    record(result, 'French translates the public sign-in copy and extended navigation', frenchCopyPassed, {
+      expectedFrench: ['Bon retour','Gérez votre entreprise','Un espace de travail connecté pour les ventes','Travaillez de partout','Aide et assistance'],
+      forbiddenEnglish: ['Welcome back','Run your business','One connected workspace for sales','Work from anywhere','Help & Support']
+    });
     record(result, 'language selectors translate and synchronise French, Arabic and English', 
       Boolean(frenchPassed && arabicPassed && englishPassed), languageCheck);
 
