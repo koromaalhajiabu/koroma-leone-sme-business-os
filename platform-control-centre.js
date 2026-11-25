@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   var $=function(id){return document.getElementById(id)};
-  var esc=function(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c];});};
+  var esc=function(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){var m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};return m[c];});};
   var platformAccess=false, checking=false;
   function context(){var api=window.whiteLionCloud;return{api:api,client:api&&api.getClient?api.getClient():null,session:api&&api.getSession?api.getSession():null,business:api&&api.getActiveBusiness?api.getActiveBusiness():null};}
   async function checkAccess(){
