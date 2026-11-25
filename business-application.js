@@ -102,13 +102,58 @@ $('signIn').addEventListener('click',async()=>{
 $('applicationForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!session){message($('applicationStatus'),(words[$('language').value]||words.en).loginRequired,true);return}
  const f=new FormData(e.currentTarget),v=k=>String(f.get(k)||'').trim();
- const payload={p_full_name:v('full_name'),p_phone:v('phone'),p_business_name:v('business_name'),p_industry_group:v('industry_group'),p_business_type:v('business_type'),p_currency_code:v('currency_code'),p_contact_email:v('contact_email'),p_contact_phone:v('contact_phone'),p_country:v('country'),p_address:v('address'),p_website:v('website'),p_tax_registration_number:v('tax_registration_number'),p_notes:v('notes')};
+ const kind=$('application_kind').value;
+ const isClub=kind==='football_club';
+ const file=$('evidence_file')?.files?.[0]||null;
+ if(file&&file.size>10*1024*1024){message($('applicationStatus'),'The supporting evidence file must be 10 MB or smaller.',true);return}
+ const clubPayload=isClub?{
+  official_club_name:v('official_club_name')||v('business_name'),
+  short_name:v('short_name'),club_type:v('club_type'),country:v('country'),
+  district:v('district'),city:v('city'),competition_name:v('competition_name'),
+  home_ground:v('home_ground'),club_registration_body:v('club_registration_body'),
+  club_registration_number:v('club_registration_number'),
+  manager_full_name:v('manager_full_name')||v('full_name'),manager_role:v('manager_role'),
+  contact_email:v('contact_email')||session.user.email,contact_phone:v('contact_phone')||v('phone'),
+  official_website_url:v('website'),proposed_website_slug:v('proposed_website_slug'),
+  authority_statement:v('authority_statement'),evidence_reference:v('evidence_reference'),
+  additional_notes:v('notes')
+ }:{};
+ const payload={
+  p_full_name:v('full_name'),p_phone:v('phone'),
+  p_business_name:isClub?(v('official_club_name')||v('business_name')):v('business_name'),
+  p_industry_group:isClub?'Sports and local league management':v('industry_group'),
+  p_business_type:isClub?'Football club':v('business_type'),
+  p_currency_code:isClub?'SLE':v('currency_code'),
+  p_contact_email:v('contact_email'),p_contact_phone:v('contact_phone'),
+  p_country:v('country'),p_address:isClub?[v('home_ground'),v('city'),v('district'),v('country')].filter(Boolean).join(', '):v('address'),
+  p_website:v('website'),p_tax_registration_number:v('tax_registration_number'),
+  p_notes:v('notes'),p_application_kind:kind,p_special_application_data:clubPayload
+ };
  $('submitApplication').disabled=true;
- try{const {data,error}=await client.rpc('submit_platform_business_application',payload);if(error)throw error;await refresh();message($('applicationStatus'),(words[$('language').value]||words.en).pending)}
- catch(err){message($('applicationStatus'),(words[$('language').value]||words.en).error+(err.message||'Submission failed'),true)}
- finally{$('submitApplication').disabled=false}
+ try{
+  const {data,error}=await client.rpc('submit_platform_business_application_unified',payload);
+  if(error)throw error;
+  if(isClub&&file&&data?.football_club_application_id){
+   const nameParts=(file.name||'club-evidence').split('.');
+   const ext=(nameParts.length>1?nameParts.pop():'pdf').toLowerCase().replaceAll(/[^a-z0-9]/g,'')||'pdf';
+   const base=nameParts.join('.').toLowerCase().replaceAll(/[^a-z0-9]+/g,'-').replaceAll(/^-|-$/g,'').slice(0,60)||'club-evidence';
+   const path=session.user.id+'/'+data.football_club_application_id+'/'+Date.now()+'-'+base+'.'+ext;
+   const uploaded=await client.storage.from('club-onboarding-evidence').upload(path,file,{upsert:false,contentType:file.type});
+   if(uploaded.error)throw new Error('Application submitted, but the evidence upload failed: '+uploaded.error.message+'. You can attach it again if the developer requests it.');
+   const attached=await client.rpc('attach_my_football_club_application_evidence',{p_application_id:data.football_club_application_id,p_evidence_path:path});
+   if(attached.error)throw new Error('Application submitted, but the evidence attachment failed: '+attached.error.message);
+   $('evidence_file').value='';
+  }
+  await refresh();
+  const dict=words[$('language').value]||words.en;
+  message($('applicationStatus'),isClub?dict.pendingClub:dict.pending);
+ }catch(err){message($('applicationStatus'),(words[$('language').value]||words.en).error+(err.message||'Submission failed'),true)}
+ finally{$('submitApplication').disabled=false;syncApplicationKind()}
 });
 client.auth.onAuthStateChange((_event,next)=>{session=next;if(next)setTimeout(()=>showSession().catch(e=>message($('authStatus'),e.message,true)),0)});
 setLanguage(localStorage.getItem('klt-business-application-language')||'en');
+const queryKind=new URLSearchParams(window.location.search).get('application');
+if(queryKind==='football-club'||queryKind==='football_club')$('application_kind').value='football_club';
+syncApplicationKind();
 showSession().catch(e=>{message($('authStatus'),e.message||'Could not load account status.',true)});
 })();
