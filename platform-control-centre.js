@@ -2,6 +2,7 @@
 (function(){
   'use strict';
   var $=function(id){return document.getElementById(id)};
+  var esc=function(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c];});};
   var platformAccess=false, checking=false;
   function context(){var api=window.whiteLionCloud;return{api:api,client:api&&api.getClient?api.getClient():null,session:api&&api.getSession?api.getSession():null,business:api&&api.getActiveBusiness?api.getActiveBusiness():null};}
   async function checkAccess(){
@@ -33,8 +34,8 @@
     var active=c.business&&c.business.name?c.business.name:'No workspace selected';
     var user=c.session&&c.session.user?c.session.user.email||'Verified developer':'Verified developer';
     var html='<div class="stats">'+
-      '<div class="stat"><div class="stat-head">Signed-in account</div><strong style="font-size:15px;overflow-wrap:anywhere">'+user+'</strong><small>Authenticated session</small></div>'+
-      '<div class="stat"><div class="stat-head">Active workspace</div><strong style="font-size:15px;overflow-wrap:anywhere">'+active+'</strong><small>Current working context</small></div>'+
+      '<div class="stat"><div class="stat-head">Signed-in account</div><strong style="font-size:15px;overflow-wrap:anywhere">'+esc(user)+'</strong><small>Authenticated session</small></div>'+
+      '<div class="stat"><div class="stat-head">Active workspace</div><strong style="font-size:15px;overflow-wrap:anywhere">'+esc(active)+'</strong><small>Current working context</small></div>'+
       '<div class="stat"><div class="stat-head">Workspaces available</div><strong>'+businesses.length+'</strong><small>Visible to this account; not a global database count</small></div>'+
       '<div class="stat"><div class="stat-head">Platform access</div><strong style="font-size:15px">Verified</strong><small>Confirmed by Supabase authorization</small></div></div>'+
       '<div class="notice">This is the single entry point for platform-wide administration. It reuses existing management panels rather than creating duplicate copies of business records, billing, settings or audit data.</div>'+
