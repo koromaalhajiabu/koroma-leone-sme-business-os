@@ -399,7 +399,7 @@ async function runViewport(name, viewport) {
       const expected = ['Menu','Sales','Stock','Overview'];
       const hasExpectedOrder = labels.length === expected.length && labels.every((label,index) => label === expected[index]);
       return {
-        pass: hasExpectedOrder && !!topAlerts && !!overview && !!menu && !dock?.querySelector('#wlPeDockAlerts'),
+        pass: hasExpectedOrder && !!topAlerts && !!overview && !!menu && overview.classList.contains('active') && !menu.classList.contains('active') && !dock?.querySelector('#wlPeDockAlerts'),
         labels,
         topAlertsPresent:!!topAlerts,
         duplicateBottomAlerts:!!dock?.querySelector('#wlPeDockAlerts'),
