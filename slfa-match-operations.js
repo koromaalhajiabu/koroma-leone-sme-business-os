@@ -273,7 +273,8 @@ function bind(){
     const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[file.type],path=[business().id,competitionId,fd.get('fixture_id'),cache.userId,crypto.randomUUID()+'.'+ext].join('/');
     const {data,error}=await client().storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;paths.push(data.path);
    }
-   const playerIds=Array.from(form.querySelector('[name="player_ids"]')?.selectedOptions||[]).map(option=>option.value);\n   const data=type==='referee'?{home_score:Number(fd.get('home_score')),away_score:Number(fd.get('away_score')),events:String(fd.get('events')||''),player_ids:playerIds}:{observations:String(fd.get('observations')||''),recommendations:String(fd.get('recommendations')||''),player_ids:playerIds};
+   const playerIds=Array.from(form.querySelector('[name="player_ids"]')?.selectedOptions||[]).map(option=>option.value);
+   const data=type==='referee'?{home_score:Number(fd.get('home_score')),away_score:Number(fd.get('away_score')),events:String(fd.get('events')||''),player_ids:playerIds}:{observations:String(fd.get('observations')||''),recommendations:String(fd.get('recommendations')||''),player_ids:playerIds};
    const {error}=await client().rpc('slfa_match_ops_submit_report',{p_business_id:business().id,p_competition_id:competitionId,p_fixture_id:fd.get('fixture_id'),p_report_type:type,p_report_data:data,p_evidence_paths:paths,p_ocr_text:text,p_ocr_status:status,p_ocr_confidence:confidence});if(error)throw error;
    activeTab='reports';await render();say('Match report submitted with structured details, OCR and photographic evidence.');
   }catch(err){if(paths.length)try{await client().storage.from(BUCKET).remove(paths)}catch(_){}say(err.message||'Match report could not be submitted.');submit.disabled=false;}
