@@ -1156,6 +1156,53 @@ for (const row of WL_OWNER_CONTROL_TRANSLATIONS_V1) {
   LANGS.fr.t[key] = fr; LANGS.es.t[key] = es; LANGS.ar.t[key] = ar; LANGS.hi.t[key] = hi; LANGS.zh.t[key] = zh;
 }
 
+
+/* Expanded public sign-in, developer console, recruitment and workspace translations. */
+const WL_PLATFORM_TRANSLATIONS_V2 = [
+["New Client?","Nouveau client ?","¿Nuevo cliente?","عميل جديد؟","नए ग्राहक?","新客户？"],
+["Complete your business application","Complétez votre demande d’entreprise","Completa tu solicitud empresarial","أكمل طلب نشاطك التجاري","अपना व्यावसायिक आवेदन पूरा करें","完成企业申请"],
+["New Client? Complete your business application","Nouveau client ? Complétez votre demande d’entreprise","¿Nuevo cliente? Completa tu solicitud empresarial","عميل جديد؟ أكمل طلب نشاطك التجاري","नए ग्राहक? अपना व्यावसायिक आवेदन पूरा करें","新客户？完成企业申请"],
+["Register your club through the same application","Inscrivez votre club via le même formulaire","Registra tu club mediante la misma solicitud","سجّل ناديك من خلال الطلب نفسه","उसी आवेदन के माध्यम से अपने क्लब का पंजीकरण करें","通过同一申请注册您的俱乐部"],
+["Managing a football club?","Vous gérez un club de football ?","¿Gestionas un club de fútbol?","هل تدير نادياً لكرة القدم؟","क्या आप फुटबॉल क्लब का प्रबंधन करते हैं?","您是否管理足球俱乐部？"],
+["Reports & Analytics","Rapports et analyses","Informes y análisis","التقارير والتحليلات","रिपोर्ट और विश्लेषण","报告与分析"],
+["Business Operations Centre","Centre des opérations commerciales","Centro de operaciones empresariales","مركز عمليات الأعمال","व्यावसायिक संचालन केंद्र","业务运营中心"],
+["Platform Control Centre","Centre de contrôle de la plateforme","Centro de control de la plataforma","مركز التحكم بالمنصة","प्लेटफ़ॉर्म नियंत्रण केंद्र","平台控制中心"],
+["GLOBAL SCOUT RECRUITMENT","RECRUTEMENT MONDIAL DES RECRUTEURS","RECLUTAMIENTO GLOBAL DE SCOUTS","استقطاب الكشافين العالمي","वैश्विक स्काउट भर्ती","全球球探招募"],
+["Track real scout organisations, invitations, responses and follow-ups.","Suivez les organisations de recruteurs, les invitations, les réponses et les relances.","Haz seguimiento de organizaciones de scouts, invitaciones, respuestas y seguimientos.","تابع مؤسسات الكشافين والدعوات والردود والمتابعات.","वास्तविक स्काउट संगठनों, निमंत्रणों, प्रतिक्रियाओं और अनुवर्ती कार्यों पर नज़र रखें।","跟踪真实球探组织、邀请、回复和后续跟进。"],
+["Open Recruitment Centre","Ouvrir le centre de recrutement","Abrir el centro de reclutamiento","افتح مركز الاستقطاب","भर्ती केंद्र खोलें","打开招募中心"],
+["Business application review","Examen des demandes d’entreprise","Revisión de solicitudes empresariales","مراجعة طلبات الأعمال","व्यावसायिक आवेदन समीक्षा","企业申请审核"],
+["Refresh applications","Actualiser les demandes","Actualizar solicitudes","تحديث الطلبات","आवेदन ताज़ा करें","刷新申请"],
+["Review the submitted business details. Approval creates the workspace, assigns the customer as owner, creates Main Branch, activates industry modules and applies the existing trial/subscription rules.","Examinez les informations de l’entreprise soumises. L’approbation crée l’espace de travail, attribue le client comme propriétaire, crée la succursale principale, active les modules sectoriels et applique les règles d’essai et d’abonnement existantes.","Revisa los datos empresariales enviados. La aprobación crea el espacio de trabajo, asigna al cliente como propietario, crea la sucursal principal, activa los módulos del sector y aplica las reglas actuales de prueba y suscripción.","راجع بيانات النشاط التجاري المقدمة. تؤدي الموافقة إلى إنشاء مساحة العمل وتعيين العميل مالكاً وإنشاء الفرع الرئيسي وتفعيل وحدات القطاع وتطبيق قواعد التجربة والاشتراك الحالية.","जमा किए गए व्यावसायिक विवरणों की समीक्षा करें। स्वीकृति कार्यस्थान बनाती है, ग्राहक को मालिक नियुक्त करती है, मुख्य शाखा बनाती है, उद्योग मॉड्यूल सक्रिय करती है और मौजूदा परीक्षण/सदस्यता नियम लागू करती है।","审核已提交的企业资料。批准后将创建工作区、指定客户为所有者、创建主分支、启用行业模块，并应用现有试用和订阅规则。"],
+["Loading business applications…","Chargement des demandes d’entreprise…","Cargando solicitudes empresariales…","جارٍ تحميل طلبات الأعمال…","व्यावसायिक आवेदन लोड हो रहे हैं…","正在加载企业申请…"],
+["Football club applications","Demandes de clubs de football","Solicitudes de clubes de fútbol","طلبات أندية كرة القدم","फुटबॉल क्लब आवेदन","足球俱乐部申请"],
+["Review club authority evidence and approve applications. Approval creates the club workspace and a verified website draft in one operation.","Vérifiez les justificatifs d’autorité du club et approuvez les demandes. L’approbation crée l’espace de travail du club et un brouillon de site web vérifié en une seule opération.","Revisa las pruebas de autoridad del club y aprueba las solicitudes. La aprobación crea el espacio del club y un borrador de sitio web verificado en una sola operación.","راجع مستندات صلاحية النادي ووافق على الطلبات. تنشئ الموافقة مساحة عمل النادي ومسودة موقع ويب موثقة في عملية واحدة.","क्लब के प्राधिकरण प्रमाणों की समीक्षा करें और आवेदन स्वीकृत करें। स्वीकृति एक ही प्रक्रिया में क्लब कार्यस्थान और सत्यापित वेबसाइट ड्राफ़्ट बनाती है।","审核俱乐部授权证明并批准申请。批准后将在一次操作中创建俱乐部工作区和经过验证的网站草稿。"],
+["Only the tools enabled for this business type are shown here and in the Workspace menu.","Les outils activés pour ce type d’entreprise apparaissent ici et dans le menu Espace de travail.","Aquí y en el menú Espacio de trabajo solo se muestran las herramientas habilitadas para este tipo de negocio.","تظهر هنا وفي قائمة مساحة العمل الأدوات المفعلة لهذا النوع من الأعمال فقط.","इस व्यवसाय प्रकार के लिए सक्षम उपकरण यहाँ और कार्यस्थान मेनू में ही दिखाए जाते हैं।","此业务类型启用的工具仅显示在此处和工作区菜单中。"],
+["Recorded","Enregistré","Registrado","مسجل","दर्ज","已记录"],
+["transactions","transactions","transacciones","معاملات","लेन-देन","笔交易"],
+["Recorded sales","Ventes enregistrées","Ventas registradas","المبيعات المسجلة","दर्ज बिक्री","已记录销售"],
+["Recorded expenses","Dépenses enregistrées","Gastos registrados","المصروفات المسجلة","दर्ज खर्च","已记录费用"],
+["Products","Produits","Productos","المنتجات","उत्पाद","产品"],
+["Stock review","Contrôle du stock","Revisión de existencias","مراجعة المخزون","स्टॉक समीक्षा","库存检查"],
+["Recent sales","Ventes récentes","Ventas recientes","المبيعات الأخيرة","हाल की बिक्री","近期销售"],
+["Latest transactions in this workspace","Dernières transactions dans cet espace de travail","Últimas transacciones en este espacio de trabajo","أحدث المعاملات في مساحة العمل هذه","इस कार्यस्थान में नवीनतम लेन-देन","此工作区中的最新交易"],
+["Stock requiring attention","Stock nécessitant une attention particulière","Existencias que requieren atención","مخزون يتطلب الانتباه","ध्यान देने योग्य स्टॉक","需要关注的库存"],
+["At or below reorder level","Au niveau du seuil de réapprovisionnement ou en dessous","En el nivel de reposición o por debajo","عند مستوى إعادة الطلب أو أقل","पुनःआदेश स्तर पर या उससे नीचे","达到或低于补货水平"],
+["No low-stock products identified.","Aucun produit en stock faible n’a été identifié.","No se identificaron productos con pocas existencias.","لم يتم تحديد منتجات منخفضة المخزون.","कम स्टॉक वाले उत्पादों की पहचान नहीं हुई।","未发现低库存产品。"],
+["Recommended Actions","Actions recommandées","Acciones recomendadas","الإجراءات الموصى بها","अनुशंसित कार्रवाइयाँ","推荐操作"],
+["Your most relevant workspace tools appear here first.","Les outils les plus pertinents de votre espace de travail apparaissent ici en priorité.","Las herramientas más relevantes de tu espacio de trabajo aparecen aquí primero.","تظهر هنا أولاً أدوات مساحة العمل الأكثر صلة بك.","आपके कार्यस्थान के सबसे प्रासंगिक उपकरण पहले यहाँ दिखाई देते हैं।","与您的工作区最相关的工具会优先显示在这里。"],
+["No recommended Actions are available for this workspace yet.","Aucune action recommandée n’est encore disponible pour cet espace de travail.","Aún no hay acciones recomendadas disponibles para este espacio de trabajo.","لا توجد إجراءات موصى بها متاحة لمساحة العمل هذه حتى الآن.","इस कार्यस्थान के लिए अभी कोई अनुशंसित कार्रवाई उपलब्ध नहीं है।","此工作区目前没有可用的推荐操作。"],
+["Operating balance is recorded sales less recorded expenses.","Le solde opérationnel correspond aux ventes enregistrées moins les dépenses enregistrées.","El saldo operativo equivale a las ventas registradas menos los gastos registrados.","الرصيد التشغيلي هو المبيعات المسجلة مطروحاً منها المصروفات المسجلة.","परिचालन शेष दर्ज बिक्री में से दर्ज खर्च घटाने के बराबर है।","运营余额为已记录销售额减去已记录费用。"],
+["It is not formal Net Profit and excludes other accounting adjustments.","Il ne s’agit pas du bénéfice net officiel et ce montant exclut les autres ajustements comptables.","No es el beneficio neto formal y excluye otros ajustes contables.","هذا ليس صافي الربح الرسمي ولا يشمل التعديلات المحاسبية الأخرى.","यह औपचारिक शुद्ध लाभ नहीं है और इसमें अन्य लेखांकन समायोजन शामिल नहीं हैं।","这并非正式净利润，且不包括其他会计调整。"],
+["Only modules enabled for this business type are available in the menu.","Seuls les modules activés pour ce type d’entreprise sont disponibles dans le menu.","En el menú solo están disponibles los módulos habilitados para este tipo de negocio.","تتوفر في القائمة الوحدات المفعلة لهذا النوع من الأعمال فقط.","मेनू में केवल इस व्यवसाय प्रकार के लिए सक्षम मॉड्यूल उपलब्ध हैं।","菜单中仅提供此业务类型启用的模块。"],
+["Refresh","Actualiser","Actualizar","تحديث","ताज़ा करें","刷新"],
+["items","articles","artículos","عناصر","वस्तुएँ","项目"],
+["and","et","y","و","और","和"]
+];
+for (const row of WL_PLATFORM_TRANSLATIONS_V2) {
+ const [key,fr,es,ar,hi,zh]=row;
+ LANGS.fr.t[key]=fr; LANGS.es.t[key]=es; LANGS.ar.t[key]=ar; LANGS.hi.t[key]=hi; LANGS.zh.t[key]=zh;
+}
+
 // Owner-control centre and platform language QA: singular alert label.
 LANGS.fr.t['Alert']='Alerte';
 LANGS.es.t['Alert']='Alerta';
