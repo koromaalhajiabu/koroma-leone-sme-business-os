@@ -370,20 +370,25 @@ async function runViewport(name, viewport) {
       const panelRect = panel.getBoundingClientRect();
       const viewRect = view.getBoundingClientRect();
       const footerRect = footer.getBoundingClientRect();
+      const topbarRect = document.querySelector('.topbar')?.getBoundingClientRect();
       const position = getComputedStyle(panel).position;
       const panelBeforeFooter = Boolean(panel.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const ownerPanel = document.querySelector('#wlDeveloperBox');
+      const ownerAfterFooter = !ownerPanel || Boolean(footer.compareDocumentPosition(ownerPanel) & Node.DOCUMENT_POSITION_FOLLOWING);
       const opened = panel.classList.contains('wl-tools-open') && toggle.getAttribute('aria-expanded') === 'true';
       const visible = getComputedStyle(panel).display !== 'none' && panelRect.width > 0 && panelRect.height > 0;
-      const pass = panelBeforeFooter && opened && visible && position === 'static' &&
+      const overviewVisible = !topbarRect || viewRect.top >= topbarRect.bottom - 1;
+      const pass = panelBeforeFooter && ownerAfterFooter && opened && visible && overviewVisible && position === 'static' &&
         panelRect.top >= viewRect.bottom - 1 && footerRect.top >= panelRect.bottom - 1;
       panel.classList.remove('wl-tools-open');
       toggle.setAttribute('aria-expanded','false');
       app.classList.remove('wl-authenticated');
       if (wasPublic) app.classList.add('wl-public-mode');
-      return { pass, panelBeforeFooter, opened, visible, position, panelTop:Math.round(panelRect.top),
+      return { pass, panelBeforeFooter, ownerAfterFooter, opened, visible, overviewVisible, position,
+        panelTop:Math.round(panelRect.top), viewTop:Math.round(viewRect.top),
         viewBottom:Math.round(viewRect.bottom), panelBottom:Math.round(panelRect.bottom), footerTop:Math.round(footerRect.top) };
     });
-    record(result, 'Workspace Tools stays below Overview without covering it', workspacePanelLayout.pass, workspacePanelLayout);
+    record(result, 'Overview remains visible and Workspace Tools stays below it', workspacePanelLayout.pass, workspacePanelLayout);
 
     // The signed-out experience intentionally hides private workspace navigation.
     // Only authenticate when dedicated CI credentials have been configured.
