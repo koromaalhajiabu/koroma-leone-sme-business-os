@@ -22,20 +22,122 @@
 'use strict';
 const URL='https://nclncqlgnxnijlumznnt.supabase.co',KEY='sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
 const sb=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const token=new URLSearchParams(location.search).get('invite')||'',setStatus=(msg,bad=false)=>{$('authStatus').textContent=msg;$('authStatus').classList.toggle('error',bad)};
-let applicant=null,businessId=null,session=null,inviteAccepted=false,invitePromise=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const token=new URLSearchParams(location.search).get('invite')||'';
+let applicant=null,businessId=null,session=null,inviteAccepted=false,invitePromise=null,loading=false;
 function statusText(s){return String(s||'inquiry').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())}
+function setStatus(msg,bad=false){$('authStatus').textContent=msg;$('authStatus').classList.toggle('error',bad)}
 async function acceptInvite(){
  if(inviteAccepted)return null;
  if(invitePromise)return invitePromise;
  invitePromise=(async()=>{
   if(!token)throw Error('No invitation code is present. Open the full invitation link sent by your agency.');
-  const {data:{session:s}}=await sb.auth.getSession();if(!s)throw Error('Sign in first using the invited email address.');
+  const {data:{session:s}}=await sb.auth.getSession();
+  if(!s)throw Error('Sign in first using the invited email address.');
   const {data,error}=await sb.functions.invoke('travel-portal-accept-invite',{body:{token}});
   if(error)throw Error(error.message||'Could not accept invitation.');
   if(data?.error)throw Error(data.error);
   history.replaceState({},'',location.pathname);inviteAccepted=true;return data.applicant;
  })();
  try{return await invitePromise}catch(e){invitePromise=null;throw e}
-}>
+}
+async function load(){
+ if(loading)return;loading=true;
+ try{
+  const {data:{session:s}}=await sb.auth.getSession();session=s;
+  if(!s){$('auth').classList.remove('hidden');$('dashboard').classList.add('hidden');$('signout').classList.add('hidden');return}
+  if(token&&!inviteAccepted){try{await acceptInvite()}catch(e){$('auth').classList.remove('hidden');setStatus(e.message,true);return}}
+  const {data:a,error}=await sb.from('travel_agency_applicants').select('id,business_id,full_name,email,case_reference,destination_interest,status,portal_user_id').eq('portal_user_id',s.user.id).maybeSingle();
+  if(error)throw error;
+  if(!a){$('auth').classList.remove('hidden');setStatus('Your account is not linked to an applicant case yet. Open your invitation link and sign in with the invited email.',true);return}
+  applicant=a;businessId=a.business_id;
+  $('auth').classList.add('hidden');$('dashboard').classList.remove('hidden');$('signout').classList.remove('hidden');
+  $('welcome').textContent='Welcome, '+a.full_name;$('caseRef').textContent='Your case reference: '+(a.case_reference||'Pending');$('stage').textContent=statusText(a.status);$('stageText').textContent=statusText(a.status);$('destination').textContent=a.destination_interest||'Not specified';$('refTile').textContent=a.case_reference||'Pending';
+  await Promise.all([loadDocuments(),loadAppointments(),loadDeadlines(),loadMessages(),loadNotifications()]);
+ }catch(e){setStatus(e.message||'Could not load your case.',true)}
+ finally{loading=false}
+}
+async function loadDocuments(){
+ const {data,error}=await sb.from('travel_agency_documents').select('id,document_type,document_status,original_file_name,created_at').eq('applicant_id',applicant.id).order('created_at',{ascending:false});
+ if(error)throw error;
+ $('documents').innerHTML=(data||[]).map(d=>'<div class="item"><b>'+esc(statusText(d.document_type))+' · '+esc(statusText(d.document_status))+'</b>'+esc(d.original_file_name||'')+'<small>Submitted '+new Date(d.created_at).toLocaleString()+'</small></div>').join('')||'<p class="muted">No documents have been submitted or shared yet.</p>';
+}
+async function loadAppointments(){
+ const {data,error}=await sb.from('travel_agency_appointments').select('title,appointment_at,location,meeting_url,notes,status').eq('applicant_id',applicant.id).order('appointment_at');
+ if(error)throw error;
+ $('appointments').innerHTML=(data||[]).map(a=>'<div class="item"><b>'+esc(a.title)+' · '+esc(statusText(a.status))+'</b>'+new Date(a.appointment_at).toLocaleString()+'<small>'+esc(a.location||'Location to be confirmed')+(a.meeting_url?' · <a href="'+esc(a.meeting_url)+'" target="_blank" rel="noopener">Meeting link</a>':'')+'</small>'+(a.notes?'<p>'+esc(a.notes)+'</p>':'')+'</div>').join('')||'<p class="muted">No appointments scheduled.</p>';
+}
+async function loadDeadlines(){
+ const {data,error}=await sb.from('travel_agency_deadlines').select('title,due_at,status,notes').eq('applicant_id',applicant.id).eq('status','open').order('due_at');
+ if(error)throw error;
+ $('deadlines').innerHTML=(data||[]).map(d=>'<div class="item"><b>'+esc(d.title)+'</b>Due '+new Date(d.due_at).toLocaleString()+(d.notes?'<small>'+esc(d.notes)+'</small>':'')+'</div>').join('')||'<p class="muted">No outstanding actions.</p>';
+}
+async function loadMessages(){
+ const {data,error}=await sb.from('travel_agency_messages').select('sender_user_id,sender_type,message,created_at').eq('applicant_id',applicant.id).order('created_at');
+ if(error)throw error;
+ $('messages').innerHTML=(data||[]).map(m=>'<div class="bubble '+(m.sender_user_id===session.user.id?'mine':'')+'">'+esc(m.message)+'<small>'+esc(m.sender_type==='staff'?'Agency team':'You')+' · '+new Date(m.created_at).toLocaleString()+'</small></div>').join('')||'<p class="muted">No messages yet. Send a message to contact the agency.</p>';
+}
+async function loadNotifications(){
+ const {data,error}=await sb.from('travel_agency_notifications').select('id,title,body,created_at,read_at').eq('recipient_user_id',session.user.id).order('created_at',{ascending:false}).limit(30);
+ if(error)throw error;
+ $('notifications').innerHTML=(data||[]).map(n=>'<div class="item"><b>'+esc(n.title)+'</b>'+esc(n.body)+'<small>'+new Date(n.created_at).toLocaleString()+(n.read_at?' · Read':' · New')+'</small>'+(n.read_at?'':' <button class="secondary" data-read="'+n.id+'">Mark read</button>')+'</div>').join('')||'<p class="muted">No notifications.</p>';
+}
+async function saveEmailPreference(enabled){
+ const payload={user_id:session.user.id,email_address:session.user.email,email_enabled:enabled,email_consent_at:enabled?new Date().toISOString():null,updated_at:new Date().toISOString()};
+ const {error}=await sb.from('notification_channel_preferences').upsert(payload,{onConflict:'user_id'});
+ if(error)throw error;
+ $('emailPreferenceStatus').textContent=enabled?'Email case updates enabled. New case messages, appointments and status alerts may be sent by email.':'Email case updates are turned off. In-portal notifications remain available.';
+}
+$('emailOptIn').onclick=async()=>{try{await saveEmailPreference(true)}catch(e){$('emailPreferenceStatus').textContent=e.message}};
+$('emailOptOut').onclick=async()=>{try{await saveEmailPreference(false)}catch(e){$('emailPreferenceStatus').textContent=e.message}};
+$('signup').onclick=async()=>{
+ try{
+  if(!token)throw Error('An invitation link is required before creating an applicant account.');
+  const email=$('email').value.trim(),password=$('password').value;
+  if(!email||password.length<8)throw Error('Enter the invited email and a password of at least 8 characters.');
+  $('signup').disabled=true;
+  const {data,error}=await sb.auth.signUp({email,password});
+  if(error)throw error;
+  if(!data.session){setStatus('Account created. Check your email to confirm it, then reopen this same invitation link and sign in.');return}
+  await load();
+ }catch(e){setStatus(e.message,true)}finally{$('signup').disabled=false}
+};
+$('signin').onclick=async()=>{
+ try{
+  const email=$('email').value.trim(),password=$('password').value;
+  if(!email||!password)throw Error('Enter your invited email and password.');
+  $('signin').disabled=true;
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  await load();
+ }catch(e){setStatus(e.message,true)}finally{$('signin').disabled=false}
+};
+$('signout').onclick=async()=>{await sb.auth.signOut();applicant=null;await load()};
+$('uploadForm').onsubmit=async e=>{
+ e.preventDefault();const f=e.currentTarget,file=f.elements.namedItem('file').files[0];
+ try{
+  if(!file)throw Error('Choose a file first.');
+  if(file.size>10485760)throw Error('Maximum file size is 10 MB.');
+  if(!['application/pdf','image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Only PDF, JPG, PNG and WEBP files are allowed.');
+  const path=businessId+'/'+applicant.id+'/'+crypto.randomUUID()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const up=await sb.storage.from('travel-agency-private').upload(path,file,{contentType:file.type,upsert:false});
+  if(up.error)throw up.error;
+  const {error}=await sb.from('travel_agency_documents').insert({business_id:businessId,applicant_id:applicant.id,document_type:f.elements.namedItem('document_type').value,document_status:'submitted',storage_path:path,original_file_name:file.name,mime_type:file.type,file_size_bytes:file.size,uploaded_by:session.user.id,applicant_visible:false});
+  if(error){await sb.storage.from('travel-agency-private').remove([path]);throw error}
+  f.reset();$('uploadStatus').textContent='Document uploaded securely. The agency can now review it.';await loadDocuments();
+ }catch(e){$('uploadStatus').textContent=e.message}
+};
+$('messageForm').onsubmit=async e=>{
+ e.preventDefault();const message=$('message').value.trim();if(!message)return;
+ try{const {error}=await sb.from('travel_agency_messages').insert({business_id:businessId,applicant_id:applicant.id,sender_user_id:session.user.id,sender_type:'applicant',message});if(error)throw error;$('message').value='';await loadMessages()}catch(e){alert(e.message)}
+};
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-read]');if(!b)return;
+ const {error}=await sb.from('travel_agency_notifications').update({read_at:new Date().toISOString()}).eq('id',b.dataset.read).eq('recipient_user_id',session.user.id);
+ if(error)alert(error.message);else await loadNotifications();
+});
+sb.auth.onAuthStateChange(()=>setTimeout(()=>load(),0));
+load();
+})();
+</script></body></html>
