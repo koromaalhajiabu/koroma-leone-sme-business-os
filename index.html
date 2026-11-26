@@ -947,7 +947,8 @@ html.club-manager-mode #businessToolsNav button[data-page="football-platform-hub
      </nav></div>
    <div><div class="nav-label">Business Tools</div><nav class="nav" id="businessToolsNav">
      <button data-page="documents"><span class="ico">▧</span>Business documents</button>
-     <button data-page="league"><span class="ico">⚽</span>Sports & Local League</button>
+     <button data-page="league"><span class="ico">⚽</span>Sports &amp; Local League</button>
+     <button data-page="slfa-match-operations"><span class="ico">🏟️</span>SLFA Match Operations</button>
      <button data-page="football-platform-hub" type="button"><span class="ico">⚽</span>Football Club &amp; Player Platform</button>
      <button data-page="club-website-studio"><span class="ico">🌐</span>Club Website Studio</button>
      <button data-page="football-player-network"><span class="ico">↗</span>Club Player Network</button>
@@ -1074,7 +1075,7 @@ function settingsDisplayName(){
 }
 function settingsLabel(){return settingsDisplayName()+' Settings'}
 function applyIndustryWording(){
- const labels={...industryWording(),league:'Sports & Local League',audit:'Audit Trail','travel-agency':'Travel & Migration Desk',settings:settingsLabel()},icons={audit:'▤',supplierintel:'◈',customerintel:'✦',dashboard:'▦',inventory:'▤',stockcontrol:'⌁',reorder:'↗',sales:'▣',returns:'↩',products:'◇',purchases:'⇩',customers:'♙',suppliers:'♧',expenses:'↗',reports:'▤',intelligence:'✦',finance:'◷',documents:'▧',league:'⚽',employees:'♟',settings:'⚙',executive:'◈',actions:'⚑',automation:'⚙',affiliates:'🤝','external-affiliates':'🌐','platform-referrals':'🎁',campus:'🎓',hospital:'🏥',storefront:'🛍'};
+ const labels={...industryWording(),league:'Sports & Local League','slfa-match-operations':'SLFA Match Operations',audit:'Audit Trail','travel-agency':'Travel & Migration Desk',settings:settingsLabel()},icons={audit:'▤',supplierintel:'◈',customerintel:'✦',dashboard:'▦',inventory:'▤',stockcontrol:'⌁',reorder:'↗',sales:'▣',returns:'↩',products:'◇',purchases:'⇩',customers:'♙',suppliers:'♧',expenses:'↗',reports:'▤',intelligence:'✦',finance:'◷',documents:'▧',league:'⚽','slfa-match-operations':'🏟️',employees:'♟',settings:'⚙',executive:'◈',actions:'⚑',automation:'⚙',affiliates:'🤝','external-affiliates':'🌐','platform-referrals':'🎁',campus:'🎓',hospital:'🏥',storefront:'🛍'};
  document.querySelectorAll('[data-page]').forEach(b=>{const p=b.dataset.page;if(labels[p]||p==='dashboard'||p==='employees'||p==='settings')b.innerHTML='<span class="ico">'+(icons[p]||'•')+'</span>'+(labels[p]||({dashboard:'Overview',employees:'Employees'}[p]))});
  const crumb=document.getElementById('crumb');
  if(crumb){if(state.page==='dashboard')crumb.textContent='Overview';else crumb.textContent=labels[state.page]||({employees:'Employees'}[state.page]||state.page);}
@@ -1091,7 +1092,7 @@ function enabledBusinessModules(){return new Set((state.modules||[]).filter(x=>x
 function applyBusinessModuleNavigation(modules,business){
  if(!Array.isArray(modules)||!modules.length)return;
  const enabled=new Set(modules.filter(x=>x&&x.is_enabled).map(x=>String(x.module_key||'')));
- const map={sales:'sales_pos',returns:'sales_pos',inventory:'inventory',stockcontrol:'inventory',reorder:'inventory',products:'inventory',purchases:'purchasing',customers:'customers',suppliers:'suppliers',expenses:'expenses',employees:'employees',league:'sports_league','club-website-studio':'football_club_manager','football-player-network':'football_club_manager',school:'school',campus:'campus',hospital:'hospital','travel-agency':'travel_agency'};
+ const map={sales:'sales_pos',returns:'sales_pos',inventory:'inventory',stockcontrol:'inventory',reorder:'inventory',products:'inventory',purchases:'purchasing',customers:'customers',suppliers:'suppliers',expenses:'expenses',employees:'employees',league:'sports_league','slfa-match-operations':'slfa_match_ops','club-website-studio':'football_club_manager','football-player-network':'football_club_manager',school:'school',campus:'campus',hospital:'hospital','travel-agency':'travel_agency'};
  const industry=String(business?.industry||'').toLowerCase();
  const clubManager=enabled.has('football_club_manager')||/football club|sports club/.test(industry);
  document.documentElement.classList.toggle('club-manager-mode',clubManager);
@@ -1158,6 +1159,7 @@ async function render(){
    }catch(subscriptionCheckError){console.warn('Subscription access check unavailable; local-first operation remains available.',subscriptionCheckError)}
   }
  }
+ if(state.page==='slfa-match-operations'){if(window.KoromaSlfaMatchOperations){await window.KoromaSlfaMatchOperations.render();return}v.innerHTML=pageHeader('SLFA Match Operations','Loading association match operations…');return}
  if(state.page==='league'){if(window.whiteLionLeague){await window.whiteLionLeague.render();return}v.innerHTML=pageHeader('Sports & Local League','Loading football competition management…');return}
  if(state.page==='football-player-network'){if(window.KoromaFootballNetwork){await window.KoromaFootballNetwork.render();return}v.innerHTML=pageHeader('Football Player Network','Loading club player management…');return}
  if(state.page==='club-website-studio'){if(window.KoromaClubWebsiteStudio){await window.KoromaClubWebsiteStudio.render();return}v.innerHTML=pageHeader('Football Club Website Studio','Loading club website management…');return}
@@ -1920,6 +1922,7 @@ if('serviceWorker'in navigator && location.protocol!=='file:'){window.addEventLi
 <script src="./documents.js?v=3" defer onerror="window.__wlScriptFail.push('documents.js')"></script>
 <script src="./phone-unlocking.js?v=2" defer onerror="window.__wlScriptFail.push('phone-unlocking.js')"></script>
 <script src="./league.js?v=6" defer onerror="window.__wlScriptFail.push('league.js')"></script>
+<script src="./slfa-match-operations.js?v=1" defer onerror="window.__wlScriptFail.push('slfa-match-operations.js')"></script>
 <script src="./billing.js?v=11" defer onerror="window.__wlScriptFail.push('billing.js')"></script>
 <script src="./subscription-notifications.js?v=4" defer onerror="window.__wlScriptFail.push('subscription-notifications.js')"></script>
 <script src="./action-centre.js?v=4" defer></script>
