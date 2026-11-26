@@ -75,12 +75,12 @@ async function onboarding(){
  view.querySelector('.welcome').insertAdjacentElement('afterend',card);card.querySelectorAll('[data-wl-page]').forEach(b=>b.onclick=()=>window.setPage?.(b.dataset.wlPage));$('wlPeHideOnboarding').onclick=()=>{localStorage.setItem(key,'yes');card.remove()};
 }
 function mobileDock(){
- if($('wlPeDock'))return;
- const nav=document.createElement('nav');
+ // Rebuild the dock on every script version so older installed-app markup cannot leave duplicate Alerts/Home buttons behind.
+ const nav=$('wlPeDock')||document.createElement('nav');
  nav.id='wlPeDock';nav.className='wl-pe-dock';nav.setAttribute('aria-label','Quick navigation');
- // Alerts remain in the top bar as the single notifications centre. The mobile dock uses four distinct destinations.
- nav.innerHTML='<button id="wlPeDockMenu" type="button" aria-label="Menu"><span>☰</span>Menu</button><button data-wl-dock="sales" aria-label="Sales"><span>▣</span>Sales</button><button data-wl-dock="inventory" aria-label="Stock"><span>▤</span>Stock</button><button class="active" data-wl-dock="dashboard" aria-label="Overview"><span>▦</span>Overview</button>';
- document.body.appendChild(nav);
+ // Alerts are shown once in the top bar. The bottom dock provides Overview, Sales, Stock and Menu.
+ nav.innerHTML='<button data-wl-dock="dashboard" aria-label="Overview"><span>▦</span>Overview</button><button data-wl-dock="sales" aria-label="Sales"><span>▣</span>Sales</button><button data-wl-dock="inventory" aria-label="Stock"><span>▤</span>Stock</button><button id="wlPeDockMenu" type="button" aria-label="Menu"><span>☰</span>Menu</button>';
+ if(!nav.isConnected)document.body.appendChild(nav);
  let currentPage='dashboard';
  const updateActive=page=>{
    const key=page==='dashboard'?'dashboard':page==='sales'?'sales':['products','inventory','stockcontrol','reorder'].includes(page)?'inventory':null;
