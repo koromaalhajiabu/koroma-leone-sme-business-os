@@ -1,5 +1,5 @@
 /* Koroma Leone SME OS — network-first application updates with offline fallback. */
-const CACHE_NAME='koroma-leone-sme-v386';
+const CACHE_NAME='koroma-leone-sme-v387';
 const APP_SHELL=[
   './',
   './index.html','./travel-applicant-portal.html',
@@ -48,7 +48,7 @@ const APP_SHELL=[
   './affiliate-marketing.js?v=4',
   './external-affiliate-networks.js?v=2',
   './platform-referrals.js?v=1',
-  './cloud.js?v=78',
+  './cloud.js?v=79',
   './audit-trail.js?v=2',
   './i18n.js?v=40',
   './operations.js?v=31',
