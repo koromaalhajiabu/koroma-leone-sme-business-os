@@ -14,7 +14,7 @@ It provides:
 - Human verification of OCR text, with the original OCR output retained.
 - Private evidence-photo storage, audit events and a product licence record.
 
-This application is separate from the public SLFA League App. It does not replace a federation's competition, registration or public-publication systems. It also does not automatically publish team sheets or reports to the public league website.
+This application is separate from the public SLFA League App. It does not replace a federation's competition, registration or public-facing systems. It also does not automatically publish team sheets or reports to the public league website.
 
 ## Tenant and licence model
 
