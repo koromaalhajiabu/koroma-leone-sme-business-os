@@ -269,6 +269,29 @@
       <div style="margin:10px 0;padding:10px;border:1px solid #8d7548;border-radius:10px;background:#1a2b43"><strong style="color:#f0d28b">GLOBAL SCOUT RECRUITMENT</strong><div class="dev-meta" style="margin:5px 0 8px">Track real scout organisations, invitations, responses and follow-ups.</div><a href="./football-scout-recruitment.html" target="_blank" rel="noopener" style="display:inline-block;padding:9px 12px;border-radius:8px;background:#d6ad57;color:#152238;font-weight:800;text-decoration:none">Open Recruitment Centre ↗</a></div>
       <div id="wlDevStatus" class="cloud-status">Loading secure platform controls…</div>
       <div id="wlDevStats" class="dev-meta"></div>
+      <section id="wlDevOwnerCommand" style="margin:14px 0;padding:15px;border:1px solid #d6ad57;border-radius:14px;background:linear-gradient(135deg,#192a43,#10251f);color:#fff">
+        <style>
+          #wlDevOwnerCommand .owner-command-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+          #wlDevOwnerCommand h3{margin:0;color:#f0d28b;font-size:16px}
+          #wlDevOwnerCommand p{margin:6px 0 12px;color:#bac6d8;font-size:11px;line-height:1.6}
+          #wlDevOwnerCommand .owner-command-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+          #wlDevOwnerCommand button{min-height:58px;text-align:left;padding:10px 12px;border:1px solid #53657c;border-radius:10px;background:#223953;color:#fff}
+          #wlDevOwnerCommand button strong{display:block;font-size:12px;color:#fff}
+          #wlDevOwnerCommand button small{display:block;margin-top:4px;color:#c4d1df;font-size:10px;line-height:1.35}
+          #wlDevOwnerCommand #wlDevQuickRefresh{min-height:36px;background:#d6ad57;color:#17243a;border:0;font-weight:800}
+          @media(max-width:520px){#wlDevOwnerCommand .owner-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        </style>
+        <div class="owner-command-head"><h3>OWNER OPERATIONS HUB</h3><button id="wlDevQuickRefresh" type="button">Refresh all status</button></div>
+        <p>Use these shortcuts for the main daily jobs. Each opens the existing management panel; it does not create a second workflow.</p>
+        <div class="owner-command-grid">
+          <button type="button" data-owner-jump="wlDevApplicationsSection"><strong>Application reviews</strong><small>Approve, reject or request information</small></button>
+          <button type="button" data-owner-jump="wlDevBusinesses"><strong>Business workspaces</strong><small>View customer workspaces and subscription status</small></button>
+          <button type="button" data-owner-jump="wlDevAccounts"><strong>Customer accounts</strong><small>Find accounts and review access status</small></button>
+          <button type="button" data-owner-jump="wlDevRoleManager"><strong>Access &amp; staff roles</strong><small>Assign the right role to each workspace</small></button>
+          <button type="button" data-owner-jump="wlDevAlertSettingsPanel"><strong>System alerts</strong><small>Manage registration and payment alerts</small></button>
+          <button type="button" data-owner-jump="wlDevLeagueManager"><strong>Football administration</strong><small>Open the football role and league controls</small></button>
+        </div>
+      </section>
       <div id="wlDevAlertSettingsPanel" style="display:block;visibility:visible;margin:14px 0;padding:14px;border:2px solid #4f8a5b;border-radius:12px;background:#152a1e;color:#fff;position:relative;z-index:2">
         <h3 style="margin:0 0 8px;color:#9fe3ae;font-size:16px">EMAIL ALERTS</h3>
         <div style="color:#bac6d8;font-size:11px;margin-bottom:8px">Get an email the moment someone registers a new account or submits a payment. Requires a one-time Resend API key setup (see below).</div>
@@ -332,7 +355,7 @@
         <button id="wlDevResetData" class="danger">Reset all business data</button>
       </div>
       <div id="wlDevBusinesses"></div>
-<section style="margin-top:16px;padding:13px;border:1px solid #d6ad57;border-radius:12px;background:#192a43"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0;color:#f0d28b">Business application review</h3><button id="wlDevApprovalRefresh" type="button">Refresh applications</button></div><p class="dev-meta">Review the submitted business details. Approval creates the workspace, assigns the customer as owner, creates Main Branch, activates industry modules and applies the existing trial/subscription rules.</p><div id="wlDevApprovals" class="dev-meta" style="margin-top:9px">Loading business applications…</div></section>
+<section id="wlDevApplicationsSection" style="margin-top:16px;padding:13px;border:1px solid #d6ad57;border-radius:12px;background:#192a43"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h3 style="margin:0;color:#f0d28b">Business application review</h3><button id="wlDevApprovalRefresh" type="button">Refresh applications</button></div><p class="dev-meta">Review the submitted business details. Approval creates the workspace, assigns the customer as owner, creates Main Branch, activates industry modules and applies the existing trial/subscription rules.</p><div id="wlDevApprovals" class="dev-meta" style="margin-top:9px">Loading business applications…</div></section>
 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px"><h3 style="margin:0">New business registrations</h3><button id="wlDevBusinessRegistrationsRefresh" type="button">Refresh businesses</button></div><div id="wlDevBusinessRegistrations" class="dev-meta">Business registration notifications load after developer verification.</div><section class="dev-role-manager" id="wlDevAccountInvitePanel"><h3 style="margin:0 0 6px;color:#f0d28b">Invite administrator account</h3><div class="dev-role-help">Send a secure email invitation and grant access to one selected business workspace. The invited person sets their own password.</div><div class="dev-role-grid"><div><label for="wlDevInviteName">Full name</label><input id="wlDevInviteName" type="text" autocomplete="name" placeholder="Administrator full name"></div><div><label for="wlDevInviteEmail">Email address</label><input id="wlDevInviteEmail" type="email" autocomplete="email" placeholder="admin@example.com"></div><div><label for="wlDevInviteBusiness">Business workspace</label><select id="wlDevInviteBusiness"><option value="">Loading workspaces…</option></select></div><div><label for="wlDevInviteRole">Business role</label><select id="wlDevInviteRole"><option value="admin" selected>Administrator</option><option value="manager">Manager</option><option value="accountant">Accountant</option><option value="storekeeper">Storekeeper</option><option value="cashier">Cashier</option><option value="viewer">Viewer</option></select></div></div><button id="wlDevInviteSubmit" type="button">Send administrator invitation</button><div id="wlDevInviteStatus" class="dev-role-help">Invitation is sent through Supabase Auth. No password is created or displayed here.</div></section><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px"><h3 style="margin:0">Registered accounts</h3><button id="wlDevAccountsRefresh">Refresh accounts</button></div>
       <div id="wlDevAccounts" class="dev-meta">Account directory loads after developer verification.</div>
       <div class="dev-meta" style="margin-top:10px">Deletion requests suspend access immediately. Accounts remain recoverable for 30 days. Business owners and developer accounts are protected. Permanent deletion is only available after the recovery period through the secure server-side function.</div>
@@ -343,7 +366,14 @@
     // Notify modules whose mount slots are created dynamically with the developer panel.
     window.dispatchEvent(new Event('whiteLionDeveloperPanelReady'));
     $('wlDevApprovalRefresh').onclick = loadDeveloperApprovals;
-    $('wlDevRefresh').onclick = loadDeveloperDashboard;
+    if ($('wlDevRefresh')) $('wlDevRefresh').onclick = loadDeveloperDashboard;
+    $('wlDevQuickRefresh').onclick = loadDeveloperDashboard;
+    dev.querySelectorAll('[data-owner-jump]').forEach(button => {
+      button.addEventListener('click', () => {
+        const target = $(button.dataset.ownerJump);
+        if (target) target.scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    });
     $('wlDevFreeze').onclick = toggleMaintenance;
     $('wlDevAssign').onclick = () => $('wlDevRoleManager')?.scrollIntoView({behavior:'smooth',block:'center'});
     $('wlDevRoleSave').onclick = saveDeveloperBusinessRole;
@@ -1366,9 +1396,9 @@
       const preview = modal.querySelector('#wlIndustryModulePreview');
       const updatePreview = () => {
         const group = WL_INDUSTRY_GROUPS.find(g => g.items.includes(type.value));
-        const modules = ['core', ...(group?.modules || [])];
-        preview.innerHTML = '<strong>Modules to activate</strong><br>' + modules.map(esc).join(' · ') +
-          '<br><span style="color:#8a6d36">Specialized workflows may still require configuration and testing.</span>';
+        const modules = window.KLTBusinessModuleProfiles?.modulesFor(group?.label, type.value) || ['core', ...(group?.modules || [])];
+        preview.innerHTML = '<strong>Recommended modules</strong><br>' + modules.map(esc).join(' · ') +
+          '<br><span style="color:#8a6d36">The workspace menu and overview will be tailored to these modules.</span>';
       };
       const close = value => { modal.remove(); resolve(value); };
       type.addEventListener('change', updatePreview);
@@ -1383,7 +1413,7 @@
           name: modal.querySelector('#wlIndustryBusinessName').value.trim(),
           industry: type.value,
           currency: modal.querySelector('#wlIndustryCurrency').value.trim().toUpperCase(),
-          modules: ['core', ...(group?.modules || [])]
+          modules: window.KLTBusinessModuleProfiles?.modulesFor(group?.label, type.value) || ['core', ...(group?.modules || [])]
         });
       });
       modal.querySelector('#wlIndustryBusinessName').focus();
