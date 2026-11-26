@@ -396,7 +396,7 @@ async function runViewport(name, viewport) {
       const topAlerts = document.querySelector('#wlPeAlerts');
       const overview = dock?.querySelector('[data-wl-dock="dashboard"]');
       const menu = dock?.querySelector('#wlPeDockMenu');
-      const expected = ['Overview','Sales','Stock','Menu'];
+      const expected = ['Menu','Sales','Stock','Overview'];
       const hasExpectedOrder = labels.length === expected.length && labels.every((label,index) => label === expected[index]);
       return {
         pass: hasExpectedOrder && !!topAlerts && !!overview && !!menu && !dock?.querySelector('#wlPeDockAlerts'),
@@ -407,7 +407,7 @@ async function runViewport(name, viewport) {
         menuPresent:!!menu
       };
     });
-    record(result, 'Mobile navigation has Overview, Sales, Stock and Menu, with Alerts only in the top bar', mobileDockCheck.pass, mobileDockCheck);
+    record(result, 'Bottom Alerts shortcut is replaced by Overview; Menu, Sales and Stock remain available', mobileDockCheck.pass, mobileDockCheck);
 
 
     // The signed-out experience intentionally hides private workspace navigation.
