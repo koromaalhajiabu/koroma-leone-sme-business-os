@@ -342,7 +342,7 @@ async function runViewport(name, viewport) {
         if(!app||!dock||!topAlerts)return {pass:false,error:'Mobile dock or top Alerts control is missing.'};
         app.classList.remove('wl-public-mode');
         app.classList.add('wl-authenticated');
-        const labels=[...dock.querySelectorAll('button')].map(button=>button.innerText.replace(/\\s+/g,' ').trim());
+        const labels=[...dock.querySelectorAll('button')].map(button=>button.getAttribute('aria-label')||button.textContent.replace(/\\s+/g,' ').trim());
         const destinations=[...dock.querySelectorAll('[data-wl-dock]')].map(button=>button.dataset.wlDock);
         const dockVisible=getComputedStyle(dock).display!=='none'&&dock.getBoundingClientRect().width>0;
         const alertsOnlyAtTop=!dock.innerText.toLowerCase().includes('alerts')&&
