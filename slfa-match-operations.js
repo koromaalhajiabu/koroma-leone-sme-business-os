@@ -40,7 +40,7 @@ async function load(){
   c.from('slfa_match_official_assignments').select('*').eq('business_id',b.id).eq('competition_id',competitionId).eq('is_active',true),
   c.from('slfa_match_team_sheets').select('*').eq('business_id',b.id).eq('competition_id',competitionId).order('submitted_at',{ascending:false}),
   c.from('slfa_match_reports').select('*').eq('business_id',b.id).eq('competition_id',competitionId).order('submitted_at',{ascending:false}),
-  c.from('business_members').select('user_id,role,is_active').eq('business_id',b.id).eq('is_active',true),
+  c.rpc('slfa_match_ops_get_staff',{p_business_id:b.id}),
   c.from('league_competition_members').select('user_id,role,is_active,club_id').eq('business_id',b.id).eq('competition_id',competitionId).eq('is_active',true)
  ]);
  for(const r of [seasons,clubs,players,fixtures,assignments,sheets,reports,members,compMembers])if(r.error)throw r.error;
@@ -48,9 +48,7 @@ async function load(){
  cache.assignments=assignments.data||[];cache.sheets=sheets.data||[];cache.reports=reports.data||[];cache.members=members.data||[];cache.compMembers=compMembers.data||[];
  cache.playerMap=new Map(cache.players.map(p=>[String(p.id),p]));
  if(cache.compMembers.some(m=>m.user_id===cache.userId&&m.role==='competition_admin'))cache.isAdmin=true;
- const ids=Array.from(new Set(cache.members.map(m=>m.user_id)));
- const {data:profiles,error}=ids.length?await c.from('profiles').select('id,full_name').in('id',ids):{data:[],error:null};if(error)throw error;
- const names=new Map((profiles||[]).map(p=>[p.id,p.full_name]));cache.members=cache.members.map(m=>({...m,full_name:names.get(m.user_id)||'Association staff'}));
+ cache.members=cache.members.map(m=>({...m,full_name:m.full_name||'Association staff'}));
 }
 function tabsHtml(){const a=[['overview','Overview'],['teamsheets','Electronic team sheets'],['reports','Referee & commissioner reports']];if(isAdmin())a.push(['officials','Officials & access']);a.push(['setup','System setup'],['licence','Product licence']);return '<div class="slfa-tabs">'+a.map(([id,label])=>'<button class="slfa-tab '+(activeTab===id?'active':'')+'" type="button" data-tab="'+id+'">'+label+'</button>').join('')+'</div>';}
 function overview(){
