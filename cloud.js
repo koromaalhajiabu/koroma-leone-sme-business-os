@@ -407,7 +407,10 @@
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:16px"><h3 style="margin:0">30-day deletion &amp; recovery</h3><button id="wlDevDeletionRefresh">Refresh requests</button></div>
       <div id="wlDevDeletions" class="dev-meta">Deletion requests load after developer verification.</div>
       <div class="dev-meta" style="margin-top:10px">Developer access is verified by Supabase database permissions. This console does not expose passwords or secret API keys.</div>`;
-    box.insertAdjacentElement('afterend', dev);
+    // Keep the private developer console separate from the customer dashboard and workspace tools.
+    const mainFooter = host.querySelector('.footer');
+    if (mainFooter) mainFooter.insertAdjacentElement('afterend', dev);
+    else box.insertAdjacentElement('afterend', dev);
     // Notify modules whose mount slots are created dynamically with the developer panel.
     window.dispatchEvent(new Event('whiteLionDeveloperPanelReady'));
     $('wlDevApprovalRefresh').onclick = loadDeveloperApprovals;
