@@ -392,7 +392,7 @@ async function runViewport(name, viewport) {
     const mobileDockCheck = await page.evaluate(() => {
       const dock = document.querySelector('#wlPeDock');
       const buttons = dock ? [...dock.querySelectorAll('button')] : [];
-      const labels = buttons.map(button => button.textContent.replace(/\\s+/g,' ').trim());
+      const labels = buttons.map(button => button.getAttribute('aria-label') || button.textContent.trim());
       const topAlerts = document.querySelector('#wlPeAlerts');
       const overview = dock?.querySelector('[data-wl-dock="dashboard"]');
       const menu = dock?.querySelector('#wlPeDockMenu');
