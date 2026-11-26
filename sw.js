@@ -3,6 +3,7 @@ const CACHE_NAME='koroma-leone-sme-v368';
 const APP_SHELL=[
   './',
   './index.html','./travel-applicant-portal.html',
+  './travel-assistance.html',
   './business-application.html',
   './business-industry-catalog.js?v=1',
   './business-application.js?v=4',
