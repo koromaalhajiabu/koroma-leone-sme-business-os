@@ -16,6 +16,15 @@ try {
   await page.waitForFunction(() => Array.isArray(window.KLT_BUSINESS_INDUSTRY_GROUPS) &&
     document.querySelectorAll('#business_type optgroup option').length >= 112, null, { timeout: 15000 });
 
+  // The real application form is intentionally gated behind confirmed-account sign-in.
+  // This smoke test has no credentials, so expose the form only in the test page to
+  // exercise catalogue interactions without weakening production authentication.
+  await page.evaluate(() => {
+    document.querySelector('#authCard')?.classList.add('hidden');
+    document.querySelector('#applicationCard')?.classList.remove('hidden');
+    document.querySelector('#applicationForm')?.classList.remove('hidden');
+  });
+
   const initial = await page.evaluate(() => ({
     groups: window.KLT_BUSINESS_INDUSTRY_GROUPS.length,
     catalogueTypes: window.KLT_BUSINESS_INDUSTRY_GROUPS.reduce((sum, group) => sum + group.items.length, 0),
