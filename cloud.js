@@ -345,9 +345,7 @@
         <div id="wlDevLeagueAdmins" class="dev-meta">Loading league role assignments…</div>
       </section>
       <div class="dev-actions">
-        <button id="wlDevRefresh">Refresh dashboard</button>
         <button id="wlDevFreeze">Freeze platform</button>
-        <button id="wlDevAssign">Manage business access</button>
       </div>
       <div style="margin:14px 0;padding:12px;border:1px solid #b85d63;border-radius:10px;background:#351f2b">
         <h3 style="color:#ffd0d0;margin:0 0 6px">Clear demonstration data</h3>
@@ -366,7 +364,6 @@
     // Notify modules whose mount slots are created dynamically with the developer panel.
     window.dispatchEvent(new Event('whiteLionDeveloperPanelReady'));
     $('wlDevApprovalRefresh').onclick = loadDeveloperApprovals;
-    if ($('wlDevRefresh')) $('wlDevRefresh').onclick = loadDeveloperDashboard;
     $('wlDevQuickRefresh').onclick = loadDeveloperDashboard;
     dev.querySelectorAll('[data-owner-jump]').forEach(button => {
       button.addEventListener('click', () => {
@@ -375,7 +372,7 @@
       });
     });
     $('wlDevFreeze').onclick = toggleMaintenance;
-    $('wlDevAssign').onclick = () => $('wlDevRoleManager')?.scrollIntoView({behavior:'smooth',block:'center'});
+
     $('wlDevRoleSave').onclick = saveDeveloperBusinessRole;
     $('wlDevRegistrationLimitSave').onclick = saveDeveloperRegistrationLimit;
     $('wlDevRegistrationLimitRefresh').onclick = loadDeveloperRegistrationLimits;
