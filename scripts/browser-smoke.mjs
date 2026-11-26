@@ -389,6 +389,26 @@ async function runViewport(name, viewport) {
         viewBottom:Math.round(viewRect.bottom), panelBottom:Math.round(panelRect.bottom), footerTop:Math.round(footerRect.top) };
     });
     record(result, 'Overview remains visible and Workspace Tools stays below it', workspacePanelLayout.pass, workspacePanelLayout);
+    const mobileDockCheck = await page.evaluate(() => {
+      const dock = document.querySelector('#wlPeDock');
+      const buttons = dock ? [...dock.querySelectorAll('button')] : [];
+      const labels = buttons.map(button => button.textContent.replace(/\\s+/g,' ').trim());
+      const topAlerts = document.querySelector('#wlPeAlerts');
+      const overview = dock?.querySelector('[data-wl-dock="dashboard"]');
+      const menu = dock?.querySelector('#wlPeDockMenu');
+      const expected = ['Overview','Sales','Stock','Menu'];
+      const hasExpectedOrder = labels.length === expected.length && labels.every((label,index) => label === expected[index]);
+      return {
+        pass: hasExpectedOrder && !!topAlerts && !!overview && !!menu && !dock?.querySelector('#wlPeDockAlerts'),
+        labels,
+        topAlertsPresent:!!topAlerts,
+        duplicateBottomAlerts:!!dock?.querySelector('#wlPeDockAlerts'),
+        overviewDestination:overview?.dataset.wlDock||null,
+        menuPresent:!!menu
+      };
+    });
+    record(result, 'Mobile navigation has Overview, Sales, Stock and Menu, with Alerts only in the top bar', mobileDockCheck.pass, mobileDockCheck);
+
 
     // The signed-out experience intentionally hides private workspace navigation.
     // Only authenticate when dedicated CI credentials have been configured.
