@@ -75,9 +75,43 @@ async function onboarding(){
  view.querySelector('.welcome').insertAdjacentElement('afterend',card);card.querySelectorAll('[data-wl-page]').forEach(b=>b.onclick=()=>window.setPage?.(b.dataset.wlPage));$('wlPeHideOnboarding').onclick=()=>{localStorage.setItem(key,'yes');card.remove()};
 }
 function mobileDock(){
- if($('wlPeDock'))return;const nav=document.createElement('nav');nav.id='wlPeDock';nav.className='wl-pe-dock';nav.setAttribute('aria-label','Quick navigation');nav.innerHTML='<button class="active" data-wl-dock="dashboard"><span>▦</span>Home</button><button data-wl-dock="sales"><span>▣</span>Sales</button><button data-wl-dock="inventory"><span>▤</span>Stock</button><button id="wlPeDockAlerts"><span>♧</span>Alerts</button>';document.body.appendChild(nav);
- nav.querySelectorAll('[data-wl-dock]').forEach(b=>b.onclick=()=>window.setPage?.(b.dataset.wlDock));$('wlPeDockAlerts').onclick=()=>{$('wlPePop').hidden=false;$('wlPeAlerts').setAttribute('aria-expanded','true');refreshAlerts()};
- document.addEventListener('click',e=>{const b=e.target.closest('[data-wl-dock]');if(b)nav.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b))});
+ if($('wlPeDock'))return;
+ const nav=document.createElement('nav');
+ nav.id='wlPeDock';nav.className='wl-pe-dock';nav.setAttribute('aria-label','Quick navigation');
+ // Alerts remain in the top bar as the single notifications centre. The mobile dock uses four distinct destinations.
+ nav.innerHTML='<button class="active" data-wl-dock="dashboard"><span>▦</span>Overview</button><button data-wl-dock="sales"><span>▣</span>Sales</button><button data-wl-dock="inventory"><span>▤</span>Stock</button><button id="wlPeDockMenu" type="button"><span>☰</span>Menu</button>';
+ document.body.appendChild(nav);
+ let currentPage='dashboard';
+ const updateActive=page=>{
+   const key=page==='dashboard'?'dashboard':page==='sales'?'sales':['products','inventory','stockcontrol','reorder'].includes(page)?'inventory':null;
+   if(key)currentPage=key;
+   nav.querySelectorAll('[data-wl-dock]').forEach(b=>b.classList.toggle('active',b.dataset.wlDock===currentPage));
+   $('wlPeDockMenu')?.classList.remove('active');
+ };
+ nav.querySelectorAll('[data-wl-dock]').forEach(b=>b.onclick=()=>{
+   const page=b.dataset.wlDock;
+   updateActive(page);
+   window.setPage?.(page);
+ });
+ $('wlPeDockMenu').onclick=()=>{
+   const trigger=$('menuBtn'),sidebar=$('sidebar');
+   if(!trigger||!sidebar)return;
+   trigger.click();
+   const open=sidebar.classList.contains('open');
+   $('wlPeDockMenu').classList.toggle('active',open);
+   if(open)nav.querySelectorAll('[data-wl-dock]').forEach(b=>b.classList.remove('active'));
+   else updateActive(currentPage);
+ };
+ document.querySelectorAll('#sidebar [data-page]').forEach(b=>b.addEventListener('click',()=>updateActive(b.dataset.page)));
+ const originalSetPage=window.setPage;
+ if(typeof originalSetPage==='function'&&!window.__wlPeDockSetPageWrapped){
+   window.setPage=function(page,...args){
+     const result=originalSetPage.apply(this,[page,...args]);
+     updateActive(page);
+     return result;
+   };
+   window.__wlPeDockSetPageWrapped=true;
+ }
 }
 function emptyStates(){document.querySelectorAll('#view .empty').forEach(el=>{if(el.dataset.wlPe)return;el.dataset.wlPe='1';if(!el.closest('tr'))el.classList.add('wl-pe-empty')})}
 function changed(){noWorkspaceGuide();onboarding();emptyStates()}
