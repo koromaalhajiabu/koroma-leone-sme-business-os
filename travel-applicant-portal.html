@@ -8,6 +8,7 @@
 <section class="card" id="auth"><h2 id="authTitle">Accept your agency invitation</h2><p class="muted" id="authHelp">Use the email address that received your invitation. If you already have an account, sign in. New users can create an account with the invitation code already attached to this link.</p><div class="grid"><div class="field"><label for="email">Invited email address</label><input id="email" type="email" autocomplete="email"></div><div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="8"></div></div><div class="actions"><button id="signup">Create applicant account</button><button id="signin" class="secondary">Sign in</button></div><div class="status" id="authStatus" role="status">Invitation code detected: waiting for sign-in.</div><div class="notice">Do not share your invitation link. It can be used once and expires after 7 days. Use only your own email account.</div></section>
 <section id="dashboard" class="hidden">
 <div class="card"><div class="casehead"><div><h2 id="welcome">Your application</h2><p class="muted" id="caseRef"></p></div><span class="tag" id="stage">Loading</span></div><div class="tiles" style="margin-top:15px"><div class="tile"><small>Destination</small><b id="destination">—</b></div><div class="tile"><small>Application stage</small><b id="stageText">—</b></div><div class="tile"><small>Case reference</small><b id="refTile">—</b></div></div></div>
+<div class="card"><h3>Case progress timeline</h3><div id="caseHistory"><p class="muted">Loading…</p></div></div>
 <div class="card"><h3>Submit a document</h3><p class="muted">Upload PDF, JPG, PNG or WEBP files up to 10 MB. Your upload is private and will be reviewed by the agency.</p><form id="uploadForm" class="grid"><div class="field"><label>Document type</label><select name="document_type"><option value="passport">Passport</option><option value="cv">CV / Resume</option><option value="birth_certificate">Birth certificate</option><option value="education_certificate">Education certificate</option><option value="employment_reference">Employment reference</option><option value="visa_form">Visa form</option><option value="medical_certificate">Medical certificate</option><option value="police_clearance">Police clearance</option><option value="other">Other</option></select></div><div class="field"><label>Choose file</label><input type="file" name="file" accept=".pdf,image/jpeg,image/png,image/webp" required></div><div class="field full"><button>Upload securely</button></div></form><div id="uploadStatus" class="muted"></div></div>
 <div class="card"><h3>Document status</h3><div id="documents"><p class="muted">Loading…</p></div></div>
 <div class="card"><h3>Appointments</h3><div id="appointments"><p class="muted">Loading…</p></div></div>
@@ -54,9 +55,14 @@ async function load(){
   applicant=a;businessId=a.business_id;
   $('auth').classList.add('hidden');$('dashboard').classList.remove('hidden');$('signout').classList.remove('hidden');
   $('welcome').textContent='Welcome, '+a.full_name;$('caseRef').textContent='Your case reference: '+(a.case_reference||'Pending');$('stage').textContent=statusText(a.status);$('stageText').textContent=statusText(a.status);$('destination').textContent=a.destination_interest||'Not specified';$('refTile').textContent=a.case_reference||'Pending';
-  await Promise.all([loadDocuments(),loadAppointments(),loadDeadlines(),loadMessages(),loadNotifications()]);
+  await Promise.all([loadCaseHistory(),loadDocuments(),loadAppointments(),loadDeadlines(),loadMessages(),loadNotifications()]);
  }catch(e){setStatus(e.message||'Could not load your case.',true)}
  finally{loading=false}
+}
+async function loadCaseHistory(){
+ const {data,error}=await sb.from('travel_agency_case_history').select('event_type,customer_message,created_at').eq('applicant_id',applicant.id).eq('customer_visible',true).order('created_at',{ascending:false}).limit(50);
+ if(error)throw error;
+ $('caseHistory').innerHTML=(data||[]).map(h=>'<div class="item"><b>'+esc(statusText(h.event_type))+'</b>'+esc(h.customer_message||'A case update was recorded.')+'<small>'+new Date(h.created_at).toLocaleString()+'</small></div>').join('')||'<p class="muted">Your case timeline will show updates from the agency here.</p>';
 }
 async function loadDocuments(){
  const {data,error}=await sb.from('travel_agency_documents').select('id,document_type,document_status,original_file_name,created_at').eq('applicant_id',applicant.id).order('created_at',{ascending:false});
@@ -69,9 +75,9 @@ async function loadAppointments(){
  $('appointments').innerHTML=(data||[]).map(a=>'<div class="item"><b>'+esc(a.title)+' · '+esc(statusText(a.status))+'</b>'+new Date(a.appointment_at).toLocaleString()+'<small>'+esc(a.location||'Location to be confirmed')+(a.meeting_url?' · <a href="'+esc(a.meeting_url)+'" target="_blank" rel="noopener">Meeting link</a>':'')+'</small>'+(a.notes?'<p>'+esc(a.notes)+'</p>':'')+'</div>').join('')||'<p class="muted">No appointments scheduled.</p>';
 }
 async function loadDeadlines(){
- const {data,error}=await sb.from('travel_agency_deadlines').select('title,due_at,status,notes').eq('applicant_id',applicant.id).eq('status','open').order('due_at');
+ const {data,error}=await sb.from('travel_agency_deadlines').select('title,due_at,status,customer_message').eq('applicant_id',applicant.id).eq('status','open').order('due_at');
  if(error)throw error;
- $('deadlines').innerHTML=(data||[]).map(d=>'<div class="item"><b>'+esc(d.title)+'</b>Due '+new Date(d.due_at).toLocaleString()+(d.notes?'<small>'+esc(d.notes)+'</small>':'')+'</div>').join('')||'<p class="muted">No outstanding actions.</p>';
+ $('deadlines').innerHTML=(data||[]).map(d=>'<div class="item"><b>'+esc(d.title)+'</b>Due '+new Date(d.due_at).toLocaleString()+(d.customer_message?'<small>'+esc(d.customer_message)+'</small>':'')+'</div>').join('')||'<p class="muted">No outstanding actions.</p>';
 }
 async function loadMessages(){
  const {data,error}=await sb.from('travel_agency_messages').select('sender_user_id,sender_type,message,created_at').eq('applicant_id',applicant.id).order('created_at');
