@@ -269,28 +269,70 @@
       <div style="margin:10px 0;padding:10px;border:1px solid #8d7548;border-radius:10px;background:#1a2b43"><strong style="color:#f0d28b">GLOBAL SCOUT RECRUITMENT</strong><div class="dev-meta" style="margin:5px 0 8px">Track real scout organisations, invitations, responses and follow-ups.</div><a href="./football-scout-recruitment.html" target="_blank" rel="noopener" style="display:inline-block;padding:9px 12px;border-radius:8px;background:#d6ad57;color:#152238;font-weight:800;text-decoration:none">Open Recruitment Centre ↗</a></div>
       <div id="wlDevStatus" class="cloud-status">Loading secure platform controls…</div>
       <div id="wlDevStats" class="dev-meta"></div>
-      <section id="wlDevOwnerCommand" style="margin:14px 0;padding:15px;border:1px solid #d6ad57;border-radius:14px;background:linear-gradient(135deg,#192a43,#10251f);color:#fff">
+      
+      <section id="wlDevOwnerCommand" style="margin:14px 0;padding:16px;border:1px solid #d6ad57;border-radius:16px;background:linear-gradient(145deg,#152840,#10251f);color:#fff">
         <style>
-          #wlDevOwnerCommand .owner-command-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-          #wlDevOwnerCommand h3{margin:0;color:#f0d28b;font-size:16px}
-          #wlDevOwnerCommand p{margin:6px 0 12px;color:#bac6d8;font-size:11px;line-height:1.6}
-          #wlDevOwnerCommand .owner-command-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
-          #wlDevOwnerCommand button{min-height:58px;text-align:left;padding:10px 12px;border:1px solid #53657c;border-radius:10px;background:#223953;color:#fff}
-          #wlDevOwnerCommand button strong{display:block;font-size:12px;color:#fff}
-          #wlDevOwnerCommand button small{display:block;margin-top:4px;color:#c4d1df;font-size:10px;line-height:1.35}
-          #wlDevOwnerCommand #wlDevQuickRefresh{min-height:36px;background:#d6ad57;color:#17243a;border:0;font-weight:800}
-          @media(max-width:520px){#wlDevOwnerCommand .owner-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+          #wlDevOwnerCommand{scroll-margin-top:18px}
+          #wlDevOwnerCommand .owner-command-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+          #wlDevOwnerCommand .owner-eyebrow{font-size:10px;letter-spacing:1.2px;color:#c8d5e3;font-weight:800}
+          #wlDevOwnerCommand h3{margin:4px 0 0;color:#f0d28b;font-size:19px}
+          #wlDevOwnerCommand p{margin:6px 0 12px;color:#bac6d8;font-size:11px;line-height:1.55}
+          #wlDevOwnerCommand .owner-command-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+          #wlDevOwnerCommand .owner-mode{padding:6px 9px;border:1px solid #66806c;border-radius:999px;color:#b7e2c0;font-size:10px;font-weight:800}
+          #wlDevOwnerCommand #wlDevQuickRefresh{min-height:36px;padding:8px 11px;background:#d6ad57;color:#17243a;border:0;border-radius:9px;font-weight:800}
+          #wlDevOwnerCommand .owner-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+          #wlDevOwnerCommand .owner-metric{padding:12px;border:1px solid #435873;border-radius:11px;background:#203650;min-width:0}
+          #wlDevOwnerCommand .owner-metric strong{display:block;font-size:23px;line-height:1.1;color:#fff}
+          #wlDevOwnerCommand .owner-metric span{display:block;margin-top:6px;color:#c7d3e0;font-size:10px;line-height:1.35}
+          #wlDevOwnerCommand .owner-panels{display:grid;grid-template-columns:1.1fr .9fr;gap:10px;margin-top:10px}
+          #wlDevOwnerCommand .owner-card{min-width:0;padding:13px;border:1px solid #445973;border-radius:12px;background:#192e47}
+          #wlDevOwnerCommand .owner-card h4{margin:0 0 10px;color:#f0d28b;font-size:12px;letter-spacing:.35px}
+          #wlDevOwnerCommand .owner-action-list{display:grid;gap:7px}
+          #wlDevOwnerCommand .owner-action{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;border:1px solid #53657c;border-radius:9px;background:#223953;color:#fff;text-align:left;width:100%}
+          #wlDevOwnerCommand .owner-action strong{display:block;font-size:11px}
+          #wlDevOwnerCommand .owner-action small{display:block;margin-top:3px;color:#bdcadd;font-size:10px}
+          #wlDevOwnerCommand .owner-count{flex:0 0 auto;padding:4px 8px;border-radius:99px;background:#9b6b2f;color:#fff;font-size:11px;font-weight:900}
+          #wlDevOwnerCommand .owner-empty{padding:10px;border:1px dashed #61748b;border-radius:9px;color:#c8d5e3;font-size:11px;line-height:1.5}
+          #wlDevOwnerCommand .owner-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+          #wlDevOwnerCommand .owner-shortcuts button{min-height:52px;padding:9px 10px;border:1px solid #53657c;border-radius:9px;background:#223953;color:#fff;text-align:left}
+          #wlDevOwnerCommand .owner-shortcuts strong{display:block;font-size:11px}
+          #wlDevOwnerCommand .owner-shortcuts small{display:block;margin-top:3px;color:#bdcadd;font-size:9px;line-height:1.35}
+          #wlDevOwnerCommand .owner-queues{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+          #wlDevOwnerCommand .owner-queue{margin-top:10px}
+          #wlDevOwnerCommand .owner-queue-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid #40536a}
+          #wlDevOwnerCommand .owner-queue-row:first-child{border-top:0;padding-top:0}
+          #wlDevOwnerCommand .owner-queue-row strong{display:block;color:#fff;font-size:11px;overflow-wrap:anywhere}
+          #wlDevOwnerCommand .owner-queue-row small{display:block;margin-top:3px;color:#bac6d8;font-size:10px;line-height:1.45}
+          #wlDevOwnerCommand .owner-queue-row button{min-height:30px;padding:6px 9px;border:1px solid #71839a;border-radius:8px;background:#2a4059;color:#fff;font-size:10px;font-weight:800}
+          #wlDevOwnerCommand .owner-queue-row button.owner-approve{background:#c39b50;color:#17243a;border:0}
+          #wlDevOwnerCommand .owner-queue-row button.owner-reject{border-color:#a75b63;color:#ffd7d7}
+          #wlDevOwnerCommand .owner-queue-row .owner-row-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+          #wlDevOwnerCommand .owner-updated{margin-top:10px;color:#9eafc2;font-size:9px;text-align:right}
+          @media(max-width:700px){#wlDevOwnerCommand .owner-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}#wlDevOwnerCommand .owner-panels,#wlDevOwnerCommand .owner-queues{grid-template-columns:1fr}}
         </style>
-        <div class="owner-command-head"><h3>OWNER OPERATIONS HUB</h3><button id="wlDevQuickRefresh" type="button">Refresh all status</button></div>
-        <p>Use these shortcuts for the main daily jobs. Each opens the existing management panel; it does not create a second workflow.</p>
-        <div class="owner-command-grid">
-          <button type="button" data-owner-jump="wlDevApplicationsSection"><strong>Application reviews</strong><small>Approve, reject or request information</small></button>
-          <button type="button" data-owner-jump="wlDevBusinesses"><strong>Business workspaces</strong><small>View customer workspaces and subscription status</small></button>
-          <button type="button" data-owner-jump="wlDevAccounts"><strong>Customer accounts</strong><small>Find accounts and review access status</small></button>
-          <button type="button" data-owner-jump="wlDevRoleManager"><strong>Access &amp; staff roles</strong><small>Assign the right role to each workspace</small></button>
-          <button type="button" data-owner-jump="wlDevAlertSettingsPanel"><strong>System alerts</strong><small>Manage registration and payment alerts</small></button>
-          <button type="button" data-owner-jump="wlDevLeagueManager"><strong>Football administration</strong><small>Open the football role and league controls</small></button>
+        <div class="owner-command-head">
+          <div><div class="owner-eyebrow">KOROMA LEONE TECH · PRIVATE OPERATIONS</div><h3>SMART OWNER CONTROL CENTRE</h3><p>One operating screen for customer workspaces, applications, billing and platform issues.</p></div>
+          <div class="owner-command-actions"><span id="wlOwnerModeTag" class="owner-mode">Checking platform mode…</span><button id="wlDevQuickRefresh" type="button">Refresh all status</button></div>
         </div>
+        <div id="wlOwnerMetrics" class="owner-metrics"><div class="owner-empty">Loading executive overview…</div></div>
+        <div class="owner-panels">
+          <div class="owner-card"><h4>ACTION REQUIRED</h4><div id="wlOwnerActions" class="owner-action-list"><div class="owner-empty">Checking for items that need attention…</div></div></div>
+          <div class="owner-card"><h4>QUICK NAVIGATION</h4><div class="owner-shortcuts">
+            <button type="button" data-owner-jump="wlDevApplicationsSection"><strong>Application reviews</strong><small>Business and football club applications</small></button>
+            <button type="button" data-owner-jump="wlDevBusinesses"><strong>Business workspaces</strong><small>Workspace and subscription status</small></button>
+            <button type="button" data-owner-jump="wlDevAccounts"><strong>Customer accounts</strong><small>Account access and status</small></button>
+            <button type="button" data-owner-jump="wlDevRoleManager"><strong>Access and staff roles</strong><small>Workspace-level permissions</small></button>
+            <button type="button" data-owner-jump="wlOwnerBillingSection"><strong>Subscription billing</strong><small>Payments and unpaid invoices</small></button>
+            <button type="button" data-owner-jump="wlDevAlertSettingsPanel"><strong>System alerts</strong><small>Registration and payment alerts</small></button>
+            <button type="button" data-owner-jump="wlDevLeagueManager"><strong>Football administration</strong><small>League and football access controls</small></button>
+          </div></div>
+        </div>
+        <div class="owner-queues">
+          <div class="owner-card" id="wlOwnerBillingSection"><h4>SUBSCRIPTION PAYMENTS AWAITING VERIFICATION</h4><div id="wlOwnerPaymentRows" class="owner-queue"><div class="owner-empty">Loading payment queue…</div></div></div>
+          <div class="owner-card" id="wlOwnerInvoiceSection"><h4>OPEN SUBSCRIPTION INVOICES</h4><div id="wlOwnerInvoiceRows" class="owner-queue"><div class="owner-empty">Loading invoices…</div></div></div>
+          <div class="owner-card" id="wlOwnerExpirySection"><h4>SUBSCRIPTION EXPIRY WATCH</h4><div id="wlOwnerExpiryRows" class="owner-queue"><div class="owner-empty">Loading subscription dates…</div></div></div>
+        </div>
+        <div id="wlOwnerLastUpdated" class="owner-updated">Last refreshed: —</div>
       </section>
       <div id="wlDevAlertSettingsPanel" style="display:block;visibility:visible;margin:14px 0;padding:14px;border:2px solid #4f8a5b;border-radius:12px;background:#152a1e;color:#fff;position:relative;z-index:2">
         <h3 style="margin:0 0 8px;color:#9fe3ae;font-size:16px">EMAIL ALERTS</h3>
@@ -365,11 +407,11 @@
     window.dispatchEvent(new Event('whiteLionDeveloperPanelReady'));
     $('wlDevApprovalRefresh').onclick = loadDeveloperApprovals;
     $('wlDevQuickRefresh').onclick = loadDeveloperDashboard;
-    dev.querySelectorAll('[data-owner-jump]').forEach(button => {
-      button.addEventListener('click', () => {
-        const target = $(button.dataset.ownerJump);
-        if (target) target.scrollIntoView({behavior:'smooth',block:'start'});
-      });
+    dev.addEventListener('click', event => {
+      const button = event.target && event.target.closest ? event.target.closest('[data-owner-jump]') : null;
+      if (!button || !dev.contains(button)) return;
+      const target = $(button.dataset.ownerJump);
+      if (target) target.scrollIntoView({behavior:'smooth',block:'start'});
     });
     $('wlDevFreeze').onclick = toggleMaintenance;
 
@@ -678,6 +720,10 @@
     if (panel.hidden) return;
     $('wlDevIdentity').textContent = 'Authenticated: ' + session.user.email + ' · Private developer';
     await loadDeveloperDashboard();
+    if (panel.dataset.ownerLandingSession !== session.user.id) {
+      panel.dataset.ownerLandingSession = session.user.id;
+      $('wlDevOwnerCommand')?.scrollIntoView({behavior:'smooth',block:'start'});
+    }
     await loadDeveloperApprovals();
     if (!window.__wlRegistrationRefreshTimer) {
       window.__wlRegistrationRefreshTimer = setInterval(() => {
@@ -789,6 +835,115 @@
     });
   }
 
+  function ownerControlDate(value) {
+    if (!value) return '—';
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? '—' : parsed.toLocaleString();
+  }
+  function ownerControlMoney(amount, currency) {
+    const code = String(currency || 'SLE').toUpperCase();
+    const value = Number(amount || 0);
+    try { return new Intl.NumberFormat(undefined, {style:'currency',currency:code,maximumFractionDigits:2}).format(value); }
+    catch (_) { return value.toFixed(2) + ' ' + code; }
+  }
+  async function loadOwnerControlCentre() {
+    const root = $('wlDevOwnerCommand');
+    if (!root || !session || session.user.email?.toLowerCase() !== 'koromaalhajiabu0@gmail.com') return;
+    const metrics = $('wlOwnerMetrics');
+    const actionsHost = $('wlOwnerActions');
+    if (metrics) metrics.innerHTML = '<div class="owner-empty">Loading executive overview…</div>';
+    const [centreResult, billingResult] = await Promise.all([
+      client.rpc('get_platform_owner_control_centre'),
+      client.rpc('get_platform_billing_overview')
+    ]);
+    if (centreResult.error) {
+      if (metrics) metrics.innerHTML = '<div class="owner-empty">Owner overview unavailable: ' + esc(centreResult.error.message) + '</div>';
+      if (actionsHost) actionsHost.innerHTML = '<div class="owner-empty">The owner summary could not be loaded. Use Refresh all status to retry.</div>';
+      return;
+    }
+    const data = centreResult.data || {};
+    const billing = billingResult.error ? {} : (billingResult.data || {});
+    const pendingPayments = Array.isArray(billing.pending) ? billing.pending : [];
+    const invoices = Array.isArray(data.open_invoices) ? data.open_invoices : [];
+    const expiryWatch = Array.isArray(data.expiry_watch) ? data.expiry_watch : [];
+    const metricCards = [
+      ['customer_workspaces','Customer workspaces'],
+      ['active_workspaces','Operational workspaces'],
+      ['user_count','Registered accounts'],
+      ['pending_applications','Applications awaiting review'],
+      ['pending_payments','Payments to verify'],
+      ['pending_invoices','Outstanding invoices']
+    ];
+    const statData = {...data,user_count:Number($('wlDevStats')?.textContent.match(/Registered accounts:\s*(\d+)/)?.[1] || 0)};
+    if (metrics) metrics.innerHTML = metricCards.map(([key,label]) =>
+      '<div class="owner-metric"><strong>' + esc(Number(statData[key] || 0).toLocaleString()) + '</strong><span>' + esc(label) + '</span></div>'
+    ).join('');
+    const mode = $('wlOwnerModeTag');
+    if (mode) {
+      mode.textContent = data.maintenance_enabled ? 'MAINTENANCE MODE' : 'LIVE';
+      mode.style.color = data.maintenance_enabled ? '#ffd28d' : '#b7e2c0';
+      mode.style.borderColor = data.maintenance_enabled ? '#a87942' : '#66806c';
+    }
+    const actionItems = [];
+    const addAction = (label,count,target,detail) => {
+      if (Number(count || 0) > 0) actionItems.push({label,count:Number(count),target,detail});
+    };
+    addAction('Applications awaiting review',data.pending_applications,'wlDevApplicationsSection','Open the application review queue');
+    addAction('Payments to verify',data.pending_payments,'wlOwnerBillingSection','Review payment references and verification');
+    addAction('Overdue subscription invoices',data.overdue_invoices,'wlOwnerInvoiceSection','Follow up invoices past their due date');
+    addAction('Expired subscriptions',data.expired_subscriptions,'wlOwnerExpirySection','Review customer subscription access');
+    addAction('Subscriptions expiring within 7 days',data.expiring_subscriptions,'wlOwnerExpirySection','Contact customers before access expires');
+    addAction('Suspended or frozen workspaces',Number(data.suspended_workspaces || 0) + Number(data.frozen_workspaces || 0),'wlDevBusinesses','Review workspace status');
+    addAction('Missing subscription records',data.missing_subscription_records,'wlDevBusinesses','Check newly created customer workspaces');
+    if (data.maintenance_enabled) actionItems.push({label:'Platform maintenance is enabled',count:1,target:'wlDevFreeze',detail:'Review the platform operating mode'});
+    if (actionsHost) actionsHost.innerHTML = actionItems.length ? actionItems.map(item =>
+      '<button type="button" class="owner-action" data-owner-jump="' + esc(item.target) + '"><span><strong>' + esc(item.label) + '</strong><small>' + esc(item.detail) + '</small></span><span class="owner-count">' + esc(item.count) + '</span></button>'
+    ).join('') : '<div class="owner-empty">No urgent actions are waiting. The platform checks below are up to date.</div>';
+    const paymentHost = $('wlOwnerPaymentRows');
+    if (paymentHost) {
+      if (billingResult.error) paymentHost.innerHTML = '<div class="owner-empty">Payment queue unavailable: ' + esc(billingResult.error.message) + '</div>';
+      else if (!pendingPayments.length) paymentHost.innerHTML = '<div class="owner-empty">No subscription payments are waiting for verification.</div>';
+      else paymentHost.innerHTML = pendingPayments.map(payment =>
+        '<div class="owner-queue-row"><div><strong>' + esc(payment.business_name || 'Customer workspace') + '</strong><small>Invoice ' + esc(payment.invoice_number || '—') + ' · ' + esc(payment.plan_code || 'Plan') + '<br>Provider: ' + esc(payment.provider || '—') + ' · Reference: ' + esc(payment.reference || '—') + '<br>' + esc(ownerControlMoney(payment.amount,payment.currency_code)) + ' · ' + esc(ownerControlDate(payment.submitted_at)) + '</small></div><div class="owner-row-actions"><button type="button" class="owner-approve" data-owner-payment-review="' + esc(payment.payment_id) + '" data-approve="true">Verify</button><button type="button" class="owner-reject" data-owner-payment-review="' + esc(payment.payment_id) + '" data-approve="false">Reject</button></div></div>'
+      ).join('');
+      paymentHost.querySelectorAll('[data-owner-payment-review]').forEach(button => {
+        button.onclick = async () => {
+          const approve = button.dataset.approve === 'true';
+          if (!confirm(approve ? 'Verify this payment and activate or renew the subscription?' : 'Reject this subscription payment?')) return;
+          const note = approve ? '' : (prompt('Enter a reason for rejecting this payment:', '') || '').trim();
+          if (!approve && !note) { alert('A reason is required before rejecting a payment.'); return; }
+          button.disabled = true;
+          const result = await client.rpc('review_subscription_payment', {
+            p_payment_id:button.dataset.ownerPaymentReview,
+            p_approve:approve,
+            p_notes:note
+          });
+          if (result.error) {
+            alert('Payment review failed: ' + result.error.message);
+            await loadOwnerControlCentre();
+            return;
+          }
+          say(approve ? 'Payment verified and subscription activated.' : 'Payment rejected and recorded.');
+          await loadDeveloperDashboard();
+        };
+      });
+    }
+    const invoiceHost = $('wlOwnerInvoiceRows');
+    if (invoiceHost) {
+      invoiceHost.innerHTML = invoices.length ? invoices.map(invoice =>
+        '<div class="owner-queue-row"><div><strong>' + esc(invoice.business_name || 'Customer workspace') + '</strong><small>Invoice ' + esc(invoice.invoice_number || '—') + ' · ' + esc(invoice.plan_code || 'Plan') + '<br>' + esc(ownerControlMoney(invoice.amount_due,invoice.currency_code)) + ' · Due: ' + esc(ownerControlDate(invoice.due_at)) + '<br>' + (invoice.is_overdue ? '<span style="color:#ffaaa9">Overdue</span>' : esc(invoice.status || 'Pending')) + '</small></div><button type="button" data-owner-jump="wlDevBusinesses">Open workspaces</button></div>'
+      ).join('') : '<div class="owner-empty">No unpaid subscription invoices.</div>';
+    }
+    const expiryHost = $('wlOwnerExpiryRows');
+    if (expiryHost) {
+      expiryHost.innerHTML = expiryWatch.length ? expiryWatch.map(item =>
+        '<div class="owner-queue-row"><div><strong>' + esc(item.business_name || 'Customer workspace') + '</strong><small>' + esc(item.plan_code || 'Plan') + ' · ' + esc(item.status || 'Active') + '<br>' + (item.is_expired ? '<span style="color:#ffaaa9">Expired</span>' : 'Due') + ': ' + esc(ownerControlDate(item.expires_at)) + '</small></div><button type="button" data-owner-jump="wlDevBusinesses">Open workspace</button></div>'
+      ).join('') : '<div class="owner-empty">No customer subscriptions expire within the next 7 days.</div>';
+    }
+    const updated = $('wlOwnerLastUpdated');
+    if (updated) updated.textContent = 'Last refreshed: ' + ownerControlDate(data.generated_at || new Date().toISOString());
+  }
+
   async function loadDeveloperDashboard() {
     const status = $('wlDevStatus');
     if (!session || session.user.email?.toLowerCase() !== 'koromaalhajiabu0@gmail.com') return;
@@ -800,6 +955,7 @@
     populateDeveloperRoleForm();
     const maintenance = data.maintenance || {enabled:false};
     $('wlDevStats').textContent = 'Businesses: ' + data.business_count + ' · Suspended: ' + data.suspended_count + ' · Frozen: ' + Number(data.frozen_count || 0) + ' · Registered accounts: ' + data.user_count + ' · Platform mode: ' + (maintenance.enabled ? 'MAINTENANCE' : 'LIVE');
+    await loadOwnerControlCentre();
     $('wlDevFreeze').textContent = maintenance.enabled ? 'Unfreeze platform' : 'Freeze platform';
     $('wlDevFreeze').className = maintenance.enabled ? '' : 'danger';
     $('wlDevBusinesses').innerHTML = (window.__wlPlatformBusinesses || []).map(b => {
