@@ -335,6 +335,24 @@ async function runViewport(name, viewport) {
       });
 
     if (viewport.isMobile) {
+      const mobileDockCheck = await page.evaluate(() => {
+        const app=document.querySelector('.app');
+        const dock=document.querySelector('#wlPeDock');
+        const topAlerts=document.querySelector('#wlPeAlerts');
+        if(!app||!dock||!topAlerts)return {pass:false,error:'Mobile dock or top Alerts control is missing.'};
+        app.classList.remove('wl-public-mode');
+        app.classList.add('wl-authenticated');
+        const labels=[...dock.querySelectorAll('button')].map(button=>button.innerText.replace(/\\s+/g,' ').trim());
+        const destinations=[...dock.querySelectorAll('[data-wl-dock]')].map(button=>button.dataset.wlDock);
+        const dockVisible=getComputedStyle(dock).display!=='none'&&dock.getBoundingClientRect().width>0;
+        const alertsOnlyAtTop=!dock.innerText.toLowerCase().includes('alerts')&&
+          document.querySelectorAll('#wlPeAlerts').length===1;
+        const expected=['Overview','Sales','Stock','Menu'];
+        const pass=dockVisible&&labels.length===4&&labels.every((label,index)=>label===expected[index])&&
+          destinations.join(',')==='dashboard,sales,inventory'&&alertsOnlyAtTop;
+        return {pass,dockVisible,labels,destinations,alertsOnlyAtTop,topAlertsVisible:getComputedStyle(topAlerts).display!=='none'};
+      });
+      record(result,'mobile dock shows Overview instead of duplicate Alerts and retains one top Alerts control',mobileDockCheck.pass,mobileDockCheck);
       const mobileLayout = await page.evaluate(() => {
         const viewportMeta = document.querySelector('meta[name="viewport"]')?.content || '';
         const width = document.documentElement.clientWidth;
