@@ -259,11 +259,11 @@
         <details><summary>Business modules</summary><div id="wlModules" class="muted">Select a business to view modules.</div></details>
       </div>`;
     }
-    // Put Workspace Tools after the dashboard and footer. It must remain in normal page flow.
-    const footer = host.querySelector('.footer');
+    // Keep Workspace Tools immediately after Overview and before the footer; it expands in normal page flow.
     const dashboardView = host.querySelector('#view');
-    if (footer) footer.insertAdjacentElement('afterend', box);
-    else if (dashboardView) dashboardView.insertAdjacentElement('afterend', box);
+    const footer = host.querySelector('.footer');
+    if (dashboardView) dashboardView.insertAdjacentElement('afterend', box);
+    else if (footer) footer.insertAdjacentElement('beforebegin', box);
     else host.appendChild(box);
     const dev = document.createElement('section');
     dev.id = 'wlDeveloperBox';
