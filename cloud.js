@@ -102,12 +102,12 @@
 
     .app:not(.wl-authenticated) #wlWorkspaceToolsToggle{display:none!important}
     .app.wl-authenticated #wlCloudBox:not(.wl-tools-open){display:none!important}
-    .app.wl-authenticated #wlCloudBox.wl-tools-open{display:block!important;position:relative!important;inset:auto!important;z-index:5!important;width:calc(100% - 32px)!important;max-width:1120px!important;margin:12px auto 16px!important;max-height:min(68vh,620px)!important;overflow:auto!important;border:1px solid #cfe2d5!important;border-radius:16px!important;box-shadow:0 10px 28px rgba(7,35,22,.10)!important;background:#fff!important;padding:16px!important}
+    .app.wl-authenticated #wlCloudBox.wl-tools-open{display:block!important;position:static!important;inset:auto!important;float:none!important;clear:both!important;transform:none!important;z-index:auto!important;width:calc(100% - 32px)!important;max-width:1120px!important;margin:16px auto 20px!important;max-height:none!important;overflow:visible!important;border:1px solid #cfe2d5!important;border-radius:16px!important;box-shadow:0 10px 28px rgba(7,35,22,.10)!important;background:#fff!important;padding:16px!important}
     .app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-brand,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-story,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-bottom,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-heading,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-card-top,.app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-card-foot{display:none!important}
     .app.wl-authenticated #wlCloudBox.wl-tools-open .wl-auth-layout{display:block!important}
     .app.wl-authenticated #wlCloudBox.wl-tools-open #wlCloudWork{max-height:none!important;overflow:visible!important}
     .app.wl-authenticated #wlCloudBox.wl-tools-open #wlCloudAuth{display:none!important}
-    @media(max-width:620px){.app.wl-authenticated #wlCloudBox.wl-tools-open{width:calc(100% - 16px)!important;max-height:62dvh!important;margin:8px auto 12px!important;padding:13px!important;border-radius:13px!important}}
+    @media(max-width:620px){.app.wl-authenticated #wlCloudBox.wl-tools-open{width:calc(100% - 16px)!important;margin:12px 8px 16px!important;padding:13px!important;border-radius:13px!important}}
     #wlSyncCentre{margin:12px 0 4px;padding:14px;border:1px solid #d8e9de;border-radius:14px;background:linear-gradient(145deg,#fbfefc,#f0f7f2);color:#203b2b}
     #wlSyncCentre .wl-sync-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
     #wlSyncCentre .wl-sync-kicker{font-size:9px;font-weight:900;letter-spacing:1.4px;color:#087a43}
@@ -259,10 +259,12 @@
         <details><summary>Business modules</summary><div id="wlModules" class="muted">Select a business to view modules.</div></details>
       </div>`;
     }
-    // Keep Workspace Tools below the dashboard content so it cannot cover or displace the Overview panel.
-    const dashboardView = document.querySelector('#view');
-    if (dashboardView) dashboardView.insertAdjacentElement('afterend', box);
-    else anchor.insertAdjacentElement('afterend', box);
+    // Put Workspace Tools after the dashboard and footer. It must remain in normal page flow.
+    const footer = host.querySelector('.footer');
+    const dashboardView = host.querySelector('#view');
+    if (footer) footer.insertAdjacentElement('afterend', box);
+    else if (dashboardView) dashboardView.insertAdjacentElement('afterend', box);
+    else host.appendChild(box);
     const dev = document.createElement('section');
     dev.id = 'wlDeveloperBox';
     dev.hidden = true;
