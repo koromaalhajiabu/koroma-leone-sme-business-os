@@ -843,7 +843,7 @@
   function ownerControlMoney(amount, currency) {
     const code = String(currency || 'SLE').toUpperCase();
     const value = Number(amount || 0);
-    try { return new Intl.NumberFormat(undefined, {style:'currency',currency:code,maximumFractionDigits:2}).format(value); }
+    try { return new Intl.NumberFormat(window.wlGetLanguage?.() || 'en', {style:'currency',currency:code,maximumFractionDigits:2}).format(value); }
     catch (_) { return value.toFixed(2) + ' ' + code; }
   }
   async function loadOwnerControlCentre() {
@@ -874,7 +874,7 @@
       ['pending_payments','Payments to verify'],
       ['pending_invoices','Outstanding invoices']
     ];
-    const statData = {...data,user_count:Number($('wlDevStats')?.textContent.match(/Registered accounts:\s*(\d+)/)?.[1] || 0)};
+    const statData = {...data,user_count:Number(window.__wlPlatformUserCount || 0)};
     if (metrics) metrics.innerHTML = metricCards.map(([key,label]) =>
       '<div class="owner-metric"><strong>' + esc(Number(statData[key] || 0).toLocaleString()) + '</strong><span>' + esc(label) + '</span></div>'
     ).join('');
@@ -955,6 +955,7 @@
     populateDeveloperRoleForm();
     const maintenance = data.maintenance || {enabled:false};
     $('wlDevStats').textContent = 'Businesses: ' + data.business_count + ' · Suspended: ' + data.suspended_count + ' · Frozen: ' + Number(data.frozen_count || 0) + ' · Registered accounts: ' + data.user_count + ' · Platform mode: ' + (maintenance.enabled ? 'MAINTENANCE' : 'LIVE');
+    window.__wlPlatformUserCount = Number(data.user_count || 0);
     await loadOwnerControlCentre();
     $('wlDevFreeze').textContent = maintenance.enabled ? 'Unfreeze platform' : 'Freeze platform';
     $('wlDevFreeze').className = maintenance.enabled ? '' : 'danger';
