@@ -31,10 +31,10 @@ extraWords.zh.businessTypePlaceholder='例如：建筑材料供应商';extraWord
 
 Object.assign(extraWords.en,{
   chooseIndustry:'Choose an industry',chooseBusinessType:'Choose a business type',
-  businessTypeSearchLabel:'Search all 111 supported business types',
+  businessTypeSearchLabel:'Search all 118 supported business types',
   businessTypeSearchPlaceholder:'Type a business name to find it',
   businessTypeSearchHint:'All available business types are grouped by industry. Choosing a type also selects its industry.',
-  businessTypeHint:'111 supported business types are available, plus a custom option.',
+  businessTypeHint:'118 supported business types are available, plus a custom option.',
   businessTypeCustom:'Enter your business type *',customBusinessTypePlaceholder:'Type your business',
   customBusinessTypeOption:'My business type is not listed — enter it',
   customBusinessTypeGroup:'Other business type',
@@ -48,10 +48,10 @@ Object.assign(extraWords.en,{
 });
 Object.assign(extraWords.fr,{
   chooseIndustry:'Choisissez un secteur',chooseBusinessType:'Choisissez un type d’activité',
-  businessTypeSearchLabel:'Rechercher parmi les 111 types d’entreprise',
+  businessTypeSearchLabel:'Rechercher parmi les 118 types d’entreprise',
   businessTypeSearchPlaceholder:'Saisissez un nom d’activité pour le trouver',
   businessTypeSearchHint:'Tous les types sont regroupés par secteur. Le choix d’un type sélectionne aussi son secteur.',
-  businessTypeHint:'111 types d’entreprise sont disponibles, avec une option personnalisée.',
+  businessTypeHint:'118 types d’entreprise sont disponibles, avec une option personnalisée.',
   businessTypeCustom:'Précisez votre type d’activité *',customBusinessTypePlaceholder:'Saisissez votre activité',
   customBusinessTypeOption:'Mon activité n’est pas répertoriée — la saisir',
   customBusinessTypeGroup:'Autre type d’activité',
@@ -65,10 +65,10 @@ Object.assign(extraWords.fr,{
 });
 Object.assign(extraWords.es,{
   chooseIndustry:'Elige un sector',chooseBusinessType:'Elige un tipo de negocio',
-  businessTypeSearchLabel:'Buscar entre los 111 tipos de negocio disponibles',
+  businessTypeSearchLabel:'Buscar entre los 118 tipos de negocio disponibles',
   businessTypeSearchPlaceholder:'Escribe el nombre de un negocio',
   businessTypeSearchHint:'Todos los tipos están agrupados por sector. Al elegir un tipo también se selecciona su sector.',
-  businessTypeHint:'Hay 111 tipos de negocio disponibles y una opción personalizada.',
+  businessTypeHint:'Hay 118 tipos de negocio disponibles y una opción personalizada.',
   businessTypeCustom:'Especifica tu tipo de negocio *',customBusinessTypePlaceholder:'Escribe tu negocio',
   customBusinessTypeOption:'Mi negocio no aparece — escribirlo',
   customBusinessTypeGroup:'Otro tipo de negocio',
@@ -82,10 +82,10 @@ Object.assign(extraWords.es,{
 });
 Object.assign(extraWords.ar,{
   chooseIndustry:'اختر قطاعًا',chooseBusinessType:'اختر نوع النشاط التجاري',
-  businessTypeSearchLabel:'ابحث في جميع أنواع الأنشطة التجارية الـ111',
+  businessTypeSearchLabel:'ابحث في جميع أنواع الأنشطة التجارية الـ118',
   businessTypeSearchPlaceholder:'اكتب اسم النشاط للبحث عنه',
   businessTypeSearchHint:'جميع الأنشطة مصنفة حسب القطاع. اختيار النشاط يحدد قطاعه تلقائيًا.',
-  businessTypeHint:'تتوفر 111 نوعًا من الأنشطة التجارية، بالإضافة إلى خيار مخصص.',
+  businessTypeHint:'تتوفر 118 نوعًا من الأنشطة التجارية، بالإضافة إلى خيار مخصص.',
   businessTypeCustom:'أدخل نوع نشاطك التجاري *',customBusinessTypePlaceholder:'اكتب نوع نشاطك',
   customBusinessTypeOption:'نشاطي غير مدرج — أدخله',
   customBusinessTypeGroup:'نوع نشاط آخر',
@@ -99,10 +99,10 @@ Object.assign(extraWords.ar,{
 });
 Object.assign(extraWords.hi,{
   chooseIndustry:'उद्योग चुनें',chooseBusinessType:'व्यवसाय का प्रकार चुनें',
-  businessTypeSearchLabel:'सभी 111 उपलब्ध व्यवसाय प्रकार खोजें',
+  businessTypeSearchLabel:'सभी 118 उपलब्ध व्यवसाय प्रकार खोजें',
   businessTypeSearchPlaceholder:'व्यवसाय का नाम खोजने के लिए लिखें',
   businessTypeSearchHint:'सभी प्रकार उद्योग के अनुसार समूहित हैं। प्रकार चुनने पर उसका उद्योग भी चुना जाएगा।',
-  businessTypeHint:'111 व्यवसाय प्रकार और एक कस्टम विकल्प उपलब्ध हैं।',
+  businessTypeHint:'118 व्यवसाय प्रकार और एक कस्टम विकल्प उपलब्ध हैं।',
   businessTypeCustom:'अपने व्यवसाय का प्रकार लिखें *',customBusinessTypePlaceholder:'अपने व्यवसाय का नाम लिखें',
   customBusinessTypeOption:'मेरा व्यवसाय सूची में नहीं है — लिखें',
   customBusinessTypeGroup:'अन्य व्यवसाय प्रकार',
@@ -116,10 +116,10 @@ Object.assign(extraWords.hi,{
 });
 Object.assign(extraWords.zh,{
   chooseIndustry:'选择行业',chooseBusinessType:'选择业务类型',
-  businessTypeSearchLabel:'搜索全部 111 种支持的业务类型',
+  businessTypeSearchLabel:'搜索全部 118 种支持的业务类型',
   businessTypeSearchPlaceholder:'输入业务名称进行搜索',
   businessTypeSearchHint:'所有业务类型按行业分组。选择业务类型时也会自动选择相应行业。',
-  businessTypeHint:'提供 111 种业务类型，另有自定义选项。',
+  businessTypeHint:'提供 118 种业务类型，另有自定义选项。',
   businessTypeCustom:'填写您的业务类型 *',customBusinessTypePlaceholder:'输入您的业务类型',
   customBusinessTypeOption:'未找到我的业务类型 — 手动填写',
   customBusinessTypeGroup:'其他业务类型',
