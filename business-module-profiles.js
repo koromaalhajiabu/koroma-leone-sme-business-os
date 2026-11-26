@@ -15,6 +15,7 @@
     'property and rental': ['customers','suppliers','expenses','accounting','property','projects','services'],
     'financial and administrative services': ['customers','expenses','employees','accounting','compliance','services'],
     'sports and local league management': ['sports_league','expenses','employees','accounting','customers','suppliers'],
+    'travel, visa and overseas employment services': ['travel_agency','customers','expenses','employees','accounting','compliance'],
     'general and multi-industry': ['sales_pos','inventory','purchasing','customers','suppliers','expenses','employees','accounting','services','projects']
   };
 
@@ -23,7 +24,9 @@
     const group = String(industryGroup || '').trim().toLowerCase();
     let modules = null;
 
-    if (/(hospital|clinic|health centre|health center|medical centre|medical center|diagnostic|laboratory|maternity|dental clinic)/.test(type)) {
+    if (/(travel agency|visa and immigration|overseas recruitment|job placement agency|labour migration|travel and tour operator)/.test(type)) {
+      modules = ['travel_agency','customers','expenses','employees','accounting','compliance'];
+    } else if (/(hospital|clinic|health centre|health center|medical centre|medical center|diagnostic|laboratory|maternity|dental clinic)/.test(type)) {
       modules = ['hospital','healthcare','pharmacy','appointments','employees','accounting','compliance'];
     } else if (type === 'pharmacy') {
       modules = ['sales_pos','inventory','purchasing','customers','suppliers','expenses','accounting','pharmacy','healthcare','compliance'];
@@ -72,6 +75,7 @@
   function dashboardPages(industry, moduleKeys) {
     const keys = moduleKeys instanceof Set ? moduleKeys : new Set(moduleKeys || []);
     const type = String(industry || '').toLowerCase();
+    if (keys.has('travel_agency') || /(travel agency|visa and immigration|overseas recruitment|job placement agency|labour migration|travel and tour operator)/.test(type)) return ['travel-agency','employees','billing','settings'];
     if (keys.has('football_club_manager') || /football club|sports club/.test(type)) {
       return ['club-website-studio','football-player-network','settings'];
     }

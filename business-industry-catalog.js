@@ -14,6 +14,7 @@
     {label:"Property and rental", modules:["customers","suppliers","expenses","accounting","property","projects","services"], items:["Real estate agency","Property management company","Equipment rental business","Vehicle hire business","Event equipment rental company","Property maintenance company"]},
     {label:"Financial and administrative services", modules:["customers","expenses","employees","accounting","compliance","services"], items:["Accounting and bookkeeping firm","Insurance agency","Microfinance business","Cooperative society","Business administration service provider"]},
     {label:"Sports and local league management", modules:["sports_league","expenses","employees","accounting","customers","suppliers"], items:["Sports club / football club","Sports academy","Local / community league organiser","League / competition organiser","Sports association / federation","Sports event organiser"]},
+    {label:"Travel, visa and overseas employment services", modules:["travel_agency","customers","expenses","employees","accounting","compliance"], items:["Travel agency","Visa and immigration consultancy","Overseas recruitment / job placement agency","Labour migration facilitator","Travel and tour operator"]},
     {label:"General and multi-industry", modules:["sales_pos","inventory","purchasing","customers","suppliers","expenses","employees","accounting","services","projects"], items:["General business","Multi-industry business","Other / not listed"]}
   ];
   global.KLT_BUSINESS_INDUSTRY_GROUPS = KLT_BUSINESS_INDUSTRY_GROUPS;
