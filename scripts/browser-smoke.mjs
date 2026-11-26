@@ -340,6 +340,8 @@ async function runViewport(name, viewport) {
         const dock=document.querySelector('#wlPeDock');
         const topAlerts=document.querySelector('#wlPeAlerts');
         if(!app||!dock||!topAlerts)return {pass:false,error:'Mobile dock or top Alerts control is missing.'};
+        const wasPublic=app.classList.contains('wl-public-mode');
+        const wasAuthenticated=app.classList.contains('wl-authenticated');
         app.classList.remove('wl-public-mode');
         app.classList.add('wl-authenticated');
         const labels=[...dock.querySelectorAll('button')].map(button=>button.getAttribute('aria-label')||button.textContent.replace(/\\s+/g,' ').trim());
@@ -347,9 +349,14 @@ async function runViewport(name, viewport) {
         const dockVisible=getComputedStyle(dock).display!=='none'&&dock.getBoundingClientRect().width>0;
         const alertsOnlyAtTop=!dock.innerText.toLowerCase().includes('alerts')&&
           document.querySelectorAll('#wlPeAlerts').length===1;
-        const expected=['Overview','Sales','Stock','Menu'];
+        const expected=['Menu','Sales','Stock','Overview'];
+        const overview=dock.querySelector('[data-wl-dock="dashboard"]');
+        const menu=dock.querySelector('#wlPeDockMenu');
         const pass=dockVisible&&labels.length===4&&labels.every((label,index)=>label===expected[index])&&
-          destinations.join(',')==='dashboard,sales,inventory'&&alertsOnlyAtTop;
+          destinations.join(',')==='sales,inventory,dashboard'&&alertsOnlyAtTop&&
+          overview?.classList.contains('active')&&!menu?.classList.contains('active');
+        app.classList.toggle('wl-public-mode',wasPublic);
+        app.classList.toggle('wl-authenticated',wasAuthenticated);
         return {pass,dockVisible,labels,destinations,alertsOnlyAtTop,topAlertsVisible:getComputedStyle(topAlerts).display!=='none'};
       });
       record(result,'mobile dock shows Overview instead of duplicate Alerts and retains one top Alerts control',mobileDockCheck.pass,mobileDockCheck);
