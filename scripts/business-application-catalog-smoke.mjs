@@ -33,9 +33,9 @@ try {
       .filter(option => option.value !== '__custom__').length,
     customOption: Boolean(document.querySelector('#business_type option[value="__custom__"]'))
   }));
-  check('all 13 industry groups and 111 business types load', initial.groups === 13 &&
-    initial.catalogueTypes === 111 && initial.industryOptions === 13 &&
-    initial.businessTypeOptions === 111 && initial.customOption, initial);
+  check('all 14 industry groups and 118 business types load', initial.groups === 14 &&
+    initial.catalogueTypes === 118 && initial.industryOptions === 14 &&
+    initial.businessTypeOptions === 118 && initial.customOption, initial);
 
   await page.locator('#business_type').selectOption('Construction company');
   const construction = await page.locator('#industry_group').inputValue();
@@ -74,7 +74,7 @@ try {
   check('industry and business labels follow the French language selection',
     french.industry === 'Construction et industrie' &&
     french.business === 'Entreprise de construction' &&
-    french.searchLabel === 'Rechercher parmi les 111 types d’entreprise', french);
+    french.searchLabel === 'Rechercher parmi les 118 types d’entreprise', french);
 
   await page.locator('#language').selectOption('ar');
   const arabicDirection = await page.locator('html').getAttribute('dir');
