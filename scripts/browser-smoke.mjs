@@ -354,6 +354,35 @@ async function runViewport(name, viewport) {
       record(result, 'Android layout viewport matches device width', mobileLayout.layoutViewportMatchesScreen, mobileLayout);
     }
 
+    // Simulate the authenticated visual state to verify Workspace Tools cannot overlap Overview.
+    const workspacePanelLayout = await page.evaluate(() => {
+      const app = document.querySelector('.app');
+      const panel = document.querySelector('#wlCloudBox');
+      const view = document.querySelector('#view');
+      const footer = document.querySelector('.footer');
+      const toggle = document.querySelector('#wlWorkspaceToolsToggle');
+      if (!app || !panel || !view || !footer || !toggle) return { pass:false, error:'Required dashboard layout element is missing.' };
+      const wasPublic = app.classList.contains('wl-public-mode');
+      app.classList.remove('wl-public-mode');
+      app.classList.add('wl-authenticated');
+      panel.classList.remove('wl-tools-open');
+      toggle.click();
+      const panelRect = panel.getBoundingClientRect();
+      const viewRect = view.getBoundingClientRect();
+      const footerRect = footer.getBoundingClientRect();
+      const position = getComputedStyle(panel).position;
+      const followsFooter = Boolean(footer.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const pass = followsFooter && position === 'static' &&
+        panelRect.top >= footerRect.bottom - 1 && panelRect.top >= viewRect.bottom - 1;
+      panel.classList.remove('wl-tools-open');
+      toggle.setAttribute('aria-expanded','false');
+      app.classList.remove('wl-authenticated');
+      if (wasPublic) app.classList.add('wl-public-mode');
+      return { pass, followsFooter, position, panelTop:Math.round(panelRect.top),
+        viewBottom:Math.round(viewRect.bottom), footerBottom:Math.round(footerRect.bottom) };
+    });
+    record(result, 'Workspace Tools stays below Overview without covering it', workspacePanelLayout.pass, workspacePanelLayout);
+
     // The signed-out experience intentionally hides private workspace navigation.
     // Only authenticate when dedicated CI credentials have been configured.
     let authenticatedWorkspace = false;
