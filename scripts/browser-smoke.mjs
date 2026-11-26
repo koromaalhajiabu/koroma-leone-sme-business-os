@@ -371,15 +371,17 @@ async function runViewport(name, viewport) {
       const viewRect = view.getBoundingClientRect();
       const footerRect = footer.getBoundingClientRect();
       const position = getComputedStyle(panel).position;
-      const followsFooter = Boolean(footer.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING);
-      const pass = followsFooter && position === 'static' &&
-        panelRect.top >= footerRect.bottom - 1 && panelRect.top >= viewRect.bottom - 1;
+      const panelBeforeFooter = Boolean(panel.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING);
+      const opened = panel.classList.contains('wl-tools-open') && toggle.getAttribute('aria-expanded') === 'true';
+      const visible = getComputedStyle(panel).display !== 'none' && panelRect.width > 0 && panelRect.height > 0;
+      const pass = panelBeforeFooter && opened && visible && position === 'static' &&
+        panelRect.top >= viewRect.bottom - 1 && footerRect.top >= panelRect.bottom - 1;
       panel.classList.remove('wl-tools-open');
       toggle.setAttribute('aria-expanded','false');
       app.classList.remove('wl-authenticated');
       if (wasPublic) app.classList.add('wl-public-mode');
-      return { pass, followsFooter, position, panelTop:Math.round(panelRect.top),
-        viewBottom:Math.round(viewRect.bottom), footerBottom:Math.round(footerRect.bottom) };
+      return { pass, panelBeforeFooter, opened, visible, position, panelTop:Math.round(panelRect.top),
+        viewBottom:Math.round(viewRect.bottom), panelBottom:Math.round(panelRect.bottom), footerTop:Math.round(footerRect.top) };
     });
     record(result, 'Workspace Tools stays below Overview without covering it', workspacePanelLayout.pass, workspacePanelLayout);
 
