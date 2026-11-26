@@ -1129,7 +1129,7 @@ window.addEventListener('whiteLionCloudReady',()=>{const b=window.whiteLionCloud
 window.addEventListener('whiteLionWorkspaceChanged',e=>{const b=e.detail?.business||window.whiteLionCloud?.getActiveBusiness?.();const modules=e.detail?.modules;if(Array.isArray(modules))state.modules=modules;if(b)applyCloudBusinessProfile(b,state.modules);refreshBusinessIdentity();render()});
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>setPage(b.dataset.page)));
 window.__wlMainNavBound = true;
- document.getElementById('wlWorkspaceToolsToggle')?.addEventListener('click',()=>{const box=document.getElementById('wlCloudBox');const open=box?.classList.toggle('wl-tools-open');document.getElementById('wlWorkspaceToolsToggle')?.setAttribute('aria-expanded',String(!!open));if(open&&box){box.scrollIntoView({behavior:'smooth',block:'start'});}});
+ document.getElementById('wlWorkspaceToolsToggle')?.addEventListener('click',()=>{const box=document.getElementById('wlCloudBox');const open=box?.classList.toggle('wl-tools-open');document.getElementById('wlWorkspaceToolsToggle')?.setAttribute('aria-expanded',String(!!open));if(open){const view=document.getElementById('view');const topbar=document.querySelector('.topbar');if(view){const topbarHeight=topbar?.getBoundingClientRect().height||0;const target=view.getBoundingClientRect().top+window.scrollY-topbarHeight;window.scrollTo({top:Math.max(0,target),behavior:'auto'});}}});
 document.getElementById('menuBtn').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
 document.getElementById('closeModal').onclick=document.getElementById('cancelModal').onclick=closeModal;
 function closeModal(){document.getElementById('modalBack').classList.remove('show')}
