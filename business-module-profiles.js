@@ -36,6 +36,8 @@
       modules = ['school','employees','accounting','expenses','customers','appointments'];
     } else if (/(educational supply|bookshop and learning)/.test(type)) {
       modules = ['sales_pos','inventory','purchasing','customers','suppliers','expenses','accounting'];
+    } else if (/(football association|football federation|sports association \/ federation)/.test(type)) {
+      modules = ['sports_league','slfa_match_ops','employees','expenses','accounting','customers','suppliers'];
     } else if (/(football club|sports club)/.test(type)) {
       modules = ['football_club_manager','employees','expenses','accounting','customers','suppliers'];
     } else if (/(league|sports academy|sports association|federation|sports event|community league)/.test(type)) {
@@ -75,6 +77,7 @@
   function dashboardPages(industry, moduleKeys) {
     const keys = moduleKeys instanceof Set ? moduleKeys : new Set(moduleKeys || []);
     const type = String(industry || '').toLowerCase();
+    if (keys.has('slfa_match_ops') || /(football association|football federation|sports association \/ federation)/.test(type)) return ['slfa-match-operations','league','employees','reports-centre','settings'];
     if (keys.has('travel_agency') || /(travel agency|visa and immigration|overseas recruitment|job placement agency|labour migration|travel and tour operator)/.test(type)) return ['travel-agency','employees','billing','settings'];
     if (keys.has('football_club_manager') || /football club|sports club/.test(type)) {
       return ['club-website-studio','football-player-network','settings'];
