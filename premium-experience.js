@@ -79,7 +79,7 @@ function mobileDock(){
  const nav=$('wlPeDock')||document.createElement('nav');
  nav.id='wlPeDock';nav.className='wl-pe-dock';nav.setAttribute('aria-label','Quick navigation');
  // Alerts are shown once in the top bar. The bottom dock provides Overview, Sales, Stock and Menu.
- nav.innerHTML='<button data-wl-dock="dashboard" aria-label="Overview"><span>▦</span>Overview</button><button data-wl-dock="sales" aria-label="Sales"><span>▣</span>Sales</button><button data-wl-dock="inventory" aria-label="Stock"><span>▤</span>Stock</button><button id="wlPeDockMenu" type="button" aria-label="Menu"><span>☰</span>Menu</button>';
+ nav.innerHTML='<button id="wlPeDockMenu" type="button" aria-label="Menu"><span>☰</span>Menu</button><button data-wl-dock="sales" aria-label="Sales"><span>▣</span>Sales</button><button data-wl-dock="inventory" aria-label="Stock"><span>▤</span>Stock</button><button data-wl-dock="dashboard" aria-label="Overview"><span>▦</span>Overview</button>';
  if(!nav.isConnected)document.body.appendChild(nav);
  let currentPage='dashboard';
  const updateActive=page=>{
@@ -88,6 +88,7 @@ function mobileDock(){
    nav.querySelectorAll('[data-wl-dock]').forEach(b=>b.classList.toggle('active',b.dataset.wlDock===currentPage));
    $('wlPeDockMenu')?.classList.remove('active');
  };
+ updateActive(currentPage);
  nav.querySelectorAll('[data-wl-dock]').forEach(b=>b.onclick=()=>{
    const page=b.dataset.wlDock;
    updateActive(page);
