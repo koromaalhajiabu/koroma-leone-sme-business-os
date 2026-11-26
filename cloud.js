@@ -259,7 +259,10 @@
         <details><summary>Business modules</summary><div id="wlModules" class="muted">Select a business to view modules.</div></details>
       </div>`;
     }
-    anchor.insertAdjacentElement('afterend', box);
+    // Keep Workspace Tools below the dashboard content so it cannot cover or displace the Overview panel.
+    const dashboardView = document.querySelector('#view');
+    if (dashboardView) dashboardView.insertAdjacentElement('afterend', box);
+    else anchor.insertAdjacentElement('afterend', box);
     const dev = document.createElement('section');
     dev.id = 'wlDeveloperBox';
     dev.hidden = true;
