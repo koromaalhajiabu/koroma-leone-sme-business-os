@@ -79,7 +79,7 @@ function mobileDock(){
  const nav=document.createElement('nav');
  nav.id='wlPeDock';nav.className='wl-pe-dock';nav.setAttribute('aria-label','Quick navigation');
  // Alerts remain in the top bar as the single notifications centre. The mobile dock uses four distinct destinations.
- nav.innerHTML='<button class="active" data-wl-dock="dashboard"><span>▦</span>Overview</button><button data-wl-dock="sales"><span>▣</span>Sales</button><button data-wl-dock="inventory"><span>▤</span>Stock</button><button id="wlPeDockMenu" type="button"><span>☰</span>Menu</button>';
+ nav.innerHTML='<button class="active" data-wl-dock="dashboard" aria-label="Overview"><span>▦</span>Overview</button><button data-wl-dock="sales" aria-label="Sales"><span>▣</span>Sales</button><button data-wl-dock="inventory" aria-label="Stock"><span>▤</span>Stock</button><button id="wlPeDockMenu" type="button" aria-label="Menu"><span>☰</span>Menu</button>';
  document.body.appendChild(nav);
  let currentPage='dashboard';
  const updateActive=page=>{
