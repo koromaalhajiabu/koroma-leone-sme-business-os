@@ -1156,6 +1156,13 @@ for (const row of WL_OWNER_CONTROL_TRANSLATIONS_V1) {
   LANGS.fr.t[key] = fr; LANGS.es.t[key] = es; LANGS.ar.t[key] = ar; LANGS.hi.t[key] = hi; LANGS.zh.t[key] = zh;
 }
 
+// Owner-control centre and platform language QA: singular alert label.
+LANGS.fr.t['Alert']='Alerte';
+LANGS.es.t['Alert']='Alerta';
+LANGS.ar.t['Alert']='تنبيه';
+LANGS.hi.t['Alert']='चेतावनी';
+LANGS.zh.t['Alert']='提醒';
+
 let current='en';
 const WL_LOCALE_BY_LANGUAGE={en:'en-US',fr:'fr-FR',es:'es-ES',ar:'ar',hi:'hi-IN',zh:'zh-CN'};
 if(!window.__wlLocaleFormattingWrapped){
