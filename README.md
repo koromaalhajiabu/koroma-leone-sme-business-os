@@ -26,6 +26,17 @@ A multi-industry SME operations platform by Koroma Leone Tech. The frontend is d
 - English, French, Arabic (RTL), Spanish, Hindi and Simplified Chinese language options.
 - Responsive PWA shell, install support, service-worker caching and light/dark appearance.
 
+
+## Standalone SLFA Match Operations product
+
+Koroma Leone Tech provides a separately licensed Match Operations application for football associations. Its standalone entry point is:
+
+**https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/slfa-match-operations/**
+
+The portal is dedicated to electronic team sheets, referee and Match Commissioner reports, official assignments, report verification, evidence review and matchday compliance. It uses the existing SME OS Supabase authentication and tenant-scoped database; it has its own sign-in page and does not expose the wider SME dashboard to match officials. Public self-registration is disabled. Only approved members of a workspace with the Match Operations module enabled can enter the product, and the product licence must be active for submissions and reviews.
+
+Association competition setup, fixture data and official account onboarding are managed by authorised association administrators through the main SME Business OS. This is a separate portal URL, not a separate Supabase project. Production use requires an association-owned workspace, a signed commercial agreement, a configured licence, real staff accounts and successful acceptance testing.
+
 ## Football Club Website Studio
 
 The Football Club Website Studio is an optional business workspace tool and a central service for the Koroma Leone Tech platform developer. It manages multiple club websites from the same SME OS while keeping every club's content and enquiries scoped to that club's business workspace.
