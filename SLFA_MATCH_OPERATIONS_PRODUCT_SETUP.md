@@ -16,6 +16,17 @@ It provides:
 
 This application is separate from the public SLFA League App. It does not replace a federation's competition, registration or public-facing systems. It also does not automatically publish team sheets or reports to the public league website.
 
+
+## Standalone portal link
+
+The standalone Match Operations portal is published separately from the main SME Business OS dashboard at:
+
+**https://koromaalhajiabu.github.io/koroma-leone-sme-business-os/slfa-match-operations/**
+
+The portal has its own sign-in screen and focused match-operations workspace. It uses the existing Koroma Leone Tech Supabase project, association identities, product licence records and tenant-scoped row-level security; it does not create a second copy of association data or expose the SME OS dashboard to match officials. Public self-registration is disabled. Association accounts must be approved, added as active workspace members and assigned the correct product role before access is granted. Workspace administration, competition setup and staff onboarding remain available through the main SME Business OS.
+
+This is a separate application entry point and URL, not a separate database or custom domain. A live SLFA deployment still requires an SLFA-owned association workspace, the agreed commercial licence, named official accounts and an end-to-end acceptance pilot.
+
 ## Tenant and licence model
 
 Every association operates inside its own approved SME Business OS workspace. The records are scoped to that association's `business_id`; they are not shared between customer workspaces.
