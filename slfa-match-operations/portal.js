@@ -7,8 +7,26 @@
   const SUPABASE_KEY = 'sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
   const $ = (id) => document.getElementById(id);
   const db = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    auth: {
+      storageKey: 'klt-match-operations-auth-v1',
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
   }) : null;
+
+  if (!db) {
+    const message = document.getElementById('login-notice');
+    if (message) {
+      message.textContent = 'The secure sign-in library is unavailable. Check your connection and refresh this page.';
+      message.classList.add('error');
+    }
+    const signIn = document.getElementById('sign-in-button');
+    const reset = document.getElementById('reset-password');
+    if (signIn) signIn.disabled = true;
+    if (reset) reset.disabled = true;
+    return;
+  }
 
   let session = null;
   let activeBusiness = null;
