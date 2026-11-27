@@ -6,9 +6,9 @@
   const SUPABASE_URL = 'https://nclncqlgnxnijlumznnt.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_iPIsAysPnlvPCAoqntoNRg_dKcSZxKX';
   const $ = (id) => document.getElementById(id);
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  const db = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
+  }) : null;
 
   let session = null;
   let activeBusiness = null;
@@ -202,7 +202,7 @@
     const email = $('login-email').value.trim();
     if (!email) return notice('Enter your account email first, then select Reset password.', 'error');
     $('reset-password').disabled = true;
-    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+    const { error } = await db.auth.resetPasswordForEmail(email);
     $('reset-password').disabled = false;
     if (error) return notice(error.message || 'Password reset could not be requested.', 'error');
     notice('A password reset link has been requested. Check the email inbox for this account.', 'info');
