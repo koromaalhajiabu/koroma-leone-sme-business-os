@@ -25,7 +25,18 @@
   };
   // The shared Match Operations module sends workspace setup actions back to
   // the main SME OS, where competitions, fixtures and staff accounts are managed.
-  window.setPage = () => window.open(adminUrl, '_blank', 'noopener');
+  window.setPage = () => {
+    const role = String(activeBusiness?.role || '').toLowerCase();
+    if (!['owner', 'admin', 'manager'].includes(role)) {
+      const message = document.getElementById('slfaOpsNotice');
+      if (message) {
+        message.textContent = 'Workspace administration is restricted to association owners, administrators and managers. Your Match Operations permissions remain unchanged.';
+        message.hidden = false;
+      }
+      return;
+    }
+    window.open(adminUrl, '_blank', 'noopener');
+  };
 
   function notice(message, kind) {
     const panel = $('login-notice');
